@@ -23,15 +23,15 @@ Su objetivo es dejar listo el entorno tecnico para construir SIGO-OLLAS sin perd
 ### Backend
 
 - Express + TypeScript.
-- Prisma 7 configurado para PostgreSQL.
-- Conexion preparada con `@prisma/adapter-pg`.
+- Supabase configurado mediante `@supabase/supabase-js`.
 - Endpoint base `GET /api/health`.
+- Endpoint de chequeo de Supabase `GET /api/health/supabase`.
 
 ## Estructura rapida
 
 ```text
 frontend/   interfaz React
-backend/    API Express + Prisma
+backend/    API Express + Supabase
 README.md   documentacion tecnica completa
 docs/       documentacion corta para el equipo
 ```
@@ -43,8 +43,7 @@ docs/       documentacion corta para el equipo
 - `frontend/src/index.css`: tema y estilos globales.
 - `backend/src/server.ts`: arranque del backend.
 - `backend/src/app.ts`: rutas y middlewares base.
-- `backend/src/lib/prisma.ts`: cliente Prisma.
-- `backend/prisma/schema.prisma`: configuracion del datasource.
+- `backend/src/lib/supabase.ts`: cliente Supabase.
 
 ## Como levantar el proyecto
 
@@ -62,7 +61,6 @@ npm run dev
 cd backend
 npm install
 copy .env.example .env
-npm run prisma:generate
 npm run dev
 ```
 
@@ -71,7 +69,8 @@ npm run dev
 En `backend/.env`:
 
 ```env
-DATABASE_URL="postgresql://usuario:password@localhost:5432/sigo_ollas?schema=public"
+SUPABASE_URL="https://tu-proyecto.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="tu-service-role-key"
 PORT=4000
 ```
 
@@ -88,12 +87,7 @@ PORT=4000
 
 - Mantener `server.ts` solo para arranque.
 - Agregar rutas/controladores por modulo o dominio.
-- Si cambias el modelo de datos, editar `schema.prisma` y luego correr:
-
-```bash
-npm run prisma:migrate
-npm run prisma:generate
-```
+- Centralizar acceso a Supabase desde `src/lib/supabase.ts`.
 
 ## Cuando modificar esta base
 
@@ -110,7 +104,7 @@ No modificar la base solo para meter logica puntual de una pantalla o modulo si 
 - No subir `.env` al repositorio.
 - No mezclar infraestructura y funcionalidad en el mismo PR si se puede evitar.
 - Si cambias algo estructural, actualizar tambien el README principal.
-- Si actualizas Prisma, React, Vite o shadcn/ui, dejar documentado el motivo.
+- Si actualizas Supabase, React, Vite o shadcn/ui, dejar documentado el motivo.
 
 ## Verificacion minima
 
@@ -119,7 +113,7 @@ Antes de empezar a desarrollar, comprobar:
 1. Que el frontend levanta.
 2. Que el backend levanta.
 3. Que `GET /api/health` responde.
-4. Que `npm run prisma:generate` funciona.
+4. Que `GET /api/health/supabase` responde correctamente con variables configuradas.
 
 ## Donde seguir leyendo
 
