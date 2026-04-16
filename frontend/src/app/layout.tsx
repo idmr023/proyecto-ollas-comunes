@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/general/theme-provider";
 import AuthInitializer from "@/components/auth/auth-initializer";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "Ollas Comunes",
@@ -24,13 +25,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthInitializer>
-            {children}
-            <Toaster
-              position="top-right"
-              richColors
-            />
-          </AuthInitializer>
+          <TooltipProvider delayDuration={200}>
+            <AuthInitializer>
+              {children}
+              <Toaster
+                position="top-right"
+                richColors
+              />
+            </AuthInitializer>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
