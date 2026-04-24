@@ -38,6 +38,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/auth-store';
 
+const defaultDemoUser = {
+  name: 'OC Usuario',
+  email: 'usuario@ollascomunes.pe',
+  username: 'oc-usuario',
+};
+
 /* Nav structure */
 const navMain = [
   {
@@ -61,9 +67,13 @@ const navMain = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, clearAuth } = useAuthStore();
+  const currentUser = user ?? {
+    id: 'demo-user',
+    ...defaultDemoUser,
+  };
 
-  const userInitials = user?.name
-    ? user.name
+  const userInitials = currentUser.name
+    ? currentUser.name
         .split(' ')
         .map((n) => n[0])
         .slice(0, 2)
@@ -75,10 +85,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
 
       {/* Header - Logo */}
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3 py-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="pointer-events-none">
+            <SidebarMenuButton size="lg" className="pointer-events-none h-full">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary">
                 <UtensilsCrossed className="size-4 text-sidebar-primary-foreground" />
               </div>
@@ -152,10 +162,10 @@ export function AppSidebar() {
                   </div>
                   <div className="grid flex-1 text-left leading-tight">
                     <span className="truncate text-sm font-medium text-sidebar-foreground">
-                      {user?.name ?? 'Usuario'}
+                      {currentUser.name}
                     </span>
                     <span className="truncate text-xs text-sidebar-foreground/60">
-                      {user?.email ?? ''}
+                      {currentUser.email}
                     </span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/60" />
@@ -174,22 +184,26 @@ export function AppSidebar() {
                     </div>
                     <div className="grid flex-1 text-left leading-tight">
                       <span className="truncate text-sm font-semibold">
-                        {user?.name ?? 'Usuario'}
+                        {currentUser.name}
                       </span>
                       <span className="truncate text-xs text-muted-foreground">
-                        {user?.email ?? ''}
+                        {currentUser.email}
                       </span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 cursor-pointer">
-                  <UserCircle className="size-4" />
-                  <span>Mi perfil</span>
+                <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                  <Link href="/workspace/perfil">
+                    <UserCircle className="size-4" />
+                    <span>Mi perfil</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 cursor-pointer">
-                  <Settings className="size-4" />
-                  <span>Preferencias</span>
+                <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                  <Link href="/workspace/preferencias">
+                    <Settings className="size-4" />
+                    <span>Preferencias</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

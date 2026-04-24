@@ -21,3 +21,9 @@ export interface AuthResponse {
   message?: string;
   user?: User;
 }
+
+export interface UpdateUserInput {
+  name: string;
+  email: string;
+  username: string;
+}
