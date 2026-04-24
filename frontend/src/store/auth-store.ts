@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '@/types/auth';
+import { UpdateUserInput, User } from '@/types/auth';
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
   setAuth: (user: User) => void;
+  updateUser: (user: UpdateUserInput) => void;
   clearAuth: () => void;
   setInitialized: (val: boolean) => void;
 }
@@ -18,6 +19,20 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isInitialized: false,
       setAuth: (user: User) => set({ user, isAuthenticated: true, isInitialized: true }),
+      updateUser: (user: UpdateUserInput) =>
+        set((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                ...user,
+              }
+            : {
+                id: 'demo-user',
+                ...user,
+              },
+          isAuthenticated: true,
+          isInitialized: true,
+        })),
       clearAuth: () => set({ user: null, isAuthenticated: false, isInitialized: true }),
       setInitialized: (val: boolean) => set({ isInitialized: val }),
     }),
