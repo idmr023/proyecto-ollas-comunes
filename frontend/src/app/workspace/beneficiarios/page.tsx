@@ -1,28 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageShell } from '@/components/workspace/page-shell';
 
 export default function BeneficiariosPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold font-heading text-foreground">Beneficiarios</h1>
-        <p className="text-sm text-muted-foreground">
-          Este módulo queda listo para conectar padrón, perfiles y condiciones de salud.
-        </p>
-      </div>
-
+    <PageShell
+      title="Beneficiarios"
+      description="Padrón y seguimiento de beneficiarios."
+      width="wide"
+    >
       <Card className="border-primary/10 shadow-sm">
         <CardHeader>
           <CardTitle>Próximo paso</CardTitle>
-          <CardDescription>
-            Aquí podremos listar beneficiarios por tenant y olla común cuando el backend exponga ese módulo.
-          </CardDescription>
+          <CardDescription>Lista por organización y olla común.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm leading-6 text-muted-foreground">
-            Por ahora es una vista de referencia para evitar enlaces rotos mientras construimos el flujo real.
-          </p>
+          <p className="text-sm leading-6 text-muted-foreground">Pendiente de conectar al módulo real.</p>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

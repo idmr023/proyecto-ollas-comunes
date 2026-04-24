@@ -2,23 +2,19 @@ import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/workspace/page-shell';
 
 export default function ConfiguracionPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold font-heading text-foreground">Configuración</h1>
-        <p className="text-sm text-muted-foreground">
-          Accesos rápidos para personalizar la experiencia actual del panel.
-        </p>
-      </div>
-
+    <PageShell
+      title="Configuración"
+      description="Accesos rápidos de cuenta y apariencia."
+      width="wide"
+    >
       <Card className="border-primary/10 shadow-sm">
         <CardHeader>
           <CardTitle>Preferencias disponibles</CardTitle>
-          <CardDescription>
-            Ajusta el tema visual o revisa el perfil demo desde los módulos mínimos ya disponibles.
-          </CardDescription>
+          <CardDescription>Perfil y apariencia en una sola vista.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild>
@@ -29,6 +25,6 @@ export default function ConfiguracionPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }
