@@ -1,16 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+export const supabaseHealthcheckTable = process.env.SUPABASE_HEALTHCHECK_TABLE
 
 export const isSupabaseConfigured = Boolean(
-  supabaseUrl && supabaseServiceRoleKey,
+  supabaseUrl && supabaseSecretKey,
 )
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseServiceRoleKey!, {
+  ? createClient(supabaseUrl!, supabaseSecretKey!, {
       auth: {
         persistSession: false,
       },
     })
   : null
+
+export const getSupabaseConfigStatus = () => ({
+  isConfigured: isSupabaseConfigured,
+  hasUrl: Boolean(supabaseUrl),
+  hasSecretKey: Boolean(supabaseSecretKey),
+  healthcheckTable: supabaseHealthcheckTable || null,
+})
