@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/workspace/page-shell';
 import { useThemeStore, type Theme } from '@/store/theme-store';
 import { useTheme } from 'next-themes';
 
@@ -26,8 +27,7 @@ export default function PreferenciasPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-bold font-heading text-foreground">Preferencias</h1>
+    <PageShell title="Preferencias" width="form">
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-4">
@@ -52,6 +52,6 @@ export default function PreferenciasPage() {
           </DropdownMenu>
         </div>
       </section>
-    </div>
+    </PageShell>
   );
 }

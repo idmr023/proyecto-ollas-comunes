@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageShell } from '@/components/workspace/page-shell';
 import { useAuthStore } from '@/store/auth-store';
 
 const fallbackUser = {
@@ -30,8 +31,7 @@ export default function PerfilPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold font-heading text-foreground">Mi perfil</h1>
+    <PageShell title="Mi perfil" width="form">
 
       <Card className="border-primary/10 shadow-sm">
         <CardHeader>
@@ -59,6 +59,6 @@ export default function PerfilPage() {
       {saved ? (
         <p className="text-sm font-medium text-primary">Datos demo actualizados correctamente.</p>
       ) : null}
-    </div>
+    </PageShell>
   );
 }
