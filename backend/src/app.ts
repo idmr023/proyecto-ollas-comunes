@@ -7,11 +7,13 @@ import {
   supabase,
   supabaseHealthcheckTable,
 } from './lib/supabase'
+import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
 
 app.use(cors())
 app.use(express.json())
+app.use('/api/organizations', organizationsRouter)
 
 app.get('/', (_request, response) => {
   response.json({
