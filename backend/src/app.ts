@@ -1,7 +1,12 @@
 import cors from 'cors'
 import express from 'express'
 
-import { isSupabaseConfigured, supabase } from './lib/supabase'
+import {
+  getSupabaseConfigStatus,
+  isSupabaseConfigured,
+  supabase,
+  supabaseHealthcheckTable,
+} from './lib/supabase'
 
 const app = express()
 
@@ -28,7 +33,34 @@ app.get('/api/health/supabase', async (_request, response) => {
     response.status(500).json({
       ok: false,
       service: 'supabase',
-      message: 'SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no estan configuradas.',
+      message: 'SUPABASE_URL o SUPABASE_SECRET_KEY no estan configuradas.',
+      config: getSupabaseConfigStatus(),
+    })
+    return
+  }
+
+  if (supabaseHealthcheckTable) {
+    const { error } = await supabase
+      .from(supabaseHealthcheckTable)
+      .select('*', { count: 'exact', head: true })
+
+    if (error) {
+      response.status(503).json({
+        ok: false,
+        service: 'supabase',
+        mode: 'table',
+        table: supabaseHealthcheckTable,
+        message: error.message,
+      })
+      return
+    }
+
+    response.json({
+      ok: true,
+      service: 'supabase',
+      mode: 'table',
+      table: supabaseHealthcheckTable,
+      timestamp: new Date().toISOString(),
     })
     return
   }
@@ -39,6 +71,7 @@ app.get('/api/health/supabase', async (_request, response) => {
     response.status(503).json({
       ok: false,
       service: 'supabase',
+      mode: 'storage',
       message: error.message,
     })
     return
@@ -47,6 +80,9 @@ app.get('/api/health/supabase', async (_request, response) => {
   response.json({
     ok: true,
     service: 'supabase',
+    mode: 'storage',
+    message:
+      'Conexion valida con Supabase. Define SUPABASE_HEALTHCHECK_TABLE para validar tambien una tabla de la base.',
     timestamp: new Date().toISOString(),
   })
 })
