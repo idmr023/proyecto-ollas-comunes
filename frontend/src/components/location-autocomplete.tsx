@@ -34,11 +34,11 @@ function loadGoogleMaps(apiKey: string) {
 
 export default function LocationAutocomplete({ onSelect }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const autocompleteRef = useRef<any>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const markerRef = useRef<google.maps.Marker | null>(null)
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const markerRef = useRef<any>(null)
+  const geocoderRef = useRef<any>(null)
 
   useEffect(() => {
     let mounted = true
