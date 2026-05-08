@@ -18,11 +18,11 @@ export default function WorkspaceLayout({
 
           {/* Divider */}
           <div className="h-4 w-px bg-border" />
-          <div className="flex flex-col">
-            <span className="text-sm font-sans font-medium text-foreground">
+          <div className="flex flex-col min-w-0">
+            <span className="truncate text-sm font-sans font-medium text-foreground">
               Ollas Comunes
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="hidden sm:block text-xs text-muted-foreground">
               Plataforma de gestion comunitaria
             </span>
           </div>

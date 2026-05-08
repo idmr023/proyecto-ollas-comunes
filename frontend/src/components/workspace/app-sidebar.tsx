@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
@@ -67,6 +68,7 @@ const navMain = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, clearAuth } = useAuthStore();
+  const { setOpenMobile } = useSidebar();
   const currentUser = user ?? {
     id: 'demo-user',
     ...defaultDemoUser,
@@ -132,7 +134,7 @@ export function AppSidebar() {
                         size="default"
                         className="rounded-lg"
                       >
-                        <Link href={item.href}>
+                        <Link href={item.href} onClick={() => setOpenMobile(false)}>
                           <Icon className="shrink-0" />
                           <span>{item.title}</span>
                         </Link>
@@ -197,13 +199,13 @@ export function AppSidebar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="gap-2 cursor-pointer">
-                  <Link href="/workspace/perfil">
+                  <Link href="/workspace/perfil" onClick={() => setOpenMobile(false)}>
                     <UserCircle className="size-4" />
                     <span>Mi perfil</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="gap-2 cursor-pointer">
-                  <Link href="/workspace/preferencias">
+                  <Link href="/workspace/preferencias" onClick={() => setOpenMobile(false)}>
                     <Settings className="size-4" />
                     <span>Preferencias</span>
                   </Link>
