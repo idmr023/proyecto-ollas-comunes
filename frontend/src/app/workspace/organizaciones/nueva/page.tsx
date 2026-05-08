@@ -13,6 +13,7 @@ import {
   organizationCategoryOptions,
   OrganizationCategory,
 } from '@/types/organization';
+import LocationAutocomplete from '@/components/location-autocomplete';
 
 export default function NewOrganizationPage() {
   const router = useRouter();
@@ -20,6 +21,8 @@ export default function NewOrganizationPage() {
     name: '',
     category: organizationCategoryOptions[0] as OrganizationCategory,
     location: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
   });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +40,8 @@ export default function NewOrganizationPage() {
         name: form.name.trim(),
         category: form.category,
         location: form.location.trim(),
+        latitude: form.latitude ?? null,
+        longitude: form.longitude ?? null,
       });
 
       if (!organization) {
@@ -106,13 +111,16 @@ export default function NewOrganizationPage() {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="organization-location">Ubicacion</Label>
-            <Input
-              id="organization-location"
-              value={form.location}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, location: event.target.value }))
+            <LocationAutocomplete
+              // onSelect recibe { address, lat, lng }
+              onSelect={(v) =>
+                setForm((current) => ({
+                  ...current,
+                  location: v.address,
+                  latitude: v.lat ?? null,
+                  longitude: v.lng ?? null,
+                }))
               }
-              placeholder="Lima, Lima Norte, Lima Este..."
             />
           </div>
         </div>

@@ -8,7 +8,7 @@ import {
   toOrganization,
 } from './utils'
 
-const organizationSelect = 'id, code, name, category, location, status, created_at'
+const organizationSelect = 'id, code, name, category, location, latitude, longitude, status, created_at'
 
 export class OrganizationServiceError extends Error {
   statusCode: number
@@ -48,10 +48,18 @@ function parseOrganizationPayload(payload: unknown): OrganizationPayload {
     )
   }
 
+  const latitudeRaw = data.latitude
+  const longitudeRaw = data.longitude
+
+  const latitude = typeof latitudeRaw === 'number' ? latitudeRaw : null
+  const longitude = typeof longitudeRaw === 'number' ? longitudeRaw : null
+
   return {
     name,
     category,
     location,
+    latitude,
+    longitude,
   }
 }
 
@@ -122,6 +130,8 @@ export async function createOrganization(payload: unknown) {
       name: data.name,
       category: data.category,
       location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude,
       status: 'active',
     })
     .select(organizationSelect)
@@ -165,6 +175,8 @@ export async function updateOrganizationBySlug(slug: string, payload: unknown) {
       name: data.name,
       category: data.category,
       location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude,
     })
     .eq('id', currentOrganization.id)
     .select(organizationSelect)
