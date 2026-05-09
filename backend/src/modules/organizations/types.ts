@@ -8,6 +8,8 @@ export interface OrganizationRecord {
   name: string
   category: string
   location: string
+  latitude?: number | null
+  longitude?: number | null
   status: OrganizationDatabaseStatus
   created_at: string
 }
@@ -19,6 +21,8 @@ export interface Organization {
   name: string
   category: string
   location: string
+  latitude?: number | null
+  longitude?: number | null
   status: OrganizationStatus
   createdAt: string | null
 }
@@ -27,4 +31,6 @@ export interface OrganizationPayload {
   name: string
   category: string
   location: string
+  latitude?: number | null
+  longitude?: number | null
 }

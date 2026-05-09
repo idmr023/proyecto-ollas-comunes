@@ -73,6 +73,8 @@ export function toOrganization(record: OrganizationRecord): Organization {
     name: record.name,
     category: record.category,
     location: record.location,
+    latitude: record.latitude ?? null,
+    longitude: record.longitude ?? null,
     status: mapOrganizationStatus(record.status),
     createdAt: record.created_at ?? null,
   }
