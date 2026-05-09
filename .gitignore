@@ -11,3 +11,4 @@ backend/.env.*.local
 backend/backend-dev*.log
 .env
 .env.local
+node_modules

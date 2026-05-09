@@ -14,6 +14,8 @@ export interface Organization {
   name: string
   category: string
   location: string
+  latitude?: number | null
+  longitude?: number | null
   status: OrganizationStatus
   createdAt: string | null
 }
@@ -22,6 +24,8 @@ export interface OrganizationFormValues {
   name: string
   category: OrganizationCategory
   location: string
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export function formatOrganizationDate(value: string | null) {
