@@ -3,25 +3,53 @@ import { Organization, OrganizationFormValues, OrganizationStatus } from '@/type
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
 
+const CACHE_PREFIX = 'api-cache:'
+
 async function apiRequest<T>(path: string, init?: RequestInit) {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers ?? {}),
-    },
-    cache: 'no-store',
-  })
+  const url = `${apiBaseUrl}${path}`
+  const method = (init?.method ?? 'GET').toUpperCase()
+  const cacheKey = `${CACHE_PREFIX}${path}`
 
-  const payload = (await response.json().catch(() => null)) as
-    | { message?: string; item?: T; items?: T[] }
-    | null
+  try {
+    const response = await fetch(url, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init?.headers ?? {}),
+      },
+      cache: 'no-store',
+    })
 
-  if (!response.ok) {
-    throw new Error(payload?.message ?? 'No se pudo completar la solicitud.')
+    const payload = (await response.json().catch(() => null)) as
+      | { message?: string; item?: T; items?: T[] }
+      | null
+
+    if (!response.ok) {
+      throw new Error(payload?.message ?? 'No se pudo completar la solicitud.')
+    }
+
+    // Cache GET responses (simple localStorage cache). Use IndexedDB for production.
+    if (method === 'GET') {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), payload }))
+      } catch {}
+    }
+
+    return payload
+  } catch (err) {
+    // On network error, return cached GET if available
+    if (method === 'GET') {
+      try {
+        const cached = localStorage.getItem(cacheKey)
+        if (cached) {
+          const parsed = JSON.parse(cached) as { ts: number; payload: any }
+          return parsed.payload
+        }
+      } catch {}
+    }
+
+    throw err
   }
-
-  return payload
 }
 
 export async function listOrganizations() {
