@@ -12,3 +12,5 @@ backend/backend-dev*.log
 .env
 .env.local
 node_modules
+.vercel
+.env*.local
