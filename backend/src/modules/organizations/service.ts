@@ -71,6 +71,7 @@ async function listOrganizationRecords() {
     .order('name', { ascending: true })
 
   if (error) {
+    console.error('[organizations] supabase.list error:', error)
     throw new OrganizationServiceError(503, error.message)
   }
 
@@ -138,6 +139,7 @@ export async function createOrganization(payload: unknown) {
     .single()
 
   if (error) {
+    console.error('[organizations] supabase.insert error:', error)
     throw new OrganizationServiceError(503, error.message)
   }
 
@@ -183,6 +185,7 @@ export async function updateOrganizationBySlug(slug: string, payload: unknown) {
     .single()
 
   if (error) {
+    console.error('[organizations] supabase.update error:', error)
     throw new OrganizationServiceError(503, error.message)
   }
 
@@ -207,6 +210,7 @@ export async function updateOrganizationStatusBySlug(slug: string, status: unkno
     .single()
 
   if (error) {
+    console.error('[organizations] supabase.update status error:', error)
     throw new OrganizationServiceError(503, error.message)
   }
 
