@@ -11,7 +11,12 @@ import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
 
-app.use(cors())
+if (process.env.ALLOWED_ORIGINS) {
+  app.use(cors({ origin: process.env.ALLOWED_ORIGINS.split(',') }))
+} else {
+  app.use(cors())
+}
+
 app.use(express.json())
 app.use('/api/organizations', organizationsRouter)
 
