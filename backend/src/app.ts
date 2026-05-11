@@ -11,8 +11,27 @@ import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
 
-if (process.env.ALLOWED_ORIGINS) {
-  app.use(cors({ origin: process.env.ALLOWED_ORIGINS.split(',') }))
+const rawAllowed = process.env.ALLOWED_ORIGINS
+if (rawAllowed) {
+  const allowed = rawAllowed.split(',').map((s) => s.trim()).filter(Boolean)
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // allow non-browser requests (curl, server-to-server)
+        if (!origin) return callback(null, true)
+
+        // direct match
+        if (allowed.includes(origin)) return callback(null, true)
+
+        // allow by suffix (e.g., allow 'vercel.app' to match any preview domain)
+        for (const a of allowed) {
+          if (a && origin.endsWith(a)) return callback(null, true)
+        }
+
+        callback(new Error('Not allowed by CORS'))
+      },
+    }),
+  )
 } else {
   app.use(cors())
 }
