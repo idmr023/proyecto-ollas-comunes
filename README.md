@@ -56,3 +56,68 @@ proyecto-ollas-comunes/
 **7. Validación, Casos de Prueba y Evidencias de Despliegue**
 *   **Plataformas/Servicios:** **Vercel** (Frontend), **Render** (Backend), y **Supabase** (Capa de datos).
 *   **Lo que falta:** Elaborar plantillas de prueba estructuradas para validar requerimientos y adjuntar en el Punto 11 de tu documento las capturas de pantalla reales que demuestren que el panel de Vercel está en "Ready", la API en Render en "Live" y las tablas de Supabase operativas.
+
+Backend:
+
+```bash
+cd backend
+npm install
+copy .env.example .env
+npm run dev
+```
+
+Supabase CLI:
+
+```bash
+npx supabase --version
+npx supabase init
+npx supabase migration new initial_schema
+```
+
+## Flujo recomendado para la base de datos
+
+1. Mantener el esquema SQL dentro de `supabase/migrations/`.
+2. Convertir el SQL inicial del proyecto en la primera migracion versionada.
+3. Aplicar cambios futuros a la base mediante nuevas migraciones, no editando el esquema manualmente en la web de Supabase.
+4. Usar el panel web solo para revisar tablas, logs, storage, auth y estado del proyecto.
+
+## Archivos clave del backend
+
+- `backend/src/server.ts`: arranque.
+- `backend/src/app.ts`: rutas y middlewares.
+- `backend/src/lib/supabase.ts`: cliente Supabase y estado de configuracion.
+
+## Archivos clave de Supabase
+
+- `supabase/config.toml`: configuracion local de Supabase CLI.
+- `supabase/migrations/`: migraciones SQL versionadas del esquema.
+- `supabase/README.md`: guia corta para adoptar el proyecto remoto y cargar la migracion inicial.
+
+## Notas
+
+- Mantener la `SUPABASE_SECRET_KEY` fuera del frontend y fuera de control de versiones.
+- No usar `direct session pooler` salvo que mas adelante entren ORM o scripts SQL que realmente necesiten conexion Postgres directa.
+- En algunos entornos Windows con PowerShell restringido, puede ser necesario ejecutar npm/npx via `cmd /c`.
+
+## Estado actual de la integracion
+
+- Ya existe conexion server-side por `supabase-js` en el backend.
+- La carpeta `supabase/` ya esta inicializada en el repo.
+- La migracion inicial oficial ya vive en `supabase/migrations/20260424004514_initial_schema.sql`.
+
+## Actualizaciones - 11 de Mayo 2026
+
+### Patrón Repository (Punto 2)
+- Creada **interfaz genérica `Repository<T, ID>`** y clase abstracta `SupabaseRepository` en `backend/src/lib/repository.ts`
+- Creado **`OrganizationRepository`** en `backend/src/modules/organizations/repository.ts` con métodos `findBySlug`, `existsByName`, `findDuplicatesByName`, `getExistingCodes`
+- Creado `backend/src/modules/organizations/errors.ts` con `OrganizationServiceError`
+- **Refactorizado** `backend/src/modules/organizations/service.ts`: eliminada dependencia directa de Supabase; ahora usa `OrganizationRepository`
+- Documentado en `docs/DIAGRAMA_REPOSITORY_PATTERN.md` (diagrama de clases UML + justificación técnica)
+
+### Catálogo e Informe de Seguridad (Punto 5)
+- `docs/CATALOGO_CONTROLES_SEGURIDAD.md` — 24 controles de seguridad mapeados contra ISO 27001:2022, OWASP Top 10 (2021) y NIST SP 800-53
+- `docs/INFORME_SEGURIDAD_CIFRADO.md` — TLS 1.3, bcrypt, AES-256/pgcrypto, JWT, RLS, RBAC, tabla `audit_logs`, trazabilidad de sesiones
+
+### Diseño y Administración de Base de Datos (Punto 6)
+- `docs/DISENO_FISICO_BD.md` — Diagrama entidad-relación, diccionario completo de las 20 tablas con tipos, constraints e índices
+- `docs/INFORME_ADMINISTRACION_REPLICACION.md` — Streaming Replication asíncrona vía WAL, backups PITR, RPO < 5min / RTO < 30min, plan de contingencia

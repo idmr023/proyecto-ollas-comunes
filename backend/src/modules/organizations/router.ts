@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
+import { OrganizationServiceError } from './errors'
 import {
-  OrganizationServiceError,
   createOrganization,
   getOrganizationBySlug,
   listOrganizations,
