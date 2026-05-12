@@ -1,5 +1,6 @@
-import { isSupabaseConfigured, supabase } from '../../lib/supabase'
-import { Organization, OrganizationPayload, OrganizationRecord } from './types'
+import { OrganizationServiceError } from './errors'
+import { Organization, OrganizationPayload } from './types'
+import { organizationRepository } from './repository'
 import {
   buildOrganizationSlug,
   buildUniqueOrganizationCode,
@@ -7,29 +8,6 @@ import {
   sanitizeOrganizationText,
   toOrganization,
 } from './utils'
-
-const organizationSelect = 'id, code, name, category, location, latitude, longitude, status, created_at'
-
-export class OrganizationServiceError extends Error {
-  statusCode: number
-
-  constructor(statusCode: number, message: string) {
-    super(message)
-    this.name = 'OrganizationServiceError'
-    this.statusCode = statusCode
-  }
-}
-
-function getSupabaseClient() {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new OrganizationServiceError(
-      500,
-      'SUPABASE_URL o SUPABASE_SECRET_KEY no estan configuradas.',
-    )
-  }
-
-  return supabase
-}
 
 function parseOrganizationPayload(payload: unknown): OrganizationPayload {
   if (!payload || typeof payload !== 'object') {
@@ -54,165 +32,97 @@ function parseOrganizationPayload(payload: unknown): OrganizationPayload {
   const latitude = typeof latitudeRaw === 'number' ? latitudeRaw : null
   const longitude = typeof longitudeRaw === 'number' ? longitudeRaw : null
 
-  return {
-    name,
-    category,
-    location,
-    latitude,
-    longitude,
-  }
+  return { name, category, location, latitude, longitude }
 }
 
-async function listOrganizationRecords() {
-  const client = getSupabaseClient()
-  const { data, error } = await client
-    .from('tenants')
-    .select(organizationSelect)
-    .order('name', { ascending: true })
-
-  if (error) {
-    console.error('[organizations] supabase.list error:', error)
-    throw new OrganizationServiceError(503, error.message)
-  }
-
-  return (data ?? []) as OrganizationRecord[]
+export async function listOrganizations(): Promise<Organization[]> {
+  const records = await organizationRepository.findAll()
+  return records.map(toOrganization)
 }
 
-async function findOrganizationRecordBySlug(slug: string) {
-  const organizationRecords = await listOrganizationRecords()
-  return (
-    organizationRecords.find(
-      (organization) => buildOrganizationSlug(organization.name) === slug,
-    ) ?? null
-  )
-}
+export async function getOrganizationBySlug(slug: string): Promise<Organization> {
+  const record = await organizationRepository.findBySlug(slug)
 
-export async function listOrganizations() {
-  const organizationRecords = await listOrganizationRecords()
-  return organizationRecords.map(toOrganization)
-}
-
-export async function getOrganizationBySlug(slug: string) {
-  const organizationRecord = await findOrganizationRecordBySlug(slug)
-
-  if (!organizationRecord) {
+  if (!record) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
-  return toOrganization(organizationRecord)
+  return toOrganization(record)
 }
 
-export async function createOrganization(payload: unknown) {
-  const client = getSupabaseClient()
+export async function createOrganization(payload: unknown): Promise<Organization> {
   const data = parseOrganizationPayload(payload)
-  const organizationRecords = await listOrganizationRecords()
-  const nextSlug = buildOrganizationSlug(data.name)
 
-  if (
-    organizationRecords.some(
-      (organization) => buildOrganizationSlug(organization.name) === nextSlug,
-    )
-  ) {
+  const exists = await organizationRepository.existsByName(data.name)
+  if (exists) {
     throw new OrganizationServiceError(
       409,
       'Ya existe una organizacion con un nombre equivalente.',
     )
   }
 
-  const code = buildUniqueOrganizationCode(
-    data.name,
-    organizationRecords.map((organization) => organization.code),
-  )
+  const existingCodes = await organizationRepository.getExistingCodes()
+  const code = buildUniqueOrganizationCode(data.name, existingCodes)
 
-  const { data: createdOrganization, error } = await client
-    .from('tenants')
-    .insert({
-      code,
-      name: data.name,
-      category: data.category,
-      location: data.location,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      status: 'active',
-    })
-    .select(organizationSelect)
-    .single()
+  const record = await organizationRepository.create({
+    code,
+    name: data.name,
+    category: data.category,
+    location: data.location,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    status: 'active',
+  })
 
-  if (error) {
-    console.error('[organizations] supabase.insert error:', error)
-    throw new OrganizationServiceError(503, error.message)
-  }
-
-  return toOrganization(createdOrganization as OrganizationRecord)
+  return toOrganization(record)
 }
 
-export async function updateOrganizationBySlug(slug: string, payload: unknown) {
-  const client = getSupabaseClient()
-  const currentOrganization = await findOrganizationRecordBySlug(slug)
+export async function updateOrganizationBySlug(slug: string, payload: unknown): Promise<Organization> {
+  const current = await organizationRepository.findBySlug(slug)
 
-  if (!currentOrganization) {
+  if (!current) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
   const data = parseOrganizationPayload(payload)
-  const nextSlug = buildOrganizationSlug(data.name)
-  const organizationRecords = await listOrganizationRecords()
 
-  if (
-    organizationRecords.some(
-      (organization) =>
-        organization.id !== currentOrganization.id &&
-        buildOrganizationSlug(organization.name) === nextSlug,
-    )
-  ) {
+  const hasDuplicate = await organizationRepository.findDuplicatesByName(current.id, data.name)
+  if (hasDuplicate) {
     throw new OrganizationServiceError(
       409,
       'Ya existe una organizacion con un nombre equivalente.',
     )
   }
 
-  const { data: updatedOrganization, error } = await client
-    .from('tenants')
-    .update({
-      name: data.name,
-      category: data.category,
-      location: data.location,
-      latitude: data.latitude,
-      longitude: data.longitude,
-    })
-    .eq('id', currentOrganization.id)
-    .select(organizationSelect)
-    .single()
+  const updated = await organizationRepository.update(current.id, {
+    name: data.name,
+    category: data.category,
+    location: data.location,
+    latitude: data.latitude,
+    longitude: data.longitude,
+  })
 
-  if (error) {
-    console.error('[organizations] supabase.update error:', error)
-    throw new OrganizationServiceError(503, error.message)
+  if (!updated) {
+    throw new OrganizationServiceError(500, 'Error al actualizar la organizacion.')
   }
 
-  return toOrganization(updatedOrganization as OrganizationRecord)
+  return toOrganization(updated)
 }
 
-export async function updateOrganizationStatusBySlug(slug: string, status: unknown) {
-  const client = getSupabaseClient()
-  const currentOrganization = await findOrganizationRecordBySlug(slug)
+export async function updateOrganizationStatusBySlug(slug: string, status: unknown): Promise<Organization> {
+  const current = await organizationRepository.findBySlug(slug)
 
-  if (!currentOrganization) {
+  if (!current) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
-  const { data: updatedOrganization, error } = await client
-    .from('tenants')
-    .update({
-      status: mapDatabaseStatus(status),
-    })
-    .eq('id', currentOrganization.id)
-    .select(organizationSelect)
-    .single()
+  const updated = await organizationRepository.update(current.id, {
+    status: mapDatabaseStatus(status),
+  })
 
-  if (error) {
-    console.error('[organizations] supabase.update status error:', error)
-    throw new OrganizationServiceError(503, error.message)
+  if (!updated) {
+    throw new OrganizationServiceError(500, 'Error al actualizar el estado de la organizacion.')
   }
 
-  return toOrganization(updatedOrganization as OrganizationRecord)
+  return toOrganization(updated)
 }
