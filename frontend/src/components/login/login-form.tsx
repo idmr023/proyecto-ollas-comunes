@@ -22,7 +22,7 @@ const loginSchema = z.object({
   password: z
     .string()
     .min(1, 'La contraseña es requerida')
-    .min(6, 'Mínimo 6 caracteres'),
+    .min(6, 'Contraseña incorrecta'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -69,7 +69,7 @@ export function LoginForm() {
       
     } catch {
       setIsLoading(false);
-      toast.error('Credenciales incorrectas. Intenta de nuevo.');
+      toast.error('Usuario o contraseña incorrectos.');
     }
     // NOTA: No se usa finally para poner isLoading en false
     // para que el botón siga cargando hasta que termine la navegación.
