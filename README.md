@@ -27,76 +27,32 @@ proyecto-ollas-comunes/
 - `GET /api/health`
 - `GET /api/health/supabase`
 
-## Variables de entorno backend
+# Faltantes
 
-Archivo: `backend/.env`
+**1. Diseño Lógico de la Base de Datos**
+*   **Plataformas/Servicios:** **Lucidchart** u otra herramienta de modelado.
+*   **Lo que falta:** Elaborar el Modelo de Entidad-Relación (DER) de alto nivel e insertarlo en la sección 8.1 antes de tu diagrama físico.
 
-```env
-SUPABASE_URL="https://tu-proyecto.supabase.co"
-SUPABASE_SECRET_KEY="tu-secret-key"
-SUPABASE_HEALTHCHECK_TABLE="tenants"
-PORT=4000
-```
+**2. Evidencias de Monitoreo y Administración**
+*   **Plataformas/Servicios:** **Grafana** o **Datadog**, y extensiones nativas de **PostgreSQL** (`pg_buffercache` y `pgstattuple`).
+*   **Lo que falta:** Detallar en el informe que se usarán estas herramientas visuales para monitorear el ratio de aciertos de la memoria RAM y detectar la inflación de tuplas muertas en la base de datos.
 
-- `SUPABASE_SECRET_KEY` se usa solo en backend.
-- `SUPABASE_HEALTHCHECK_TABLE` es opcional.
-  Si se define, `GET /api/health/supabase` valida una tabla real de la base.
-  Si no se define, el health verifica conectividad general a Supabase via Storage.
+**3. Patrón de Acceso a Datos y Middleware (Prisma ya está añadido)**
+*   **Plataformas/Servicios:** **Supavisor** (Connection Pooler de Supabase), **RabbitMQ** (Event Bus), y **Node.js/Express** (API Gateway).
+*   **Lo que falta:** Mencionar que la comunicación asíncrona se gestionará con colas de mensajes en **RabbitMQ**, y explicar que **Supavisor** actuará como un proxy intermediario (*connection pooler*) para balancear y enrutar las peticiones, evitando que el backend en Express agote el límite físico de conexiones de la base de datos.
 
-## Comandos utiles
+**4. Evidencias de Código y Script SQL (Anexos A y B)**
+*   **Plataformas/Servicios:** Código fuente de tu proyecto (**Node.js/React**) y el motor **PostgreSQL/Supabase**.
+*   **Lo que falta:** Pegar el código real de tu clase "Repository" en el **Anexo B**. Además, colocar todo tu script SQL en el **Anexo A**, evidenciando la creación de tus tablas, y de forma muy importante, la tabla inmutable `audit_logs` con sus *triggers* pasivos configurados para guardar información forense en JSONB.
 
-Frontend:
+**5. Módulo de Autenticación y Autorización Implementado**
+*   **Plataformas/Servicios:** **Supabase Auth**, tokens **JWT**, y el cliente web en **React/Next.js**.
+*   **Lo que falta:** Ya tienes los prototipos, pero debes incluir **capturas de pantalla del sistema real funcionando**, explicar la gestión segura de las sesiones con los tokens JWT y poner el enlace a tu código fuente de este módulo.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+**6. Pruebas de Seguridad Web**
+*   **Plataformas/Servicios:** **Kali Linux**.
+*   **Lo que falta:** Ejecutar una herramienta de *pen testing* y escaneo de vulnerabilidades, detallar qué problemas encontraste (y cómo mitigarlos) y adjuntar este reporte automatizado en el **Anexo D** de tu informe.
 
-Backend:
-
-```bash
-cd backend
-npm install
-copy .env.example .env
-npm run dev
-```
-
-Supabase CLI:
-
-```bash
-npx supabase --version
-npx supabase init
-npx supabase migration new initial_schema
-```
-
-## Flujo recomendado para la base de datos
-
-1. Mantener el esquema SQL dentro de `supabase/migrations/`.
-2. Convertir el SQL inicial del proyecto en la primera migracion versionada.
-3. Aplicar cambios futuros a la base mediante nuevas migraciones, no editando el esquema manualmente en la web de Supabase.
-4. Usar el panel web solo para revisar tablas, logs, storage, auth y estado del proyecto.
-
-## Archivos clave del backend
-
-- `backend/src/server.ts`: arranque.
-- `backend/src/app.ts`: rutas y middlewares.
-- `backend/src/lib/supabase.ts`: cliente Supabase y estado de configuracion.
-
-## Archivos clave de Supabase
-
-- `supabase/config.toml`: configuracion local de Supabase CLI.
-- `supabase/migrations/`: migraciones SQL versionadas del esquema.
-- `supabase/README.md`: guia corta para adoptar el proyecto remoto y cargar la migracion inicial.
-
-## Notas
-
-- Mantener la `SUPABASE_SECRET_KEY` fuera del frontend y fuera de control de versiones.
-- No usar `direct session pooler` salvo que mas adelante entren ORM o scripts SQL que realmente necesiten conexion Postgres directa.
-- En algunos entornos Windows con PowerShell restringido, puede ser necesario ejecutar npm/npx via `cmd /c`.
-
-## Estado actual de la integracion
-
-- Ya existe conexion server-side por `supabase-js` en el backend.
-- La carpeta `supabase/` ya esta inicializada en el repo.
-- La migracion inicial oficial ya vive en `supabase/migrations/20260424004514_initial_schema.sql`.
+**7. Validación, Casos de Prueba y Evidencias de Despliegue**
+*   **Plataformas/Servicios:** **Vercel** (Frontend), **Render** (Backend), y **Supabase** (Capa de datos).
+*   **Lo que falta:** Elaborar plantillas de prueba estructuradas para validar requerimientos y adjuntar en el Punto 11 de tu documento las capturas de pantalla reales que demuestren que el panel de Vercel está en "Ready", la API en Render en "Live" y las tablas de Supabase operativas.
