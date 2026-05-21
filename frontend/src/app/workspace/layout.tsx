@@ -1,3 +1,4 @@
+import AuthGuard from '@/components/auth/auth-guard'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/workspace/app-sidebar';
 
@@ -7,6 +8,7 @@ export default function WorkspaceLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <AuthGuard>
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
 
@@ -34,5 +36,6 @@ export default function WorkspaceLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </AuthGuard>
   );
 }

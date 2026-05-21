@@ -1,19 +1,33 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useAuthStore } from '@/store/auth-store';
+import { useEffect, useRef } from 'react'
+import { useAuthStore } from '@/store/auth-store'
+import { getMeRequest } from '@/lib/auth-api'
 
 export default function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const setInitialized = useAuthStore((s) => s.setInitialized);
+  const ran = useRef(false)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
+  const setInitialized = useAuthStore((s) => s.setInitialized)
 
   useEffect(() => {
-    // Al ser una Demo, no necesitamos validar JWTs ni cookies de sesión en este componente.
-    // Zustand usa 'persist' para mantener el estado del usuario; marcamos como inicializado.
-    setInitialized(true);
-  }, [setInitialized]);
+    if (ran.current) return
+    ran.current = true
 
-  // Usar React Fragment en vez de un div con opacity previene que Next.js App Router 
-  // se quede colgado en estado "loading" durante la navegación Back/Forward y previene
-  // el error de "Router action dispatched before initialization" de manera nativa.
-  return <>{children}</>;
+    const stored = useAuthStore.getState()
+
+    if (stored.token && stored.isAuthenticated) {
+      getMeRequest(stored.token).then((res) => {
+        if (res.ok && res.user) {
+          setAuth(res.user, stored.token!)
+        } else {
+          clearAuth()
+        }
+      })
+    } else {
+      setInitialized(true)
+    }
+  }, [setAuth, clearAuth, setInitialized])
+
+  return <>{children}</>
 }

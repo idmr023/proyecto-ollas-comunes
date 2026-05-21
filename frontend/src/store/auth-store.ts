@@ -1,48 +1,39 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { UpdateUserInput, User } from '@/types/auth';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { User } from '@/types/auth'
 
 interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isInitialized: boolean;
-  setAuth: (user: User) => void;
-  updateUser: (user: UpdateUserInput) => void;
-  clearAuth: () => void;
-  setInitialized: (val: boolean) => void;
+  user: User | null
+  token: string | null
+  isAuthenticated: boolean
+  isInitialized: boolean
+  setAuth: (user: User, token: string) => void
+  setToken: (token: string) => void
+  clearAuth: () => void
+  setInitialized: (val: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       isInitialized: false,
-      setAuth: (user: User) => set({ user, isAuthenticated: true, isInitialized: true }),
-      updateUser: (user: UpdateUserInput) =>
-        set((state) => ({
-          user: state.user
-            ? {
-                ...state.user,
-                ...user,
-              }
-            : {
-                id: 'demo-user',
-                ...user,
-              },
-          isAuthenticated: true,
-          isInitialized: true,
-        })),
-      clearAuth: () => set({ user: null, isAuthenticated: false, isInitialized: true }),
+      setAuth: (user, token) =>
+        set({ user, token, isAuthenticated: true, isInitialized: true }),
+      setToken: (token) => set({ token }),
+      clearAuth: () =>
+        set({ user: null, token: null, isAuthenticated: false, isInitialized: true }),
       setInitialized: (val: boolean) => set({ isInitialized: val }),
     }),
     {
       name: 'auth-storage',
-      // No persistimos isInitialized para forzar el chequeo en cada carga de página
       partialize: (state) => ({
         user: state.user,
+        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
-);
+    },
+  ),
+)

@@ -1,25 +1,18 @@
-import { SupabaseRepository } from '../../lib/repository'
+import { prisma } from '../../lib/prisma'
 import { OrganizationRecord } from './types'
 import { buildOrganizationSlug } from './utils'
 
-const organizationSelect = 'id, code, name, category, location, latitude, longitude, status, created_at'
+export class OrganizationRepository {
+  async findAll(): Promise<OrganizationRecord[]> {
+    const rows = await prisma.tenant.findMany({
+      orderBy: { name: 'asc' },
+    })
+    return rows.map(this.toRecord)
+  }
 
-export class OrganizationRepository extends SupabaseRepository<OrganizationRecord, string> {
-  protected tableName = 'tenants'
-  protected selectColumns = organizationSelect
-
-  protected toDomain(row: Record<string, unknown>): OrganizationRecord {
-    return {
-      id: row.id as string,
-      code: row.code as string,
-      name: row.name as string,
-      category: row.category as string,
-      location: row.location as string,
-      latitude: row.latitude as number | null | undefined,
-      longitude: row.longitude as number | null | undefined,
-      status: row.status as 'active' | 'inactive',
-      created_at: row.created_at as string,
-    }
+  async findById(id: string): Promise<OrganizationRecord | null> {
+    const row = await prisma.tenant.findUnique({ where: { id } })
+    return row ? this.toRecord(row) : null
   }
 
   async findBySlug(slug: string): Promise<OrganizationRecord | null> {
@@ -43,17 +36,78 @@ export class OrganizationRepository extends SupabaseRepository<OrganizationRecor
   }
 
   async getExistingCodes(): Promise<string[]> {
-    const client = this.getClient()
-    const { data, error } = await client
-      .from(this.tableName)
-      .select('code')
+    const rows = await prisma.tenant.findMany({ select: { code: true } })
+    return rows.map((r) => r.code)
+  }
 
-    if (error) {
-      console.error('[OrganizationRepository] getExistingCodes error:', error)
-      throw error
+  async create(data: {
+    code: string
+    name: string
+    category: string
+    location: string
+    latitude?: number | null
+    longitude?: number | null
+    status?: string
+  }): Promise<OrganizationRecord> {
+    const row = await prisma.tenant.create({
+      data: {
+        code: data.code,
+        name: data.name,
+        category: data.category,
+        location: data.location,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
+        status: data.status ?? 'active',
+      },
+    })
+    return this.toRecord(row)
+  }
+
+  async update(
+    id: string,
+    data: Partial<{
+      name: string
+      category: string
+      location: string
+      latitude: number | null
+      longitude: number | null
+      status: string
+    }>,
+  ): Promise<OrganizationRecord | null> {
+    const row = await prisma.tenant.update({
+      where: { id },
+      data,
+    })
+    return this.toRecord(row)
+  }
+
+  async delete(id: string): Promise<boolean> {
+    await prisma.tenant.delete({ where: { id } })
+    return true
+  }
+
+  private toRecord(row: {
+    id: string
+    code: string
+    name: string
+    category: string
+    location: string
+    latitude: number | null
+    longitude: number | null
+    status: string
+    createdAt: Date
+  }): OrganizationRecord {
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      category: row.category,
+      location: row.location,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      status: row.status as 'active' | 'inactive',
+      created_at: row.createdAt.toISOString(),
     }
-
-    return (data ?? []).map((r: unknown) => (r as { code: string }).code)
   }
 }
 

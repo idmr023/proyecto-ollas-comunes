@@ -5,6 +5,19 @@ const apiBaseUrl =
 
 const CACHE_PREFIX = 'api-cache:'
 
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed.state?.token) {
+        return { Authorization: `Bearer ${parsed.state.token}` }
+      }
+    }
+  } catch {}
+  return {}
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit) {
   const url = `${apiBaseUrl}${path}`
   const method = (init?.method ?? 'GET').toUpperCase()
@@ -15,6 +28,7 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
       ...init,
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
         ...(init?.headers ?? {}),
       },
       cache: 'no-store',
@@ -25,10 +39,18 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
       | null
 
     if (!response.ok) {
+      if (response.status === 401) {
+        try {
+          const store = JSON.parse(localStorage.getItem('auth-storage') ?? '{}')
+          if (store.state?.isAuthenticated) {
+            localStorage.removeItem('auth-storage')
+            window.location.href = '/login'
+          }
+        } catch {}
+      }
       throw new Error(payload?.message ?? 'No se pudo completar la solicitud.')
     }
 
-    // Cache GET responses (simple localStorage cache). Use IndexedDB for production.
     if (method === 'GET') {
       try {
         localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), payload }))
@@ -37,7 +59,6 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
 
     return payload
   } catch (err) {
-    // On network error, return cached GET if available
     if (method === 'GET') {
       try {
         const cached = localStorage.getItem(cacheKey)

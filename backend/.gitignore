@@ -5,3 +5,5 @@ dist
 .env
 .env.local
 .env.*.local
+
+# Prisma (generated client goes to node_modules/.prisma/client, already covered above)
