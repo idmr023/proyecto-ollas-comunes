@@ -1,29 +1,43 @@
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  username: string;
+  id: string
+  email: string
+  fullName: string
+  role: string
+  tenantId: string
+  tenantName: string
 }
 
 export interface JWTPayload {
-  unique_name: string;
-  nameid: string;
-  email: string;
-  upn: string;
-  nbf: number;
-  exp: number;
-  iat: number;
+  userId: string
+  email: string
+  tenantId: string
+  role: string
+  fullName: string
+  exp: number
+  iat: number
 }
 
 export interface AuthResponse {
-  success: boolean;
-  token?: string;
-  message?: string;
-  user?: User;
+  ok: boolean
+  token?: string
+  user?: User
+  message?: string
+}
+
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export interface RegisterInput {
+  email: string
+  password: string
+  fullName: string
+  tenantId: string
+  role?: string
 }
 
 export interface UpdateUserInput {
-  name: string;
-  email: string;
-  username: string;
+  fullName?: string
+  email?: string
 }

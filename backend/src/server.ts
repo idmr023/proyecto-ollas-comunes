@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import { app } from './app'
 import { getSupabaseConfigStatus } from './lib/supabase'
+import { isPrismaConfigured } from './lib/prisma'
 
 const port = Number(process.env.PORT ?? 4000)
 const host = process.env.HOST ?? '0.0.0.0'
@@ -12,7 +13,8 @@ app.listen(port, host, () => {
   console.log(`SIGO-OLLAS backend listening on ${publicUrl}`)
   try {
     console.log('supabase config:', getSupabaseConfigStatus())
+    console.log('prisma configured:', isPrismaConfigured())
   } catch (err) {
-    console.error('failed to read supabase config status', err)
+    console.error('failed to read config status', err)
   }
 })
