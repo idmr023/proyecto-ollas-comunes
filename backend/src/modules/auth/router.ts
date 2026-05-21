@@ -10,7 +10,12 @@ function handleError(error: unknown, response: Response) {
     response.status(error.statusCode).json({ ok: false, message: error.message })
     return
   }
-  response.status(500).json({ ok: false, message: 'Error interno del servidor.' })
+  console.error('[auth] Error inesperado:', error)
+  response.status(500).json({
+    ok: false,
+    message: 'Error interno del servidor.',
+    ...(process.env.NODE_ENV !== 'production' ? { detail: String(error) } : {}),
+  })
 }
 
 authRouter.post('/login', async (request, response) => {
