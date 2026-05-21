@@ -37,9 +37,9 @@ proyecto-ollas-comunes/
 *   **Plataformas/Servicios:** **Grafana** o **Datadog**, y extensiones nativas de **PostgreSQL** (`pg_buffercache` y `pgstattuple`).
 *   **Lo que falta:** Detallar en el informe que se usarán estas herramientas visuales para monitorear el ratio de aciertos de la memoria RAM y detectar la inflación de tuplas muertas en la base de datos.
 
-**3. Patrón de Acceso a Datos y Middleware**
-*   **Plataformas/Servicios:** Prisma (ORM / Cliente de Base de Datos), **Supavisor** (Connection Pooler de Supabase), y **Node.js/Express** (API Gateway).
-*   **Lo que falta:** Mencionar que la comunicación asíncrona se gestionará con colas de mensajes en **RabbitMQ**, y explicar que **Supavisor** actuará como un proxy intermediario (*connection pooler*) para balancear y enrutar las peticiones, evitando que el backend en Express agote el límite físico de conexiones de la base de datos.
+**3. Patrón de Acceso a Datos y Middleware** 
+*   **Plataformas/Servicios:** Prisma (ORM / Cliente de Base de Datos), **Supavisor** (Connection Pooler de Supabase), y **Node.js/Express** (API Gateway). ✅ 
+*   **Lo que falta:** Explicar que **Supavisor** actuará como un proxy intermediario (*connection pooler*) para balancear y enrutar las peticiones, evitando que el backend en Express agote el límite físico de conexiones de la base de datos. ✅ 
 
 **4. Evidencias de Código y Script SQL (Anexos A y B)**
 *   **Plataformas/Servicios:** Código fuente de tu proyecto (**Node.js/React**) y el motor **PostgreSQL/Supabase**.
