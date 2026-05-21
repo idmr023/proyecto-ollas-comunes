@@ -133,8 +133,8 @@ Verificar:
 *   **Lo que falta:** Pegar el código real de tu clase "Repository" en el **Anexo B**. Además, colocar todo tu script SQL en el **Anexo A**, evidenciando la creación de tus tablas, y de forma muy importante, la tabla inmutable `audit_logs` con sus *triggers* pasivos configurados para guardar información forense en JSONB.
 
 **5. Módulo de Autenticación y Autorización Implementado**
-*   **Plataformas/Servicios:** **Supabase Auth**, tokens **JWT**, y el cliente web en **React/Next.js**.
-*   **Lo que falta:** Ya tienes los prototipos, pero debes incluir **capturas de pantalla del sistema real funcionando**, explicar la gestión segura de las sesiones con los tokens JWT y poner el enlace a tu código fuente de este módulo.
+*   **Plataformas/Servicios:** **Supabase Auth**, tokens **JWT**, y el cliente web en **React/Next.js**. ✅
+*   **Lo que falta:** Ya tienes los prototipos, pero debes incluir **capturas de pantalla del sistema real funcionando**, explicar la gestión segura de las sesiones con los tokens JWT y poner el enlace a tu código fuente de este módulo. ✅
 
 **6. Pruebas de Seguridad Web**
 *   **Plataformas/Servicios:** **Kali Linux**.
