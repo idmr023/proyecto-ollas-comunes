@@ -43,37 +43,35 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  /* Demo stub — replace with real API call when backend is ready */
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Paso 1: Simulación de verificación de cuenta
-      await new Promise((r) => setTimeout(r, 600));
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.email, password: data.password }),
+        },
+      )
 
-      // Pequeño retraso para UX antes de iniciar sesión
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const json = await res.json()
 
-      // Paso 3: Inicialización de sesión
-      setAuth({
-        id: '1',
-        name: 'Admin Demo',
-        email: data.email,
-        username: data.email.split('@')[0],
-      });
-      toast.success('Sesión iniciada correctamente');
-      
-      // Paso 4: Finalizar y usar router.replace para no quedar atascado al usar 'Atrás'
+      if (!json.ok || !json.token || !json.user) {
+        throw new Error(json.message ?? 'Credenciales invalidas.')
+      }
+
+      setAuth(json.user, json.token)
+      toast.success('Sesión iniciada correctamente')
+
       setTimeout(() => {
-        router.replace('/workspace/home');
-      }, 1200);
-      
-    } catch {
-      setIsLoading(false);
-      toast.error('Usuario o contraseña incorrectos.');
+        router.replace('/workspace/home')
+      }, 1200)
+    } catch (err) {
+      setIsLoading(false)
+      toast.error(err instanceof Error ? err.message : 'Error al iniciar sesion.')
     }
-    // NOTA: No se usa finally para poner isLoading en false
-    // para que el botón siga cargando hasta que termine la navegación.
-  };
+  }
 
   return (
     /* ── Full-screen split container ── */

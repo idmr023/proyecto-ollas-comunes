@@ -7,6 +7,9 @@ import {
   supabase,
   supabaseHealthcheckTable,
 } from './lib/supabase'
+import { prisma, isPrismaConfigured } from './lib/prisma'
+import { requireAuth } from './lib/middleware/auth'
+import { authRouter } from './modules/auth/router'
 import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
@@ -37,7 +40,8 @@ if (rawAllowed) {
 }
 
 app.use(express.json())
-app.use('/api/organizations', organizationsRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/organizations', requireAuth, organizationsRouter)
 
 app.get('/', (_request, response) => {
   response.json({
@@ -52,6 +56,32 @@ app.get('/api/health', (_request, response) => {
     service: 'backend',
     timestamp: new Date().toISOString(),
   })
+})
+
+app.get('/api/health/prisma', async (_request, response) => {
+  if (!isPrismaConfigured()) {
+    response.status(500).json({
+      ok: false,
+      service: 'prisma',
+      message: 'DATABASE_URL no esta configurada.',
+    })
+    return
+  }
+
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    response.json({
+      ok: true,
+      service: 'prisma',
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    response.status(503).json({
+      ok: false,
+      service: 'prisma',
+      message: error instanceof Error ? error.message : 'Error de conexion con Prisma',
+    })
+  }
 })
 
 app.get('/api/health/supabase', async (_request, response) => {

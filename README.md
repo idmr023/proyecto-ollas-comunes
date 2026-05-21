@@ -1,35 +1,115 @@
-# SIGO-OLLAS
+# SIGO-OLLAS — Sistema de Gestión de Ollas Comunes
 
-Base tecnica inicial del proyecto, pensada para que el equipo construya sobre una estructura estable sin acoplar aun logica de negocio.
+> **Proyecto colaborativo** — Presentación al equipo de desarrollo
 
-Onboarding rapido del equipo: ver [docs/ONBOARDING.md](docs/ONBOARDING.md).
+---
 
-## Estructura actual
+## Qué es SIGO-OLLAS
 
-```text
+SIGO-OLLAS es un **Sistema de Gestión de Ollas Comunes** diseñado para digitalizar y optimizar la administración de sopas comunitarias en Perú. El sistema permite gestionar organizaciones, ollas comunes, beneficiarios, inventarios, recetas, menús, entregas de comida y generar recomendaciones inteligentes para mejorar la operación diaria.
+
+### Problemática que resolvemos
+
+Las ollas comunes enfrentan desafíos en:
+- Registro y seguimiento de beneficiarios
+- Control de inventario de insumos
+- Planificación de menús y recetas
+- Trazabilidad de entregas de comida
+- Coordinación entre organizaciones y distritos
+
+SIGO-OLLAS centraliza toda esta gestión en una plataforma web accesible y fácil de usar.
+
+---
+
+## Arquitectura del Proyecto
+
+```
 proyecto-ollas-comunes/
-  frontend/  -> Next.js + TypeScript + Tailwind v4 + shadcn/ui
-  backend/   -> Express + TypeScript + Supabase
-  supabase/  -> config local y migraciones SQL versionadas
-  README.md
+├── frontend/          → Next.js + TypeScript + Tailwind v4 + shadcn/ui
+├── backend/           → Express + TypeScript + Supabase
+├── supabase/          → Migraciones SQL versionadas
+├── docs/              → Documentación técnica del equipo
+└── README.md          → Este archivo
 ```
 
-## Supabase en este proyecto
+### Stack Tecnológico
 
-- El backend usa `@supabase/supabase-js` para conectarse a Supabase desde servidor.
-- La estructura `supabase/` se usa para gestionar configuracion local y migraciones SQL desde el repo.
-- No se usa `direct session pooler` como mecanismo principal del runtime del backend.
-- El panel web de Supabase se deja para inspeccion, logs y administracion, no como fuente principal del esquema.
+| Capa | Tecnología |
+|------|------------|
+| **Frontend** | Next.js (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Sonner (notificaciones) |
+| **Backend** | Express.js, TypeScript, `@supabase/supabase-js` |
+| **Base de Datos** | PostgreSQL 15 vía Supabase |
+| **Autenticación** | Supabase Auth con JWT |
+| **Despliegue** | Vercel (frontend), Supabase (backend + BD) |
 
-## Endpoints activos
+---
 
-- `GET /`
-- `GET /api/health`
-- `GET /api/health/supabase`
+## Características Principales
 
-## Variables de entorno backend
+### 1. Arquitectura Multi-Tenant (SaaS)
+- Múltiples organizaciones (municipalidades, ONGs) comparten la misma plataforma
+- Aislamiento de datos garantizado por **Row Level Security (RLS)**
+- Cada organización gestiona sus propias ollas comunes, beneficiarios y recursos
 
-Archivo: `backend/.env`
+### 2. Módulos del Sistema
+
+| Módulo | Descripción |
+|--------|-------------|
+| **Organizaciones (Tenants)** | Gestión de entidades que administran ollas comunes |
+| **Ollas Comunes** | Registro de puntos de operación con geolocalización |
+| **Beneficiarios** | Padrón con perfil de salud (anemia, diabetes, etc.) |
+| **Inventario** | Control de stock, movimientos y fuentes de abastecimiento |
+| **Recetas y Menús** | Planificación semanal con sugerencias IA |
+| **Entregas** | Registro de raciones entregadas por beneficiario |
+| **Recomendaciones** | Sugerencias de menú, prioridades y alertas de stock |
+| **Alertas** | Notificaciones de stock bajo, consumo inusual, reportes faltantes |
+| **Documentos** | Adjuntar evidencia, reportes y actas |
+| **Auditoría** | Trazabilidad completa de cambios (`audit_logs`) |
+
+### 3. Base de Datos
+- **20 tablas** relacionales con restricciones e índices optimizados
+- Migraciones SQL versionadas en `supabase/migrations/`
+- Replicación asíncrona WAL con RPO < 5min / RTO < 30min
+- Backups PITR automáticos cada 2 horas
+
+### 4. Seguridad
+- TLS 1.3 en tránsito
+- bcrypt para contraseñas, AES-256/pgcrypto para datos sensibles
+- JWT para autenticación, RBAC para roles (admin_municipal, lideresa_olla, supervisor)
+- 24 controles de seguridad mapeados contra ISO 27001:2022, OWASP Top 10 y NIST SP 800-53
+
+### 5. Patrones de Diseño
+- **Repository Pattern** para acceso a datos (separación lógica de negocio/persistencia)
+- Interfaz genérica `Repository<T, ID>` con implementación base `SupabaseRepository`
+- Testabilidad mejorada mediante mock de repositorios
+
+---
+
+## Cómo Levantar el Proyecto
+
+### Requisitos
+- Node.js y npm instalados
+- Credenciales de Supabase (solicitar por canal privado)
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acceder a: `http://localhost:3000`
+
+### Backend
+
+```bash
+cd backend
+npm install
+copy .env.example .env
+```
+
+Editar `backend/.env` con las credenciales:
 
 ```env
 SUPABASE_URL="https://tu-proyecto.supabase.co"
@@ -38,82 +118,92 @@ SUPABASE_HEALTHCHECK_TABLE="tenants"
 PORT=4000
 ```
 
-- `SUPABASE_SECRET_KEY` se usa solo en backend.
-- `SUPABASE_HEALTHCHECK_TABLE` es opcional.
-  Si se define, `GET /api/health/supabase` valida una tabla real de la base.
-  Si no se define, el health verifica conectividad general a Supabase via Storage.
-
-## Comandos utiles
-
-Frontend:
+Luego:
 
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
-Backend:
+Verificar:
+- `http://localhost:4000/api/health`
+- `http://localhost:4000/api/health/supabase`
 
-```bash
-cd backend
-npm install
-copy .env.example .env
-npm run dev
+---
+
+## Flujo de Trabajo del Equipo
+
+### Convenciones de Desarrollo
+
+1. **Frontend**: Crear páginas y componentes modulares, no meter todo en un solo archivo
+2. **Backend**: Rutas/controladores por módulo, acceso a BD centralizado en repositorios
+3. **Base de datos**: Todos los cambios de esquema van en `supabase/migrations/`, nunca manualmente en el dashboard
+4. **Git**: No subir `.env` ni credenciales al repositorio
+
+### Estructura de Módulos (Backend)
+
+```
+backend/src/modules/
+├── organizations/
+│   ├── router.ts        → Endpoints HTTP
+│   ├── service.ts       → Lógica de negocio
+│   ├── repository.ts    → Acceso a datos (Supabase)
+│   └── errors.ts        → Errores específicos del módulo
 ```
 
-Supabase CLI:
+### Para extender el Repository Pattern a nuevos módulos:
 
-```bash
-npx supabase --version
-npx supabase init
-npx supabase migration new initial_schema
-```
+1. Crear `repository.ts` en el módulo
+2. Extender `SupabaseRepository` con el tipo de entidad
+3. Implementar `toDomain()` y métodos específicos
+4. Refactorizar el servicio para usar el repositorio
 
-## Flujo recomendado para la base de datos
+---
 
-1. Mantener el esquema SQL dentro de `supabase/migrations/`.
-2. Convertir el SQL inicial del proyecto en la primera migracion versionada.
-3. Aplicar cambios futuros a la base mediante nuevas migraciones, no editando el esquema manualmente en la web de Supabase.
-4. Usar el panel web solo para revisar tablas, logs, storage, auth y estado del proyecto.
+## Documentación Disponible
 
-## Archivos clave del backend
+| Archivo | Contenido |
+|---------|-----------|
+| `docs/ONBOARDING.md` | Guía rápida para nuevos integrantes |
+| `docs/SUPABASE-EQUIPO.md` | Configuración de credenciales de Supabase |
+| `docs/DIAGRAMA_REPOSITORY_PATTERN.md` | Diagrama UML y justificación del patrón de datos |
+| `docs/DISENO_FISICO_BD.md` | Diagrama ER completo + diccionario de 20 tablas |
+| `docs/INFORME_ADMINISTRACION_REPLICACION.md` | Replicación WAL, backups, plan de contingencia |
+| `docs/INFORME_SEGURIDAD_CIFRADO.md` | TLS, bcrypt, AES-256, JWT, RLS, RBAC, audit_logs |
+| `docs/CATALOGO_CONTROLES_SEGURIDAD.md` | 24 controles mapeados contra estándares internacionales |
 
-- `backend/src/server.ts`: arranque.
-- `backend/src/app.ts`: rutas y middlewares.
-- `backend/src/lib/supabase.ts`: cliente Supabase y estado de configuracion.
+---
 
-## Archivos clave de Supabase
+## Estado Actual del Proyecto
 
-- `supabase/config.toml`: configuracion local de Supabase CLI.
-- `supabase/migrations/`: migraciones SQL versionadas del esquema.
-- `supabase/README.md`: guia corta para adoptar el proyecto remoto y cargar la migracion inicial.
+| Área | Estado |
+|------|--------|
+| Estructura base | Completado |
+| Frontend setup | Next.js + TypeScript + Tailwind + shadcn/ui |
+| Backend setup | Express + TypeScript + Supabase |
+| Base de datos | Esquema completo (20 tablas) versionado en migraciones |
+| Repository Pattern | Implementado para módulo Organizations |
+| Seguridad | Catálogo de controles + informe de cifrado documentados |
+| Integración Supabase | Conexión server-side activa + health checks |
+| **Próximos pasos** | Desarrollo de módulos restantes, autenticación, UI |
 
-## Notas
+---
 
-- Mantener la `SUPABASE_SECRET_KEY` fuera del frontend y fuera de control de versiones.
-- No usar `direct session pooler` salvo que mas adelante entren ORM o scripts SQL que realmente necesiten conexion Postgres directa.
-- En algunos entornos Windows con PowerShell restringido, puede ser necesario ejecutar npm/npx via `cmd /c`.
+## Reglas del Equipo
 
-## Estado actual de la integracion
+- **NO** subir `.env` ni credenciales al repositorio
+- **NO** usar el dashboard de Supabase como fuente principal del esquema
+- **NO** mezclar cambios de infraestructura y funcionalidad en el mismo PR
+- **SÍ** versionar todos los cambios de BD en migraciones SQL
+- **SÍ** actualizar el README si se modifica algo estructural
+- **SÍ** compartir credenciales solo por canales privados
 
-- Ya existe conexion server-side por `supabase-js` en el backend.
-- La carpeta `supabase/` ya esta inicializada en el repo.
-- La migracion inicial oficial ya vive en `supabase/migrations/20260424004514_initial_schema.sql`.
+---
 
-## Actualizaciones - 11 de Mayo 2026
+## Contacto
 
-### Patrón Repository (Punto 2)
-- Creada **interfaz genérica `Repository<T, ID>`** y clase abstracta `SupabaseRepository` en `backend/src/lib/repository.ts`
-- Creado **`OrganizationRepository`** en `backend/src/modules/organizations/repository.ts` con métodos `findBySlug`, `existsByName`, `findDuplicatesByName`, `getExistingCodes`
-- Creado `backend/src/modules/organizations/errors.ts` con `OrganizationServiceError`
-- **Refactorizado** `backend/src/modules/organizations/service.ts`: eliminada dependencia directa de Supabase; ahora usa `OrganizationRepository`
-- Documentado en `docs/DIAGRAMA_REPOSITORY_PATTERN.md` (diagrama de clases UML + justificación técnica)
+Para dudas o acceso a credenciales, contactar al responsable del proyecto por canal privado.
 
-### Catálogo e Informe de Seguridad (Punto 5)
-- `docs/CATALOGO_CONTROLES_SEGURIDAD.md` — 24 controles de seguridad mapeados contra ISO 27001:2022, OWASP Top 10 (2021) y NIST SP 800-53
-- `docs/INFORME_SEGURIDAD_CIFRADO.md` — TLS 1.3, bcrypt, AES-256/pgcrypto, JWT, RLS, RBAC, tabla `audit_logs`, trazabilidad de sesiones
+---
 
-### Diseño y Administración de Base de Datos (Punto 6)
-- `docs/DISENO_FISICO_BD.md` — Diagrama entidad-relación, diccionario completo de las 20 tablas con tipos, constraints e índices
-- `docs/INFORME_ADMINISTRACION_REPLICACION.md` — Streaming Replication asíncrona vía WAL, backups PITR, RPO < 5min / RTO < 30min, plan de contingencia
+> **SIGO-OLLAS** — Sistema de Gestión de Ollas Comunes
+> Proyecto académico — Mayo 2026

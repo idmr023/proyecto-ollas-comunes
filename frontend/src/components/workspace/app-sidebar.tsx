@@ -40,9 +40,8 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 
 const defaultDemoUser = {
-  name: 'OC Usuario',
+  fullName: 'OC Usuario',
   email: 'usuario@ollascomunes.pe',
-  username: 'oc-usuario',
 };
 
 /* Nav structure */
@@ -69,13 +68,10 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { user, clearAuth } = useAuthStore();
   const { setOpenMobile } = useSidebar();
-  const currentUser = user ?? {
-    id: 'demo-user',
-    ...defaultDemoUser,
-  };
+  const currentUser = user ?? defaultDemoUser;
 
-  const userInitials = currentUser.name
-    ? currentUser.name
+  const userInitials = currentUser.fullName
+    ? currentUser.fullName
         .split(' ')
         .map((n) => n[0])
         .slice(0, 2)
@@ -167,7 +163,7 @@ export function AppSidebar() {
                   </div>
                   <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                     <span className="truncate text-sm font-medium text-sidebar-foreground">
-                      {currentUser.name}
+                      {currentUser.fullName}
                     </span>
                     <span className="truncate text-xs text-sidebar-foreground/60">
                       {currentUser.email}
@@ -189,7 +185,7 @@ export function AppSidebar() {
                     </div>
                     <div className="grid flex-1 text-left leading-tight">
                       <span className="truncate text-sm font-semibold">
-                        {currentUser.name}
+                        {currentUser.fullName}
                       </span>
                       <span className="truncate text-xs text-muted-foreground">
                         {currentUser.email}
