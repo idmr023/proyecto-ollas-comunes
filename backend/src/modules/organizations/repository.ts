@@ -45,8 +45,6 @@ export class OrganizationRepository {
     name: string
     category: string
     location: string
-    latitude?: number | null
-    longitude?: number | null
     status?: string
   }): Promise<OrganizationRecord> {
     const row = await prisma.tenant.create({
@@ -55,8 +53,6 @@ export class OrganizationRepository {
         name: data.name,
         category: data.category,
         location: data.location,
-        latitude: data.latitude ?? null,
-        longitude: data.longitude ?? null,
         status: data.status ?? 'active',
       },
     })
@@ -69,8 +65,6 @@ export class OrganizationRepository {
       name: string
       category: string
       location: string
-      latitude: number | null
-      longitude: number | null
       status: string
     }>,
   ): Promise<OrganizationRecord | null> {
@@ -92,8 +86,6 @@ export class OrganizationRepository {
     name: string
     category: string
     location: string
-    latitude: number | null
-    longitude: number | null
     status: string
     createdAt: Date
   }): OrganizationRecord {
@@ -103,8 +95,6 @@ export class OrganizationRepository {
       name: row.name,
       category: row.category,
       location: row.location,
-      latitude: row.latitude,
-      longitude: row.longitude,
       status: row.status as 'active' | 'inactive',
       created_at: row.createdAt.toISOString(),
     }

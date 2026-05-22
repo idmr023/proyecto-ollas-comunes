@@ -1,7 +1,7 @@
 import { OllaServiceError } from './errors'
 import { Olla, OllaPayload } from './types'
 import { ollaRepository } from './repository'
-import { mapOllaStatus, sanitizeOllaText, toOlla } from './utils'
+import { sanitizeOllaText, toOlla } from './utils'
 
 function parseOllaPayload(payload: unknown): OllaPayload {
   if (!payload || typeof payload !== 'object') {
@@ -22,7 +22,12 @@ function parseOllaPayload(payload: unknown): OllaPayload {
   const estimatedDailyCapacity =
     typeof capacityRaw === 'number' && capacityRaw > 0 ? Math.floor(capacityRaw) : null
 
-  return { name, address, contactName, contactPhone, estimatedDailyCapacity }
+  const latitudeRaw = data.latitude
+  const longitudeRaw = data.longitude
+  const latitude = typeof latitudeRaw === 'number' ? latitudeRaw : null
+  const longitude = typeof longitudeRaw === 'number' ? longitudeRaw : null
+
+  return { name, address, latitude, longitude, contactName, contactPhone, estimatedDailyCapacity }
 }
 
 export async function listOllasByTenantId(tenantId: string): Promise<Olla[]> {
@@ -44,6 +49,8 @@ export async function createOlla(
     code,
     name: data.name,
     address: data.address,
+    latitude: data.latitude,
+    longitude: data.longitude,
     contactName: data.contactName,
     contactPhone: data.contactPhone,
     estimatedDailyCapacity: data.estimatedDailyCapacity,

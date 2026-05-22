@@ -16,6 +16,7 @@ import { getOrganization } from '@/lib/organizations-api';
 import { formatOrganizationDate, Organization } from '@/types/organization';
 import { Olla, OllaFormValues } from '@/types/olla';
 import { createOlla, listOllas } from '@/lib/ollas-api';
+import LocationAutocomplete from '@/components/location-autocomplete';
 
 function emptyOllaForm(): OllaFormValues {
   return {
@@ -23,6 +24,8 @@ function emptyOllaForm(): OllaFormValues {
     address: '',
     contactName: '',
     contactPhone: '',
+    latitude: null,
+    longitude: null,
   }
 }
 
@@ -104,6 +107,8 @@ export default function OrganizationPage() {
         contactName: form.contactName?.trim() || undefined,
         contactPhone: form.contactPhone?.trim() || undefined,
         estimatedDailyCapacity: form.estimatedDailyCapacity || undefined,
+        latitude: form.latitude ?? null,
+        longitude: form.longitude ?? null,
       }
       await createOlla(params.slug, payload)
       toast.success('Olla comun creada correctamente.')
@@ -312,6 +317,20 @@ export default function OrganizationPage() {
                   value={form.address ?? ''}
                   onChange={(e) => updateFormField('address', e.target.value)}
                   placeholder="Ej: Av. Principal 123"
+                />
+              </div>
+
+              <div>
+                <Label>Ubicacion en el mapa</Label>
+                <LocationAutocomplete
+                  onSelect={(v) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      address: v.address || prev.address,
+                      latitude: v.lat ?? null,
+                      longitude: v.lng ?? null,
+                    }))
+                  }
                 />
               </div>
 

@@ -5,6 +5,8 @@ export interface Olla {
   code: string
   name: string
   address: string | null
+  latitude: number | null
+  longitude: number | null
   contactName: string | null
   contactPhone: string | null
   estimatedDailyCapacity: number | null
@@ -15,6 +17,8 @@ export interface Olla {
 export interface OllaFormValues {
   name: string
   address?: string
+  latitude?: number | null
+  longitude?: number | null
   contactName?: string
   contactPhone?: string
   estimatedDailyCapacity?: number

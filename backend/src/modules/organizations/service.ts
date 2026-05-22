@@ -26,13 +26,7 @@ function parseOrganizationPayload(payload: unknown): OrganizationPayload {
     )
   }
 
-  const latitudeRaw = data.latitude
-  const longitudeRaw = data.longitude
-
-  const latitude = typeof latitudeRaw === 'number' ? latitudeRaw : null
-  const longitude = typeof longitudeRaw === 'number' ? longitudeRaw : null
-
-  return { name, category, location, latitude, longitude }
+  return { name, category, location }
 }
 
 export async function listOrganizations(): Promise<Organization[]> {
@@ -69,8 +63,6 @@ export async function createOrganization(payload: unknown): Promise<Organization
     name: data.name,
     category: data.category,
     location: data.location,
-    latitude: data.latitude,
-    longitude: data.longitude,
     status: 'active',
   })
 
@@ -98,8 +90,6 @@ export async function updateOrganizationBySlug(slug: string, payload: unknown): 
     name: data.name,
     category: data.category,
     location: data.location,
-    latitude: data.latitude,
-    longitude: data.longitude,
   })
 
   if (!updated) {
