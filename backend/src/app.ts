@@ -10,6 +10,7 @@ import {
 import { prisma, isPrismaConfigured } from './lib/prisma'
 import { requireAuth } from './lib/middleware/auth'
 import { authRouter } from './modules/auth/router'
+import { beneficiariesRouter } from './modules/beneficiaries/router'
 import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
@@ -41,6 +42,7 @@ if (rawAllowed) {
 
 app.use(express.json())
 app.use('/api/auth', authRouter)
+app.use('/api/beneficiaries', requireAuth, beneficiariesRouter)
 app.use('/api/organizations', requireAuth, organizationsRouter)
 
 app.get('/', (_request, response) => {
