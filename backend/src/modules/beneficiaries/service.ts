@@ -55,7 +55,7 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
 
   const phone = typeof data.phone === 'string' ? data.phone.trim() || null : null
   const address = typeof data.address === 'string' ? data.address.trim() || null : null
-  const ollaId = typeof data.ollaId === 'string' ? data.ollaId : null
+  const ollaId = typeof data.ollaId === 'string' ? (data.ollaId.trim() || null) : null
   const priorityLevel = typeof data.priorityLevel === 'string' ? data.priorityLevel : 'normal'
   const validPriorities = ['low', 'normal', 'high']
   if (!validPriorities.includes(priorityLevel)) {
