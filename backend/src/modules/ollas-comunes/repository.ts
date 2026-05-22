@@ -38,6 +38,8 @@ export class OllaRepository {
     code: string
     name: string
     address?: string | null
+    latitude?: number | null
+    longitude?: number | null
     contactName?: string | null
     contactPhone?: string | null
     estimatedDailyCapacity?: number | null
@@ -52,6 +54,8 @@ export class OllaRepository {
     code: string
     name: string
     address: string | null
+    latitude: number | null
+    longitude: number | null
     contactName: string | null
     contactPhone: string | null
     estimatedDailyCapacity: number | null
@@ -64,6 +68,8 @@ export class OllaRepository {
       code: row.code,
       name: row.name,
       address: row.address,
+      latitude: row.latitude,
+      longitude: row.longitude,
       contactName: row.contactName,
       contactPhone: row.contactPhone,
       estimatedDailyCapacity: row.estimatedDailyCapacity,

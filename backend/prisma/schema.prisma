@@ -201,8 +201,6 @@ model Tenant {
   name      String         @db.VarChar(150)
   category  String         @default("Municipalidad") @db.VarChar(100)
   location  String         @default("Lima") @db.VarChar(100)
-  latitude  Float?
-  longitude Float?
   status    String         @default("active") @db.VarChar(20)
   createdAt DateTime       @default(now()) @map("created_at")
   appUsers  AppUser[]
@@ -254,6 +252,8 @@ model OllaComun {
   code                 String                @db.VarChar(50)
   name                 String                @db.VarChar(150)
   address              String?
+  latitude             Float?
+  longitude            Float?
   contactName          String?               @map("contact_name") @db.VarChar(150)
   contactPhone         String?               @map("contact_phone") @db.VarChar(30)
   estimatedDailyCapacity Int?                @map("estimated_daily_capacity")

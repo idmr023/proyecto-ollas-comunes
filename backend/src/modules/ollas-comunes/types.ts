@@ -8,6 +8,8 @@ export interface OllaRecord {
   code: string
   name: string
   address: string | null
+  latitude: number | null
+  longitude: number | null
   contactName: string | null
   contactPhone: string | null
   estimatedDailyCapacity: number | null
@@ -20,6 +22,8 @@ export interface Olla {
   code: string
   name: string
   address: string | null
+  latitude: number | null
+  longitude: number | null
   contactName: string | null
   contactPhone: string | null
   estimatedDailyCapacity: number | null
@@ -30,6 +34,8 @@ export interface Olla {
 export interface OllaPayload {
   name: string
   address?: string | null
+  latitude?: number | null
+  longitude?: number | null
   contactName?: string | null
   contactPhone?: string | null
   estimatedDailyCapacity?: number | null
