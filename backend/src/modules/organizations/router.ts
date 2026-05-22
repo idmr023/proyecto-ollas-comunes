@@ -8,6 +8,8 @@ import {
   updateOrganizationBySlug,
   updateOrganizationStatusBySlug,
 } from './service'
+import { createOlla, listOllasByTenantId } from '../ollas-comunes/service'
+import { OllaServiceError } from '../ollas-comunes/errors'
 
 const organizationsRouter = Router()
 
@@ -15,7 +17,7 @@ function handleOrganizationError(
   error: unknown,
   response: import('express').Response,
 ) {
-  if (error instanceof OrganizationServiceError) {
+  if (error instanceof OrganizationServiceError || error instanceof OllaServiceError) {
     response.status(error.statusCode).json({
       ok: false,
       message: error.message,
@@ -90,6 +92,28 @@ organizationsRouter.patch('/:slug/status', async (request, response) => {
       ok: true,
       item: organization,
     })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+// --- Ollas Comunes (nested under organizations) ---
+
+organizationsRouter.get('/:slug/ollas', async (request, response) => {
+  try {
+    const tenant = await getOrganizationBySlug(request.params.slug)
+    const ollas = await listOllasByTenantId(tenant.id)
+    response.json({ ok: true, items: ollas })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.post('/:slug/ollas', async (request, response) => {
+  try {
+    const tenant = await getOrganizationBySlug(request.params.slug)
+    const olla = await createOlla(tenant.id, request.body)
+    response.status(201).json({ ok: true, item: olla })
   } catch (error) {
     handleOrganizationError(error, response)
   }
