@@ -108,7 +108,7 @@ export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const authUser = await buildAuthUser(user)
   const token = generateToken(authUser)
 
-  sendLoginAlertEmail(user.email, user.fullName).catch(() => {})
+  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
 
   return { user: authUser, token }
 }
@@ -155,7 +155,7 @@ export async function loginWithGoogle(credential: string): Promise<AuthResponse>
   if (user) {
     const authUser = await buildAuthUser(user)
     const token = generateToken(authUser)
-    sendLoginAlertEmail(user.email, user.fullName).catch(() => {})
+  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
     return { user: authUser, token }
   }
 
@@ -169,7 +169,7 @@ export async function loginWithGoogle(credential: string): Promise<AuthResponse>
   const authUser = await buildAuthUser(user)
   const token = generateToken(authUser)
 
-  sendLoginAlertEmail(user.email, user.fullName).catch(() => {})
+  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
 
   return { user: authUser, token }
 }
