@@ -1,10 +1,9 @@
--- Movimiento de geolocalizacion de tenants a ollas_comunes
--- Ejecutar en orden:
+-- EJECUTAR EN EL SQL EDITOR DE SUPABASE (no via pooler)
+-- Mueve lat/lng de tenants a ollas_comunes
 
 ALTER TABLE ollas_comunes
-  ADD COLUMN latitude double precision,
-  ADD COLUMN longitude double precision;
+  ADD COLUMN IF NOT EXISTS latitude double precision,
+  ADD COLUMN IF NOT EXISTS longitude double precision;
 
-ALTER TABLE tenants
-  DROP COLUMN latitude,
-  DROP COLUMN longitude;
+-- Opcional: eliminar de tenants si ya migraste los datos
+-- ALTER TABLE tenants DROP COLUMN IF EXISTS latitude, DROP COLUMN IF EXISTS longitude;
