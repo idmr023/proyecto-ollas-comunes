@@ -232,9 +232,27 @@ model AppUser {
   recommendations Recommendation[]
   documents    Document[]
   auditLogs    AuditLog[]
+  otpCodes     OtpCode[]
 
   @@index([tenantId])
   @@map("app_users")
+}
+
+model OtpCode {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  email      String
+  code       String    @db.VarChar(6)
+  attempts   Int       @default(0)
+  maxAttempts Int      @default(3)
+  expiresAt  DateTime  @map("expires_at")
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  user       AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
+  @@map("otp_codes")
 }
 
 model District {

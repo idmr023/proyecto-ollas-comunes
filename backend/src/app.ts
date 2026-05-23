@@ -1,5 +1,7 @@
 import cors from 'cors'
 import express from 'express'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 
 import {
   getSupabaseConfigStatus,
@@ -15,23 +17,32 @@ import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
 
+// --- Security middlewares (applied globally) ---
+
+app.use(helmet())
+
+// Rate limiting for auth routes: max 5 requests per minute per IP
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
+})
+
+// --- CORS ---
+
 const rawAllowed = process.env.ALLOWED_ORIGINS
 if (rawAllowed) {
   const allowed = rawAllowed.split(',').map((s) => s.trim()).filter(Boolean)
   app.use(
     cors({
       origin: (origin, callback) => {
-        // allow non-browser requests (curl, server-to-server)
         if (!origin) return callback(null, true)
-
-        // direct match
         if (allowed.includes(origin)) return callback(null, true)
-
-        // allow by suffix (e.g., allow 'vercel.app' to match any preview domain)
         for (const a of allowed) {
           if (a && origin.endsWith(a)) return callback(null, true)
         }
-
         callback(new Error('Not allowed by CORS'))
       },
     }),
@@ -41,7 +52,10 @@ if (rawAllowed) {
 }
 
 app.use(express.json())
-app.use('/api/auth', authRouter)
+
+// --- Routes ---
+
+app.use('/api/auth', authLimiter, authRouter)
 app.use('/api/beneficiaries', requireAuth, beneficiariesRouter)
 app.use('/api/organizations', requireAuth, organizationsRouter)
 
