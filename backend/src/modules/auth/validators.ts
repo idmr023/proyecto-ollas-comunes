@@ -46,3 +46,7 @@ export const verifyOtpSchema = z.object({
 export const googleCallbackSchema = z.object({
   code: z.string().min(1, 'Codigo de autorizacion requerido.'),
 })
+
+export const googleCredentialSchema = z.object({
+  credential: z.string().min(1, 'Credencial de Google requerida.'),
+})

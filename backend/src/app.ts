@@ -17,6 +17,9 @@ import { organizationsRouter } from './modules/organizations/router'
 
 const app = express()
 
+// Trust proxy (Render, Vercel, etc. behind load balancers)
+app.set('trust proxy', 1)
+
 // --- Security middlewares (applied globally) ---
 
 app.use(helmet())
