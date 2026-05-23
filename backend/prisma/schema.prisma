@@ -17,6 +17,8 @@ enum UserRole {
   admin_municipal
   lideresa_olla
   supervisor
+  operador_olla
+  coordinador
 
   @@map("app_users_role_check")
 }

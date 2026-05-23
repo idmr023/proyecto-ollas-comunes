@@ -59,6 +59,38 @@ export async function sendOtpEmail(
   })
 }
 
+export async function sendLoginAlertEmail(
+  to: string,
+  fullName: string,
+): Promise<void> {
+  const t = getTransporter()
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <h2 style="color:#1a1a2e">Inicio de Sesion Detectado</h2>
+      <p>Hola <strong>${fullName}</strong>,</p>
+      <p>Se ha iniciado sesion en tu cuenta de <strong>SIGO-Ollas</strong>.</p>
+      <p style="color:#666;font-size:14px">Si fuiste tu, puedes ignorar este mensaje.</p>
+      <div style="background:#fff3cd;border-radius:8px;padding:16px;margin:20px 0;border-left:4px solid #ffc107">
+        <p style="margin:0;font-size:14px;color:#856404">
+          <strong>Si no has sido tu,</strong> contactanos de inmediato al correo
+          <a href="mailto:soporte@sigo-ollas.pe" style="color:#1a1a2e">soporte@sigo-ollas.pe</a>
+          para proteger tu cuenta.
+        </p>
+      </div>
+      <hr style="border:none;border-top:1px solid #eee" />
+      <p style="color:#999;font-size:12px">SIGO-Ollas — Sistema de Gestion de Ollas Comunes</p>
+    </div>
+  `
+
+  await t.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: 'Alerta de seguridad: nuevo inicio de sesion - SIGO-Ollas',
+    html,
+  })
+}
+
 export function isEmailConfigured(): boolean {
   return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
 }

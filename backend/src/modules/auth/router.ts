@@ -1,7 +1,7 @@
 import { Router, Response } from 'express'
 import { requireAuth } from '../../lib/middleware/auth'
 import { AuthError } from './errors'
-import { login, register, getMe, verifyOtp, loginWithGoogle } from './service'
+import { login, register, getMe, verifyOtp, loginWithGoogle, loginWithGoogleCode } from './service'
 import { getGoogleOAuthUrl } from './google-oauth'
 import { ZodError } from 'zod'
 
@@ -84,10 +84,20 @@ authRouter.get('/google/url', async (_request, response) => {
   }
 })
 
-// POST /api/auth/google/callback — Exchange Google code for JWT
+// POST /api/auth/google — Verify Google ID token (via GIS) and return JWT
+authRouter.post('/google', async (request, response) => {
+  try {
+    const result = await loginWithGoogle(request.body.credential)
+    response.json({ ok: true, ...result })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+// POST /api/auth/google/callback — Exchange Google code for JWT (Supabase flow)
 authRouter.post('/google/callback', async (request, response) => {
   try {
-    const result = await loginWithGoogle(request.body.code)
+    const result = await loginWithGoogleCode(request.body.code)
     response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)
