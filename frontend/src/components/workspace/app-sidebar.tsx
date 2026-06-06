@@ -1,18 +1,21 @@
-'use client';
+"use client"
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Home,
+  Building2,
+  CookingPot,
   Users,
-  ShoppingBasket,
+  Package,
   BarChart3,
+  UserCog,
+  Bell,
   Settings,
-  UtensilsCrossed,
   LogOut,
   ChevronsUpDown,
   UserCircle,
-} from 'lucide-react';
+} from "lucide-react"
 
 import {
   Sidebar,
@@ -28,7 +31,7 @@ import {
   SidebarRail,
   SidebarSeparator,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,53 +39,54 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/store/auth-store';
+} from "@/components/ui/dropdown-menu"
+import { useAuthStore } from "@/store/auth-store"
 
 const defaultDemoUser = {
-  fullName: 'OC Usuario',
-  email: 'usuario@ollascomunes.pe',
-};
+  fullName: "OC Usuario",
+  email: "usuario@ollascomunes.pe",
+}
 
-/* Nav structure */
 const navMain = [
   {
-    label: 'Principal',
+    label: "Principal",
     items: [
-      { title: 'Inicio',        href: '/workspace/home',          icon: Home },
-      { title: 'Beneficiarios', href: '/workspace/beneficiarios', icon: Users },
-      { title: 'Inventario',    href: '/workspace/inventario',    icon: ShoppingBasket },
+      { title: "Inicio", href: "/workspace/home", icon: Home },
+      { title: "Organizaciones", href: "/workspace/organizaciones", icon: Building2 },
+      { title: "Ollas comunes", href: "/workspace/organizaciones", icon: CookingPot },
+      { title: "Beneficiarios", href: "/workspace/beneficiarios", icon: Users },
+      { title: "Inventario", href: "/workspace/inventario", icon: Package },
     ],
   },
   {
-    label: 'Gestion',
+    label: "Gestión",
     items: [
-      { title: 'Reportes',      href: '/workspace/reportes',      icon: BarChart3 },
-      { title: 'Configuracion', href: '/workspace/configuracion', icon: Settings },
+      { title: "Reportes", href: "/workspace/reportes", icon: BarChart3 },
+      { title: "Usuarios", href: "/workspace/configuracion", icon: UserCog },
+      { title: "Notificaciones", href: "/workspace/configuracion", icon: Bell },
+      { title: "Configuración", href: "/workspace/configuracion", icon: Settings },
     ],
   },
-];
+]
 
-/* App Sidebar component */
 export function AppSidebar() {
-  const pathname = usePathname();
-  const { user, clearAuth } = useAuthStore();
-  const { setOpenMobile } = useSidebar();
-  const currentUser = user ?? defaultDemoUser;
+  const pathname = usePathname()
+  const { user, clearAuth } = useAuthStore()
+  const { setOpenMobile } = useSidebar()
+  const currentUser = user ?? defaultDemoUser
 
   const userInitials = currentUser.fullName
     ? currentUser.fullName
-        .split(' ')
+        .split(" ")
         .map((n) => n[0])
         .slice(0, 2)
-        .join('')
+        .join("")
         .toUpperCase()
-    : 'OC';
+    : "OC"
 
   return (
     <Sidebar collapsible="icon">
-
-      {/* Header - Logo */}
+      {/* Header — Logo circular amarillo/naranja */}
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border px-3 py-0">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -90,15 +94,15 @@ export function AppSidebar() {
               size="lg"
               className="pointer-events-none h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary">
-                <UtensilsCrossed className="size-4 text-sidebar-primary-foreground" />
+              <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-[#F4A950] text-sm font-bold text-white shadow-sm">
+                OC
               </div>
               <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate text-sm font-bold font-heading text-sidebar-foreground">
+                <span className="truncate text-sm font-bold text-sidebar-foreground">
                   Ollas Comunes
                 </span>
                 <span className="truncate text-[10px] text-sidebar-foreground/60">
-                  Panel de gestion
+                  Panel de gestión
                 </span>
               </div>
             </SidebarMenuButton>
@@ -106,7 +110,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      {/* Content - Navigation */}
+      {/* Content — Navegación */}
       <SidebarContent className="py-2">
         {navMain.map((section) => (
           <SidebarGroup key={section.label}>
@@ -115,20 +119,29 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {section.items.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    pathname.startsWith(item.href + '/');
-                  const Icon = item.icon;
+                {section.items.map((item, _idx, arr) => {
+                  const matchesExact = pathname === item.href
+                  const matchesChild = pathname.startsWith(item.href + "/")
+                  const isDup = arr.some(
+                    (s) => s.href === item.href && arr.indexOf(s) !== arr.lastIndexOf(s),
+                  )
+                  let isActive = false
+                  if (!isDup) {
+                    isActive = matchesExact || matchesChild
+                  } else {
+                    const last = arr.findLast((s) => s.href === item.href)
+                    isActive = (matchesExact || matchesChild) && last === item
+                  }
+                  const Icon = item.icon
 
                   return (
-                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
                         tooltip={item.title}
                         size="default"
-                        className="rounded-lg"
+                        className="rounded-lg data-[active=true]:border-l-4 data-[active=true]:border-l-[#F4A950] data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold"
                       >
                         <Link href={item.href} onClick={() => setOpenMobile(false)}>
                           <Icon className="shrink-0" />
@@ -136,7 +149,7 @@ export function AppSidebar() {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
+                  )
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -146,7 +159,7 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
-      {/* Footer - User dropdown */}
+      {/* Footer — Perfil de usuario */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -157,8 +170,7 @@ export function AppSidebar() {
                   tooltip="Mi cuenta"
                   className="cursor-pointer rounded-lg group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
                 >
-                  {/* Avatar initials */}
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-xs font-bold bg-accent text-accent-foreground">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent text-xs font-bold text-sidebar-accent-foreground">
                     {userInitials}
                   </div>
                   <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
@@ -180,11 +192,11 @@ export function AppSidebar() {
               >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex items-center gap-2 px-1 py-0.5">
-                    <div className="flex size-8 items-center justify-center rounded-lg text-xs font-bold bg-accent text-accent-foreground">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-accent text-xs font-bold text-sidebar-accent-foreground">
                       {userInitials}
                     </div>
                     <div className="grid flex-1 text-left leading-tight">
-                      <span className="truncate text-sm font-semibold">
+                      <span className="truncate text-sm font-semibold text-foreground">
                         {currentUser.fullName}
                       </span>
                       <span className="truncate text-xs text-muted-foreground">
@@ -210,12 +222,12 @@ export function AppSidebar() {
                 <DropdownMenuItem
                   className="gap-2 cursor-pointer text-destructive focus:text-destructive"
                   onClick={() => {
-                    clearAuth();
-                    window.location.href = '/login';
+                    clearAuth()
+                    window.location.href = "/login"
                   }}
                 >
                   <LogOut className="size-4" />
-                  <span>Cerrar sesion</span>
+                  <span>Cerrar sesión</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -225,5 +237,5 @@ export function AppSidebar() {
 
       <SidebarRail />
     </Sidebar>
-  );
+  )
 }

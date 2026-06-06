@@ -1,552 +1,177 @@
-'use client';
+"use client"
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState } from "react"
 import {
-  ArrowUpDown,
-  ChevronDown,
-  Copy,
-  Eye,
-  LayoutGrid,
-  List,
-  MoreVertical,
-  PencilLine,
-  Plus,
-  Search,
-} from 'lucide-react';
+  Building2,
+  CookingPot,
+  Users,
+  Package,
+  TrendingUp,
+  TrendingDown,
+  Download,
+  Calendar,
+  AlertTriangle,
+  CheckCircle2,
+  UserPlus,
+  Clock,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import {
-  listOrganizations,
-  updateOrganizationStatus,
-} from '@/lib/organizations-api';
-import {
-  formatOrganizationDate,
-  Organization,
-  OrganizationStatus,
-} from '@/types/organization';
-import { toast } from 'sonner';
+const kpis = [
+  { label: "Organizaciones", value: "24", icon: Building2, change: "+12%", trend: "up", color: "from-[#0F3821]/20 to-transparent" },
+  { label: "Ollas comunes", value: "48", icon: CookingPot, change: "+8%", trend: "up", color: "from-emerald-500/20 to-transparent" },
+  { label: "Beneficiarios", value: "1,240", icon: Users, change: "+23%", trend: "up", color: "from-blue-500/20 to-transparent" },
+  { label: "Insumos", value: "86", icon: Package, change: "-5%", trend: "down", color: "from-amber-500/20 to-transparent" },
+]
+
+const actividades = [
+  { icon: CheckCircle2, color: "text-status-active", text: "Nueva donación registrada — 50 kg de arroz", time: "Hace 5 min" },
+  { icon: AlertTriangle, color: "text-highlight-foreground", text: "Alerta de stock bajo: Aceite vegetal (2 L)", time: "Hace 1 h" },
+  { icon: UserPlus, color: "text-blue-500", text: "Beneficiario registrado: María García", time: "Hace 2 h" },
+  { icon: Clock, color: "text-purple-500", text: "Inventario actualizado por OC San Juan", time: "Hace 4 h" },
+]
+
+const insumosVencer = [
+  { nombre: "Arroz", org: "Olla Virgen de la Candelaria", vence: "Mañana", stock: "25 kg", urgente: true },
+  { nombre: "Leche en polvo", org: "Comedor Los Olivos", vence: "En 3 días", stock: "10 kg", urgente: false },
+  { nombre: "Aceite vegetal", org: "Olla Villa María", vence: "En 5 días", stock: "15 L", urgente: false },
+]
+
+const DonutChart = () => (
+  <div className="flex items-center gap-6">
+    <div className="relative flex h-32 w-32 items-center justify-center">
+      <svg viewBox="0 0 36 36" className="h-32 w-32 -rotate-90">
+        <circle cx="18" cy="18" r="14" fill="none" stroke="oklch(0.92 0.004 80)" strokeWidth="3" />
+        <circle cx="18" cy="18" r="14" fill="none" stroke="oklch(0.55 0.14 160)" strokeWidth="3" strokeDasharray="60 100" strokeDashoffset="0" strokeLinecap="round" />
+        <circle cx="18" cy="18" r="14" fill="none" stroke="oklch(0.78 0.14 75)" strokeWidth="3" strokeDasharray="25 100" strokeDashoffset="-60" strokeLinecap="round" />
+        <circle cx="18" cy="18" r="14" fill="none" stroke="oklch(0.52 0.16 27)" strokeWidth="3" strokeDasharray="15 100" strokeDashoffset="-85" strokeLinecap="round" />
+      </svg>
+    </div>
+    <div className="space-y-2 text-sm">
+      <div className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-status-active" /><span>Stock adecuado</span><span className="ml-auto font-semibold">60%</span></div>
+      <div className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-status-pending" /><span>Stock bajo</span><span className="ml-auto font-semibold">25%</span></div>
+      <div className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-destructive" /><span>Stock crítico</span><span className="ml-auto font-semibold">15%</span></div>
+    </div>
+  </div>
+)
+
+const LineChart = () => (
+  <svg viewBox="0 0 300 120" className="h-28 w-full">
+    <defs>
+      <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="oklch(0.55 0.14 160)" stopOpacity="0.3" />
+        <stop offset="100%" stopColor="oklch(0.55 0.14 160)" stopOpacity="0" />
+      </linearGradient>
+    </defs>
+    <path d="M0 100 Q25 90 50 95 Q75 80 100 70 Q125 50 150 55 Q175 35 200 40 Q225 20 250 30 Q275 15 300 20 L300 120 L0 120Z" fill="url(#grad)" />
+    <path d="M0 100 Q25 90 50 95 Q75 80 100 70 Q125 50 150 55 Q175 35 200 40 Q225 20 250 30 Q275 15 300 20" fill="none" stroke="oklch(0.55 0.14 160)" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="280" cy="22" r="4" fill="oklch(0.55 0.14 160)" stroke="white" strokeWidth="2" />
+  </svg>
+)
 
 export default function HomePage() {
-  const router = useRouter();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'Todas' | OrganizationStatus>('Todas');
-  const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [visibleFields, setVisibleFields] = useState({
-    status: true,
-    category: true,
-    location: true,
-    created: true,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [busySlug, setBusySlug] = useState<string | null>(null);
-
-  const loadOrganizations = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const items = await listOrganizations();
-      setOrganizations(items);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No se pudieron cargar las organizaciones.',
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadOrganizations();
-  }, []);
-
-  const visibleOrganizations = useMemo(() => {
-    const filtered = organizations.filter((organization) => {
-      const matchesQuery = [
-        organization.name,
-        organization.category,
-        organization.location,
-        organization.code,
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(query.toLowerCase());
-
-      const matchesStatus =
-        statusFilter === 'Todas' ? true : organization.status === statusFilter;
-
-      return matchesQuery && matchesStatus;
-    });
-
-    if (sortBy === 'recent') {
-      return [...filtered].sort((firstOrganization, secondOrganization) => {
-        const firstDate = firstOrganization.createdAt
-          ? new Date(firstOrganization.createdAt).getTime()
-          : 0;
-        const secondDate = secondOrganization.createdAt
-          ? new Date(secondOrganization.createdAt).getTime()
-          : 0;
-
-        return secondDate - firstDate;
-      });
-    }
-
-    return [...filtered].sort((firstOrganization, secondOrganization) =>
-      firstOrganization.name.localeCompare(secondOrganization.name, 'es'),
-    );
-  }, [organizations, query, sortBy, statusFilter]);
-
-  const listColumnTemplate = useMemo(() => {
-    const columns = ['minmax(260px,2.2fr)'];
-
-    if (visibleFields.status) {
-      columns.push('120px');
-    }
-
-    if (visibleFields.category) {
-      columns.push('160px');
-    }
-
-    if (visibleFields.location) {
-      columns.push('170px');
-    }
-
-    if (visibleFields.created) {
-      columns.push('132px');
-    }
-
-    columns.push('52px');
-
-    return columns.join(' ');
-  }, [visibleFields]);
-
-  const toggleVisibleField = (field: keyof typeof visibleFields) => {
-    setVisibleFields((currentFields) => ({
-      ...currentFields,
-      [field]: !currentFields[field],
-    }));
-  };
-
-  const handleCopyCode = async (event: React.MouseEvent, code: string) => {
-    event.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success('Codigo copiado.');
-    } catch {
-      toast.error('No se pudo copiar desde este navegador.');
-    }
-  };
-
-  const handleOpenOrganization = (slug: string) => {
-    router.push(`/workspace/organizaciones/${slug}`);
-  };
-
-  const handleOpenProperties = (
-    event: React.MouseEvent,
-    organization: Organization,
-  ) => {
-    event.stopPropagation();
-    router.push(`/workspace/organizaciones/${organization.slug}/propiedades`);
-  };
-
-  const handleToggleStatus = async (
-    event: React.MouseEvent,
-    organization: Organization,
-  ) => {
-    event.stopPropagation();
-    const nextStatus: OrganizationStatus =
-      organization.status === 'Inactiva' ? 'Activa' : 'Inactiva';
-
-    try {
-      setBusySlug(organization.slug);
-      const updatedOrganization = await updateOrganizationStatus(
-        organization.slug,
-        nextStatus,
-      );
-
-      if (!updatedOrganization) {
-        return;
-      }
-
-      setOrganizations((currentOrganizations) =>
-        currentOrganizations.map((currentOrganization) =>
-          currentOrganization.slug === organization.slug
-            ? updatedOrganization
-            : currentOrganization,
-        ),
-      );
-    } catch (statusError) {
-      setError(
-        statusError instanceof Error
-          ? statusError.message
-          : 'No se pudo actualizar el estado.',
-      );
-    } finally {
-      setBusySlug(null);
-    }
-  };
-
-  const renderActionsMenu = (organization: Organization) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="relative z-10 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
-          onClick={(event) => event.stopPropagation()}
-          onMouseDown={(event) => event.stopPropagation()}
-          aria-label={`Opciones de ${organization.name}`}
-        >
-          <MoreVertical className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuItem onClick={(event) => void handleCopyCode(event, organization.code)}>
-          <Copy className="size-4" />
-          Copiar codigo
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={(event) => handleOpenProperties(event, organization)}>
-          <PencilLine className="size-4" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={(event) => void handleToggleStatus(event, organization)}
-          disabled={busySlug === organization.slug}
-        >
-          {organization.status === 'Inactiva' ? 'Activar' : 'Desactivar'}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
-  const renderGridSubtitle = (organization: Organization) => {
-    const subtitleParts = [
-      visibleFields.category ? organization.category : null,
-      visibleFields.location ? organization.location : null,
-    ].filter(Boolean);
-
-    if (subtitleParts.length === 0) {
-      return null;
-    }
-
-    return (
-      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-        {subtitleParts.join(' · ')}
-      </p>
-    );
-  };
-
-  const renderGridMeta = (organization: Organization) => {
-    if (!visibleFields.status && !visibleFields.created) {
-      return null;
-    }
-
-    const alignmentClass =
-      visibleFields.status && visibleFields.created
-        ? 'justify-between'
-        : visibleFields.created
-          ? 'justify-end'
-          : 'justify-start';
-
-    return (
-      <CardContent className={`mt-auto flex items-center pt-0 ${alignmentClass}`}>
-        {visibleFields.status ? (
-          <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
-            {organization.status}
-          </span>
-        ) : null}
-        {visibleFields.created ? (
-          <span className="text-xs text-muted-foreground">
-            {formatOrganizationDate(organization.createdAt) || ' '}
-          </span>
-        ) : null}
-      </CardContent>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold font-heading text-foreground">Organizaciones</h1>
-        </div>
-        <div className="rounded-2xl border border-border/90 bg-card px-4 py-8 text-sm text-muted-foreground shadow-sm">
-          Cargando organizaciones...
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold font-heading text-foreground">Organizaciones</h1>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-3 xl:flex-1">
-            <div className="relative w-full xl:max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar organizacion"
-                className="h-10 rounded-xl pl-9"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 xl:flex xl:items-center xl:gap-3 xl:w-auto">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full rounded-xl">
-                    Estado
-                    <ChevronDown className="size-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-44">
-                  <DropdownMenuRadioGroup
-                    value={statusFilter}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as 'Todas' | OrganizationStatus)
-                    }
-                  >
-                    <DropdownMenuRadioItem value="Todas">Todas</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="Activa">Activa</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="Inactiva">Inactiva</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full rounded-xl">
-                    <ArrowUpDown className="size-4 text-muted-foreground" />
-                    Ordenar
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-44">
-                  <DropdownMenuRadioGroup
-                    value={sortBy}
-                    onValueChange={(value) => setSortBy(value as 'name' | 'recent')}
-                  >
-                    <DropdownMenuRadioItem value="name">Por nombre</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="recent">Recientes</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 xl:justify-end">
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon-sm"
-                    className="shrink-0 rounded-xl"
-                    aria-label="Elementos visibles"
-                  >
-                    <Eye className="size-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuLabel>Mostrar</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={visibleFields.status}
-                    onCheckedChange={() => toggleVisibleField('status')}
-                  >
-                    Estado
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleFields.category}
-                    onCheckedChange={() => toggleVisibleField('category')}
-                  >
-                    Categoria
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleFields.location}
-                    onCheckedChange={() => toggleVisibleField('location')}
-                  >
-                    Ubicacion
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleFields.created}
-                    onCheckedChange={() => toggleVisibleField('created')}
-                  >
-                    Creado
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex items-center rounded-xl border border-border bg-background p-1">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={
-                    viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                  }
-                  onClick={() => setViewMode('grid')}
-                  aria-label="Vista cuadricula"
-                >
-                  <LayoutGrid className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={
-                    viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                  }
-                  onClick={() => setViewMode('list')}
-                  aria-label="Vista lista"
-                >
-                  <List className="size-4" />
-                </Button>
-              </div>
-            </div>
-
-            <Button asChild size="sm" className="rounded-xl px-3">
-              <Link href="/workspace/organizaciones/nueva">
-                <Plus className="size-4" />
-                Nueva organizacion
-              </Link>
-            </Button>
-          </div>
+    <div className="mx-auto max-w-[1200px] space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">¡Bienvenido!</h1>
+          <p className="text-sm text-muted-foreground">Resumen general del sistema</p>
         </div>
-      </div>
-
-      {error ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/90 bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
-          <span>{error}</span>
-          <Button variant="outline" size="sm" onClick={() => void loadOrganizations()}>
-            Reintentar
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Últimos 30 días</span>
+          </div>
+          <Button className="h-9 gap-2 bg-[#0F3821] text-white hover:bg-[#0F3821]/90">
+            <Download className="h-4 w-4" />
+            Exportar reporte
           </Button>
         </div>
-      ) : null}
+      </div>
 
-      {viewMode === 'grid' ? (
-        <section className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4">
-          {visibleOrganizations.map((organization) => (
-            <div key={organization.slug} className="group">
-              <Card
-                role="button"
-                tabIndex={0}
-                onClick={() => handleOpenOrganization(organization.slug)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    handleOpenOrganization(organization.slug);
-                  }
-                }}
-                className="min-h-40 cursor-pointer border-border/90 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:border-primary/40 focus-visible:outline-none"
-              >
-                <CardHeader className="flex min-h-28 flex-row items-start justify-between gap-3 pb-3">
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="line-clamp-2 text-base leading-snug">
-                      {organization.name}
-                    </CardTitle>
-                    {renderGridSubtitle(organization)}
-                  </div>
-                  {renderActionsMenu(organization)}
-                </CardHeader>
-                {renderGridMeta(organization)}
-              </Card>
-            </div>
-          ))}
-        </section>
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-border/90 bg-card shadow-sm">
-          <div className="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/80 [&::-webkit-scrollbar-track]:bg-transparent">
-            <div className="min-w-[760px]">
-              <div
-                className="grid items-center gap-3 border-b border-border px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-                style={{ gridTemplateColumns: listColumnTemplate }}
-              >
-                <span>Organizacion</span>
-                {visibleFields.status ? <span>Estado</span> : null}
-                {visibleFields.category ? <span>Categoria</span> : null}
-                {visibleFields.location ? <span>Ubicacion</span> : null}
-                {visibleFields.created ? <span>Creado</span> : null}
-                <span />
+      {/* KPIs */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k) => (
+          <div key={k.label} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{k.label}</span>
+              <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br", k.color)}>
+                <k.icon className="h-5 w-5 text-[#0F3821]" />
               </div>
-
-              {visibleOrganizations.map((organization) => (
-                <div
-                  key={organization.slug}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleOpenOrganization(organization.slug)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      handleOpenOrganization(organization.slug);
-                    }
-                  }}
-                  className="grid cursor-pointer items-center gap-3 border-b border-border px-4 py-3 transition-all last:border-b-0 hover:bg-muted/35 hover:shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.18)] focus-visible:bg-muted/35 focus-visible:outline-none"
-                  style={{ gridTemplateColumns: listColumnTemplate }}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {organization.name}
-                    </p>
-                  </div>
-                  {visibleFields.status ? (
-                    <div>
-                      <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
-                        {organization.status}
-                      </span>
-                    </div>
-                  ) : null}
-                  {visibleFields.category ? (
-                    <span className="truncate text-sm text-muted-foreground">
-                      {organization.category}
-                    </span>
-                  ) : null}
-                  {visibleFields.location ? (
-                    <span className="truncate text-sm text-muted-foreground">
-                      {organization.location}
-                    </span>
-                  ) : null}
-                  {visibleFields.created ? (
-                    <span className="truncate text-sm text-muted-foreground">
-                      {formatOrganizationDate(organization.createdAt) || '—'}
-                    </span>
-                  ) : null}
-                  <div className="justify-self-end">{renderActionsMenu(organization)}</div>
-                </div>
-              ))}
+            </div>
+            <p className="mb-1 text-3xl font-bold text-foreground">{k.value}</p>
+            <div className={`flex items-center gap-1 text-xs font-medium ${k.trend === "up" ? "text-status-active" : "text-destructive"}`}>
+              {k.trend === "up" ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+              {k.change} vs mes anterior
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
-      {visibleOrganizations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/40 px-4 py-8 text-sm text-muted-foreground">
-          No hay coincidencias para esa busqueda.
+      {/* Charts */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* Donut - Resumen de inventario */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-semibold text-foreground">Resumen de inventario</h3>
+          <DonutChart />
         </div>
-      ) : null}
+
+        {/* Line - Evolución de beneficiarios */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Evolución de beneficiarios</h3>
+            <span className="text-xs text-muted-foreground">Mensual</span>
+          </div>
+          <LineChart />
+        </div>
+      </div>
+
+      {/* Tables */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* Insumos a vencer */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold text-foreground">Insumos a vencer</h3>
+          <div className="space-y-3">
+            {insumosVencer.map((item) => (
+              <div key={item.nombre} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                  {item.nombre[0]}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{item.nombre}</p>
+                  <p className="text-xs text-muted-foreground">{item.org}</p>
+                </div>
+                <div className="text-right">
+                  <p className={cn("text-xs font-semibold", item.urgente ? "text-destructive" : "text-muted-foreground")}>
+                    {item.urgente ? "⚠ " : ""}{item.vence}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{item.stock}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actividades recientes */}
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold text-foreground">Actividades recientes</h3>
+          <div className="space-y-0">
+            {actividades.map((act, i) => (
+              <div key={i} className="flex gap-3 border-l-2 border-border pb-4 pl-4 last:pb-0">
+                <div className={`-ml-[21px] flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-card`}>
+                  <act.icon className={`h-3.5 w-3.5 ${act.color}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-foreground">{act.text}</p>
+                  <p className="text-xs text-muted-foreground">{act.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
