@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
         destination: '/workspace/home',
         permanent: false,
       },
+      {
+        source: '/mobile',
+        destination: '/mobile/inicio',
+        permanent: false,
+      },
     ];
   },
 };
