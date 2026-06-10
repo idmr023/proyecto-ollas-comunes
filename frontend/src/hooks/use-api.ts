@@ -53,5 +53,10 @@ export function useApi() {
     [token, clearAuth],
   )
 
-  return { request, get: <T>(e: string, p?: Record<string, string>) => request<T>(e, { params: p }) }
+  const get = useCallback(
+    <T>(endpoint: string, params?: Record<string, string>) => request<T>(endpoint, { params }),
+    [request],
+  )
+
+  return { request, get }
 }

@@ -205,6 +205,223 @@ export class MobileRepository {
 
     return suggestions.filter((s) => s.ingredientes.length > 0).slice(0, 1)
   }
+
+  async createMealDelivery(data: {
+    tenantId: string
+    ollaId: string
+    userId: string
+    beneficiaryIds: string[]
+    totalRations: number
+    dishName?: string
+  }) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return prisma.$transaction(async (tx) => {
+      // 1. Get or create today's MenuPlan
+      let menuPlan = await tx.menuPlan.findFirst({
+        where: {
+          ollaId: data.ollaId,
+          operationDate: { gte: today, lt: tomorrow },
+        },
+      })
+
+      if (!menuPlan) {
+        menuPlan = await tx.menuPlan.create({
+          data: {
+            ollaId: data.ollaId,
+            operationDate: today,
+            dishName: data.dishName || "Almuerzo Comunitario",
+            plannedServings: data.totalRations || data.beneficiaryIds.length,
+            status: "executed",
+            suggestedByType: "user",
+            createdBy: data.userId,
+          },
+        })
+      } else {
+        await tx.menuPlan.update({
+          where: { id: menuPlan.id },
+          data: { status: "executed" },
+        })
+      }
+
+      // 2. Create MealDelivery
+      const delivery = await tx.mealDelivery.create({
+        data: {
+          menuPlanId: menuPlan.id,
+          totalRations: data.totalRations || data.beneficiaryIds.length,
+          createdBy: data.userId,
+        },
+      })
+
+      // 3. Create MealDeliveryDetail for each beneficiary
+      if (data.beneficiaryIds && data.beneficiaryIds.length > 0) {
+        const detailsData = data.beneficiaryIds.map((bId) => ({
+          deliveryId: delivery.id,
+          beneficiaryId: bId,
+          rationType: "estandar",
+        }))
+
+        await tx.mealDeliveryDetail.createMany({
+          data: detailsData,
+          skipDuplicates: true,
+        })
+      }
+
+      return delivery
+    })
+  }
+
+  async executeMenuPlan(data: {
+    tenantId: string
+    ollaId: string
+    userId: string
+    recipeId?: string
+    dishName: string
+    servings: number
+  }) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return prisma.$transaction(async (tx) => {
+      // 1. Get or create today's MenuPlan
+      let menuPlan = await tx.menuPlan.findFirst({
+        where: {
+          ollaId: data.ollaId,
+          operationDate: { gte: today, lt: tomorrow },
+        },
+      })
+
+      let recipe = null
+      if (data.recipeId) {
+        recipe = await tx.recipe.findUnique({
+          where: { id: data.recipeId },
+          include: { ingredients: true },
+        })
+      }
+
+      if (!menuPlan) {
+        menuPlan = await tx.menuPlan.create({
+          data: {
+            ollaId: data.ollaId,
+            operationDate: today,
+            dishName: data.dishName,
+            plannedServings: data.servings,
+            recipeId: recipe?.id || null,
+            status: "executed",
+            suggestedByType: recipe ? "user" : "ia",
+            createdBy: data.userId,
+          },
+        })
+      } else {
+        await tx.menuPlan.update({
+          where: { id: menuPlan.id },
+          data: {
+            status: "executed",
+            dishName: data.dishName,
+            recipeId: recipe?.id || menuPlan.recipeId,
+          },
+        })
+      }
+
+      // 2. Discount Stock based on recipe or fallback mock ingredients
+      const itemsToDiscount: { supplyItemId: string; quantity: number }[] = []
+
+      if (recipe && recipe.ingredients.length > 0) {
+        const factor = data.servings / (recipe.estimatedServings || 1)
+        for (const ing of recipe.ingredients) {
+          itemsToDiscount.push({
+            supplyItemId: ing.supplyItemId,
+            quantity: Number(ing.quantity) * factor,
+          })
+        }
+      } else {
+        // Fallback: match by names for the mock dishes
+        const lowerDish = data.dishName.toLowerCase()
+        let keywords: string[] = []
+        if (lowerDish.includes("pollo")) {
+          keywords = ["arroz", "pollo", "zanahoria", "papa"]
+        } else if (lowerDish.includes("lenteja")) {
+          keywords = ["lenteja", "arroz", "cebolla", "aceite"]
+        } else {
+          keywords = ["verdura", "arroz", "cebolla"]
+        }
+
+        // Find items in this olla stock that match these keywords
+        const activeStock = await tx.inventoryStock.findMany({
+          where: { ollaId: data.ollaId },
+          include: { supplyItem: true },
+        })
+
+        for (const kw of keywords) {
+          const match = activeStock.find((s) => s.supplyItem.name.toLowerCase().includes(kw))
+          if (match) {
+            // Deduct a generic 0.1 units per serving (e.g. 10 kg for 100 servings)
+            itemsToDiscount.push({
+              supplyItemId: match.supplyItemId,
+              quantity: 0.1 * data.servings,
+            })
+          }
+        }
+      }
+
+      // Perform the stock deductions and insert inventory movements
+      for (const item of itemsToDiscount) {
+        // Create out movement
+        await tx.inventoryMovement.create({
+          data: {
+            tenantId: data.tenantId,
+            ollaId: data.ollaId,
+            supplyItemId: item.supplyItemId,
+            movementType: "out",
+            quantity: item.quantity,
+            notes: `Descuento automático por menú: ${data.dishName}`,
+            createdBy: data.userId,
+          },
+        })
+
+        // Update InventoryStock
+        await tx.inventoryStock.upsert({
+          where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
+          create: {
+            ollaId: data.ollaId,
+            supplyItemId: item.supplyItemId,
+            quantity: -item.quantity,
+            updatedAt: new Date(),
+          },
+          update: {
+            quantity: { decrement: item.quantity },
+            updatedAt: new Date(),
+          },
+        })
+
+        // Check if stock became negative and insert alert
+        const updatedStock = await tx.inventoryStock.findUnique({
+          where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
+          include: { supplyItem: true },
+        })
+
+        if (updatedStock && Number(updatedStock.quantity) < 0) {
+          await tx.alert.create({
+            data: {
+              tenantId: data.tenantId,
+              ollaId: data.ollaId,
+              alertType: "low_stock",
+              severity: "high",
+              message: `Stock en negativo para: ${updatedStock.supplyItem.name} — actual: ${Number(updatedStock.quantity)} ${updatedStock.supplyItem.unit}`,
+              status: "open",
+            },
+          })
+        }
+      }
+
+      return menuPlan
+    })
+  }
 }
 
 export const mobileRepository = new MobileRepository()
