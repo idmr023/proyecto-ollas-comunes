@@ -18,6 +18,7 @@ interface Beneficiary {
   apellido: string
   dni: string
   prioridad?: string[]
+  hasEatenToday?: boolean
 }
 
 interface BeneficiaryRecord {
@@ -26,6 +27,7 @@ interface BeneficiaryRecord {
   lastName: string
   dni: string | null
   healthConditions: { id: number; name: string }[]
+  hasEatenToday?: boolean
 }
 
 interface HealthCondition {
@@ -51,6 +53,9 @@ export default function PadronPage() {
   const [modoEntrega, setModoEntrega] = useState(false)
   const [seleccionados, setSeleccionados] = useState<string[]>([])
   const [delivering, setDelivering] = useState(false)
+  const [activeDishName, setActiveDishName] = useState<string | null>(null)
+  const [isMenuExecuted, setIsMenuExecuted] = useState(false)
+  const [maxServingsRemaining, setMaxServingsRemaining] = useState<number>(0)
 
   const [form, setForm] = useState({
     firstName: "",
@@ -78,6 +83,7 @@ export default function PadronPage() {
           apellido: b.lastName,
           dni: b.dni ?? "",
           prioridad: b.healthConditions.map((hc) => hc.name),
+          hasEatenToday: b.hasEatenToday,
         })),
       )
     } catch (err) {
@@ -87,9 +93,39 @@ export default function PadronPage() {
     }
   }, [get, busqueda])
 
+  const fetchActiveMenu = useCallback(async () => {
+    try {
+      const data = await get<{
+        ok: boolean
+        summary?: {
+          menu?: {
+            dishName: string
+            status: string
+            maxServingsRemaining?: number
+          } | null
+        }
+      }>("/api/mobile/dashboard")
+      if (data.ok && data.summary?.menu) {
+        setActiveDishName(data.summary.menu.dishName)
+        setIsMenuExecuted(data.summary.menu.status === "executed")
+        setMaxServingsRemaining(data.summary.menu.maxServingsRemaining ?? 0)
+      } else {
+        setActiveDishName(null)
+        setIsMenuExecuted(false)
+        setMaxServingsRemaining(0)
+      }
+    } catch (err) {
+      console.error("Error fetching active menu", err)
+    }
+  }, [get])
+
   useEffect(() => {
     fetchBeneficiaries()
   }, [fetchBeneficiaries])
+
+  useEffect(() => {
+    fetchActiveMenu()
+  }, [fetchActiveMenu])
 
   useEffect(() => {
     if (modalAbierto) {
@@ -218,10 +254,19 @@ export default function PadronPage() {
               isSelected={seleccionados.includes(b.id)}
               onClick={() => {
                 if (modoEntrega) {
+                  if (b.hasEatenToday) {
+                    toast.info(`${b.nombre} ya recibió su ración hoy.`)
+                    return
+                  }
+                  const isSelectedAlready = seleccionados.includes(b.id)
+                  if (!isSelectedAlready && seleccionados.length >= maxServingsRemaining) {
+                    toast.warning(`⚠️ Solo queda stock para ${maxServingsRemaining} ración(es) más.`)
+                    return
+                  }
                   setSeleccionados((prev) =>
-                    prev.includes(b.id)
-                      ? prev.filter((id) => id !== b.id)
-                      : [...prev, b.id],
+                      prev.includes(b.id)
+                          ? prev.filter((id) => id !== b.id)
+                          : [...prev, b.id],
                   )
                 } else {
                   toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
@@ -243,37 +288,49 @@ export default function PadronPage() {
         </button>
       ) : (
         seleccionados.length > 0 && (
-          <div className="fixed bottom-20 left-1/2 z-40 flex h-16 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 items-center justify-between rounded-xl bg-card border border-border p-3 shadow-lg">
-            <span className="text-sm font-semibold text-foreground">
-              {seleccionados.length} ración(es) seleccionada(s)
-            </span>
-            <Button
-              size="sm"
-              className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
-              disabled={delivering}
-              onClick={async () => {
-                setDelivering(true)
-                try {
-                  await request("/api/mobile/deliveries", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      beneficiaryIds: seleccionados,
-                      dishName: "Almuerzo del día",
-                    }),
-                  })
-                  toast.success("Raciones registradas correctamente")
-                  setModoEntrega(false)
-                  setSeleccionados([])
-                  router.push("/mobile/inicio")
-                } catch (err) {
-                  toast.error(err instanceof Error ? err.message : "Error al registrar raciones")
-                } finally {
-                  setDelivering(false)
-                }
-              }}
-            >
-              {delivering ? "Registrando..." : "Confirmar"}
-            </Button>
+          <div className="fixed bottom-20 left-1/2 z-40 flex flex-col gap-2 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 rounded-xl bg-card border border-border p-3 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-foreground">
+                  {seleccionados.length} ración(es) seleccionada(s)
+                </span>
+                <span className="text-xs text-muted-foreground truncate max-w-[200px] font-medium">
+                  Plato: {activeDishName || "Almuerzo del día"} | Quedan {maxServingsRemaining} raciones
+                </span>
+              </div>
+              <Button
+                size="sm"
+                className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
+                disabled={delivering}
+                onClick={async () => {
+                  setDelivering(true)
+                  try {
+                    await request("/api/mobile/deliveries", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        beneficiaryIds: seleccionados,
+                        dishName: activeDishName || "Almuerzo del día",
+                      }),
+                    })
+                    toast.success("Raciones registradas correctamente")
+                    setModoEntrega(false)
+                    setSeleccionados([])
+                    router.push("/mobile/inicio")
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Error al registrar raciones")
+                  } finally {
+                    setDelivering(false)
+                  }
+                }}
+              >
+                {delivering ? "Registrando..." : "Confirmar"}
+              </Button>
+            </div>
+            {!activeDishName && (
+              <div className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded">
+                <span>⚠️ No hay menú planificado para hoy. Se usará fallback de insumos.</span>
+              </div>
+            )}
           </div>
         )
       )}
@@ -289,7 +346,7 @@ export default function PadronPage() {
             {/* Sección: Datos Personales */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Datos Personales</h3>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="firstName" className="text-sm font-semibold tracking-wide text-foreground/80">Nombres *</Label>
@@ -331,7 +388,7 @@ export default function PadronPage() {
                     <option value="other">Otro</option>
                   </select>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label htmlFor="priorityLevel" className="text-sm font-semibold tracking-wide text-foreground/80">Prioridad</Label>
                   <select
@@ -353,7 +410,7 @@ export default function PadronPage() {
             {/* Sección: Olla y Salud */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Olla y Salud</h3>
-              
+
               {ollas.length > 0 && (
                 <div className="space-y-1.5">
                   <Label htmlFor="ollaId" className="text-sm font-semibold tracking-wide text-foreground/80">Olla común</Label>
@@ -380,11 +437,10 @@ export default function PadronPage() {
                       <button
                         key={hc.id}
                         type="button"
-                        className={`rounded-full border px-4 py-2 text-xs font-semibold cursor-pointer transition-all duration-200 active:scale-95 ${
-                          selected
+                        className={`rounded-full border px-4 py-2 text-xs font-semibold cursor-pointer transition-all duration-200 active:scale-95 ${selected
                             ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/15"
                             : "border-border bg-card text-muted-foreground hover:bg-muted"
-                        }`}
+                          }`}
                         onClick={() => toggleCondition(hc.id)}
                       >
                         {hc.name}
@@ -403,7 +459,7 @@ export default function PadronPage() {
             {/* Sección: Contacto */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Contacto</h3>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="phone" className="text-sm font-semibold tracking-wide text-foreground/80">Teléfono</Label>

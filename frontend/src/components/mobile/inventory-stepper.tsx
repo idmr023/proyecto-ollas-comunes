@@ -116,7 +116,7 @@ export function InventoryStepper({ onComplete, onCancel, supplyItems, isSalida }
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Indicador de pasos visuales (Fijo en la parte superior del stepper) */}
-      <div className="flex-shrink-0 pt-4 pb-4 border-b border-border/40 bg-card">
+      <div className="flex-shrink-0 pt-4 pb-4 border-b border-border/40">
         <div className="flex items-center gap-2 px-1">
           {[1, 2, 3].map((p) => {
             const stepDisabled = isSalida && p === 3
