@@ -97,6 +97,7 @@ export async function getSuggestions(tenantId: string) {
       nombre: s.nombre,
       puntaje: s.puntaje,
       ingredientes: s.ingredientes,
+      recipeIngredients: s.recipeIngredients,
     })),
   }
 }
@@ -167,6 +168,7 @@ export async function runMenuPlanExecution(tenantId: string, userId: string, pay
   }
 
   const recipeId = (data.recipeId as string) ?? undefined
+  const recipeIngredients = (data.recipeIngredients as { supplyItemId: string; quantity: number }[]) ?? undefined
 
   const plan = await mobileRepository.executeMenuPlan({
     tenantId,
@@ -175,6 +177,7 @@ export async function runMenuPlanExecution(tenantId: string, userId: string, pay
     recipeId,
     dishName: data.dishName as string,
     servings,
+    recipeIngredients,
   })
 
   return plan

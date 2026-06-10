@@ -14,6 +14,7 @@ interface Suggestion {
   nombre: string
   puntaje: number
   ingredientes: string[]
+  recipeIngredients?: { supplyItemId: string; quantity: number }[]
 }
 
 export default function MenuIaPage() {
@@ -48,6 +49,7 @@ export default function MenuIaPage() {
           recipeId: undefined,
           dishName: sugerencia.nombre,
           servings: 100,
+          recipeIngredients: sugerencia.recipeIngredients,
         }),
       })
       toast.success(`Menú "${sugerencia.nombre}" aprobado para hoy.`)

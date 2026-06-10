@@ -256,47 +256,212 @@ export class MobileRepository {
   }
 
   async getSuggestions(tenantId: string, ollaId: string) {
-    const expiringStock = await prisma.inventoryStock.findMany({
+    // 1. Get all available inventory stock
+    const activeStock = await prisma.inventoryStock.findMany({
       where: { ollaId, quantity: { gt: 0 } },
-      include: { supplyItem: { select: { name: true, unit: true, isPerishable: true } } },
-      orderBy: { updatedAt: "asc" },
-      take: 10,
+      include: {
+        supplyItem: {
+          select: { id: true, name: true, unit: true, isPerishable: true }
+        }
+      }
     })
 
-    const perecederos = expiringStock
-      .filter((s) => s.supplyItem.isPerishable)
-      .slice(0, 5)
+    const stockSummary = activeStock.map(s => ({
+      supplyItemId: s.supplyItemId,
+      name: s.supplyItem.name,
+      qty: Number(s.quantity),
+      unit: s.supplyItem.unit,
+      isPerishable: s.supplyItem.isPerishable
+    }))
 
-    const suggestions = [
-      {
-        nombre: "Arroz con pollo y verduras",
-        puntaje: 85,
-        ingredientes: perecederos
-          .filter((s) => ["pollo", "arroz", "zanahoria", "arveja", "papa"].some((k) => s.supplyItem.name.toLowerCase().includes(k)))
-          .map((s) => `${s.supplyItem.name} (${Number(s.quantity)} ${s.supplyItem.unit})`),
-      },
-      {
-        nombre: "Guiso de lentejas con arroz",
-        puntaje: 92,
-        ingredientes: perecederos
-          .filter((s) => ["lenteja", "arroz", "cebolla", "zanahoria"].some((k) => s.supplyItem.name.toLowerCase().includes(k)))
-          .map((s) => `${s.supplyItem.name} (${Number(s.quantity)} ${s.supplyItem.unit})`),
-      },
-    ]
+    // 2. Get active beneficiaries count, demographics, and health conditions
+    const beneficiaries = await prisma.beneficiary.findMany({
+      where: { tenantId, status: "active", ollaId },
+      include: {
+        healthConditions: {
+          include: { healthCondition: true }
+        }
+      }
+    })
 
-    if (suggestions[0].ingredientes.length === 0 && suggestions[1].ingredientes.length === 0) {
+    const totalBeneficiaries = beneficiaries.length || 50 // fallback if none yet
+    
+    // Demographics count by birth date
+    let children = 0
+    let adults = 0
+    let elderly = 0
+    
+    const today = new Date()
+    for (const b of beneficiaries) {
+      const birth = new Date(b.birthDate)
+      let age = today.getFullYear() - birth.getFullYear()
+      const m = today.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--
+      }
+      if (age < 12) {
+        children++
+      } else if (age >= 60) {
+        elderly++
+      } else {
+        adults++
+      }
+    }
+
+    // Health conditions aggregate count
+    const conditionsMap: Record<string, number> = {}
+    for (const b of beneficiaries) {
+      for (const hc of b.healthConditions) {
+        const name = hc.healthCondition.name
+        conditionsMap[name] = (conditionsMap[name] || 0) + 1
+      }
+    }
+
+    const olla = await prisma.ollaComun.findUnique({
+      where: { id: ollaId },
+      include: { district: true }
+    })
+
+    const locationContext = {
+      district: olla?.district?.name || "Lima",
+      address: olla?.address || ""
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey || apiKey.trim() === "") {
+      // Return a structured warning fallback suggestion so the application doesn't crash if apiKey is not configured yet
       return [
         {
-          nombre: "Saltado de verduras",
-          puntaje: 78,
-          ingredientes: perecederos.map(
-            (s) => `${s.supplyItem.name} (${Number(s.quantity)} ${s.supplyItem.unit})`,
-          ),
-        },
+          nombre: "Configurar API Key de Gemini (Offline)",
+          puntaje: 99,
+          ingredientes: ["Por favor, agregue su clave GEMINI_API_KEY en el archivo backend/.env para activar la generación inteligente."],
+          recipeIngredients: []
+        }
       ]
     }
 
-    return suggestions.filter((s) => s.ingredientes.length > 0).slice(0, 1)
+    const prompt = `
+Eres un nutricionista experto en gestión de ollas comunes en el Perú. Tu objetivo es sugerir sugerencias de platos de comida realistas, económicos, nutritivos y acordes al contexto peruano.
+
+Datos de la Olla Común:
+- Ubicación: ${locationContext.district}, ${locationContext.address}
+- Beneficiarios totales: ${totalBeneficiaries}
+- Grupos de edad: Niños (<12 años): ${children}, Adultos (12-59 años): ${adults}, Adulto Mayor (60+ años): ${elderly}
+- Condiciones de salud en la población: ${JSON.stringify(conditionsMap)}
+
+Insumos reales disponibles en el inventario de la olla:
+${JSON.stringify(stockSummary)}
+
+Instrucciones:
+1. Sugiere 2 opciones de platos peruanos tradicionales (ej. seco de pollo, guiso de lentejas, sopa de verduras, tacu tacu, chanfainita, estofado, etc.) que se puedan preparar usando preferentemente los insumos del almacén.
+2. Cada plato debe contener un puntaje de idoneidad nutritional (escala 1-100) basándose en las necesidades del padrón.
+3. Para cada plato sugerido, debes especificar exactamente qué insumos de los provistos en la lista de inventario utilizará y en qué cantidad (en la misma unidad de medida que figura en el inventario) para preparar raciones para ${totalBeneficiaries} personas.
+4. SOLO utiliza ingredientes que existan en el inventario provisto (usa sus supplyItemId). No sugieras insumos inexistentes.
+5. Devuelve la información estrictamente estructurada según el JSON schema requerido.
+`
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "OBJECT",
+                properties: {
+                  suggestions: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        nombre: { "type": "STRING" },
+                        puntaje: { "type": "INTEGER" },
+                        justification: { "type": "STRING" },
+                        ingredientsNeeded: {
+                          type: "ARRAY",
+                          items: {
+                            type: "OBJECT",
+                            properties: {
+                              supplyItemId: { "type": "STRING" },
+                              quantityNeeded: { "type": "NUMBER" }
+                            },
+                            required: ["supplyItemId", "quantityNeeded"]
+                          }
+                        }
+                      },
+                      required: ["nombre", "puntaje", "justification", "ingredientsNeeded"]
+                    }
+                  }
+                },
+                required: ["suggestions"]
+              }
+            }
+          })
+        }
+      )
+
+      if (!response.ok) {
+        const errText = await response.text()
+        console.error("Gemini API error status:", response.status, errText)
+        throw new Error(`Error en API de Gemini: ${response.statusText}`)
+      }
+
+      const resData = await response.json() as any
+      const textContent = resData.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!textContent) {
+        throw new Error("No se obtuvo respuesta de Gemini")
+      }
+
+      const parsed = JSON.parse(textContent) as {
+        suggestions: {
+          nombre: string
+          puntaje: number
+          justification: string
+          ingredientsNeeded: { supplyItemId: string; quantityNeeded: number }[]
+        }[]
+      }
+
+      return parsed.suggestions.map((s) => {
+        const displayIngredients = s.ingredientsNeeded.map((ing) => {
+          const item = stockSummary.find((st) => st.supplyItemId === ing.supplyItemId)
+          return `${item ? item.name : "Insumo"} (${ing.quantityNeeded} ${item ? item.unit : "un"})`
+        })
+
+        return {
+          nombre: s.nombre,
+          puntaje: s.puntaje,
+          ingredientes: displayIngredients,
+          recipeIngredients: s.ingredientsNeeded.map(ing => ({
+            supplyItemId: ing.supplyItemId,
+            quantity: ing.quantityNeeded
+          }))
+        }
+      })
+    } catch (error) {
+      console.error("Error generating Gemini suggestions, falling back...", error)
+      return [
+        {
+          nombre: "Seco de Pollo con Arroz (Offline)",
+          puntaje: 85,
+          ingredientes: ["Arroz (5 kg)", "Pollo (5 kg)", "Zanahoria (1 kg)"],
+          recipeIngredients: []
+        }
+      ]
+    }
   }
 
   async createMealDelivery(data: {
@@ -489,6 +654,7 @@ export class MobileRepository {
     recipeId?: string
     dishName: string
     servings: number
+    recipeIngredients?: { supplyItemId: string; quantity: number }[]
   }) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -509,6 +675,35 @@ export class MobileRepository {
         recipe = await tx.recipe.findUnique({
           where: { id: data.recipeId },
           include: { ingredients: true },
+        })
+      } else if (data.recipeIngredients && data.recipeIngredients.length > 0) {
+        // Find units for all selected items
+        const supplyItemIds = data.recipeIngredients.map(ing => ing.supplyItemId)
+        const supplyItems = await tx.supplyItem.findMany({
+          where: { id: { in: supplyItemIds } },
+          select: { id: true, unit: true }
+        })
+
+        // Create new dynamic recipe
+        recipe = await tx.recipe.create({
+          data: {
+            tenantId: data.tenantId,
+            name: `Menú IA: ${data.dishName} (${new Date().toLocaleDateString('es-PE')})`,
+            description: `Receta dinámica sugerida por IA para la olla común`,
+            estimatedServings: data.servings || 100,
+            status: "active",
+            ingredients: {
+              create: data.recipeIngredients.map(ing => {
+                const matchedItem = supplyItems.find(item => item.id === ing.supplyItemId)
+                return {
+                  supplyItemId: ing.supplyItemId,
+                  quantity: ing.quantity,
+                  unit: matchedItem?.unit || "un"
+                }
+              })
+            }
+          },
+          include: { ingredients: true }
         })
       }
 
