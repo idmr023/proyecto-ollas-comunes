@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { InventoryStepper, type InsumoSeleccionado } from "@/components/mobile/inventory-stepper"
 import { Button } from "@/components/ui/button"
-import { Package, CheckCircle2, Plus, Minus } from "lucide-react"
+import { Package, CheckCircle2, Plus, Minus, ChevronLeft } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { useApi } from "@/hooks/use-api"
+import { cn } from "@/lib/utils"
 
 interface InventoryItem {
   id: string
@@ -97,26 +98,42 @@ function InventarioContent() {
   }
 
   return (
-    <div className="space-y-4 p-4 pb-24">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">
-            {mostrarStepper ? (isSalida ? "Registrar Salida" : "Registrar Entrada") : "Inventario"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {mostrarStepper ? (isSalida ? "Retirar insumos del almacén" : "Agregar insumos al almacén") : "Gestiona tus insumos"}
-          </p>
+    <div className={cn(
+      "p-4",
+      mostrarStepper ? "fixed inset-x-0 mx-auto max-w-md top-0 bottom-[56px] z-40 overflow-hidden flex flex-col bg-background pb-0" : "space-y-4 pb-24"
+    )}>
+      <div className={cn("flex items-center justify-between", mostrarStepper && "flex-shrink-0 pb-4 border-b border-border/40 bg-card")}>
+        <div className="flex items-center gap-3">
+          {mostrarStepper && (
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground active:scale-95 transition-all cursor-pointer shadow-sm animate-fade-in"
+              onClick={() => setMostrarStepper(false)}
+            >
+              <ChevronLeft className="h-6 w-6 stroke-[3]" />
+            </button>
+          )}
+          <div>
+            <h1 className={cn("text-xl font-bold text-foreground", mostrarStepper && "font-black text-xl")}>
+              {mostrarStepper ? (isSalida ? "Registrar Salida" : "Registrar Entrada") : "Inventario"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {mostrarStepper ? (isSalida ? "Retirar insumos del almacén" : "Agregar insumos al almacén") : "Gestiona tus insumos"}
+            </p>
+          </div>
         </div>
         <Package className="h-6 w-6 text-muted-foreground" />
       </div>
 
       {mostrarStepper ? (
-        <InventoryStepper
-          onComplete={handleComplete}
-          onCancel={() => setMostrarStepper(false)}
-          supplyItems={supplyItems}
-          isSalida={isSalida}
-        />
+        <div className="flex-1 overflow-hidden">
+          <InventoryStepper
+            onComplete={handleComplete}
+            onCancel={() => setMostrarStepper(false)}
+            supplyItems={supplyItems}
+            isSalida={isSalida}
+          />
+        </div>
       ) : (
         <>
           {loading ? (
