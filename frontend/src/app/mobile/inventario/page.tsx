@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { InventoryStepper, type InsumoSeleccionado } from "@/components/mobile/inventory-stepper"
 import { Button } from "@/components/ui/button"
-import { Package, CheckCircle2 } from "lucide-react"
+import { Package, CheckCircle2, Plus, Minus } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { useApi } from "@/hooks/use-api"
@@ -28,12 +29,23 @@ interface CategoryItem {
   items: SupplyItem[]
 }
 
-export default function InventarioPage() {
+function InventarioContent() {
   const { get, request } = useApi()
+  const searchParams = useSearchParams()
+  const accion = searchParams.get("accion")
+
+  const [isSalida, setIsSalida] = useState(accion === "salida")
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<InventoryItem[]>([])
   const [supplyItems, setSupplyItems] = useState<SupplyItem[]>([])
   const [mostrarStepper, setMostrarStepper] = useState(false)
+
+  useEffect(() => {
+    if (accion === "ingreso" || accion === "salida") {
+      setIsSalida(accion === "salida")
+      setMostrarStepper(true)
+    }
+  }, [accion])
 
   const fetchInventory = useCallback(async () => {
     try {
@@ -67,9 +79,9 @@ export default function InventarioPage() {
         method: "POST",
         body: JSON.stringify({
           supplyItemId: match.id,
-          movementType: "in",
+          movementType: isSalida ? "out" : "in",
           quantity: insumo.kgEquivalente ?? insumo.cantidad,
-          notes: insumo.fechaVencimiento ? `Vence: ${insumo.fechaVencimiento}` : undefined,
+          notes: insumo.fechaVencimiento ? `Vence: ${insumo.fechaVencimiento}` : (isSalida ? "Salida registrada desde mobile" : undefined),
         }),
       })
       toast.success(`${insumo.nombre} registrado correctamente`)
@@ -79,6 +91,8 @@ export default function InventarioPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al registrar"
       toast.error(message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -86,8 +100,12 @@ export default function InventarioPage() {
     <div className="space-y-4 p-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Inventario</h1>
-          <p className="text-sm text-muted-foreground">Gestiona tus insumos</p>
+          <h1 className="text-xl font-bold text-foreground">
+            {mostrarStepper ? (isSalida ? "Registrar Salida" : "Registrar Entrada") : "Inventario"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {mostrarStepper ? (isSalida ? "Retirar insumos del almacén" : "Agregar insumos al almacén") : "Gestiona tus insumos"}
+          </p>
         </div>
         <Package className="h-6 w-6 text-muted-foreground" />
       </div>
@@ -97,6 +115,7 @@ export default function InventarioPage() {
           onComplete={handleComplete}
           onCancel={() => setMostrarStepper(false)}
           supplyItems={supplyItems}
+          isSalida={isSalida}
         />
       ) : (
         <>
@@ -140,14 +159,39 @@ export default function InventarioPage() {
             </div>
           )}
 
-          <Button
-            className="fixed bottom-20 left-1/2 z-40 h-14 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 rounded-xl bg-primary text-primary-foreground text-base font-bold shadow-lg hover:opacity-90"
-            onClick={() => setMostrarStepper(true)}
-          >
-            + Registrar insumo
-          </Button>
+          <div className="fixed bottom-20 left-1/2 z-40 flex gap-3 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2">
+            <Button
+              className="flex-1 h-14 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-lg hover:opacity-90 transition-all duration-200 active:scale-95 gap-1.5 cursor-pointer"
+              onClick={() => {
+                setIsSalida(false)
+                setMostrarStepper(true)
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Registrar Entrada
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-14 rounded-xl border-border bg-card hover:bg-muted text-sm font-bold shadow-lg transition-all duration-200 active:scale-95 text-foreground gap-1.5 cursor-pointer"
+              onClick={() => {
+                setIsSalida(true)
+                setMostrarStepper(true)
+              }}
+            >
+              <Minus className="h-4 w-4" />
+              Registrar Salida
+            </Button>
+          </div>
         </>
       )}
     </div>
+  )
+}
+
+export default function InventarioPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Cargando inventario...</div>}>
+      <InventarioContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Plus, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,7 @@ interface OllaOption {
 }
 
 export default function PadronPage() {
+  const router = useRouter()
   const { get, request } = useApi()
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState("")
@@ -46,6 +48,9 @@ export default function PadronPage() {
   const [submitting, setSubmitting] = useState(false)
   const [healthConditions, setHealthConditions] = useState<HealthCondition[]>([])
   const [ollas, setOllas] = useState<OllaOption[]>([])
+  const [modoEntrega, setModoEntrega] = useState(false)
+  const [seleccionados, setSeleccionados] = useState<string[]>([])
+  const [delivering, setDelivering] = useState(false)
 
   const [form, setForm] = useState({
     firstName: "",
@@ -165,6 +170,16 @@ export default function PadronPage() {
           <h1 className="text-xl font-bold text-foreground">Padrón</h1>
           <p className="text-sm text-muted-foreground">{beneficiarios.length} beneficiarios</p>
         </div>
+        <Button
+          variant={modoEntrega ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setModoEntrega(!modoEntrega)
+            setSeleccionados([])
+          }}
+        >
+          {modoEntrega ? "Cancelar" : "Registrar Entrega"}
+        </Button>
       </div>
 
       <div className="relative">
@@ -200,146 +215,218 @@ export default function PadronPage() {
             <BeneficiaryCard
               key={b.id}
               beneficiary={b}
-              onClick={() => toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)}
+              isSelected={seleccionados.includes(b.id)}
+              onClick={() => {
+                if (modoEntrega) {
+                  setSeleccionados((prev) =>
+                    prev.includes(b.id)
+                      ? prev.filter((id) => id !== b.id)
+                      : [...prev, b.id],
+                  )
+                } else {
+                  toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
+                }
+              }}
             />
           ))}
         </div>
       )}
 
-      <button
-        type="button"
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition active:scale-90"
-        onClick={() => setModalAbierto(true)}
-        aria-label="Agregar beneficiario"
-      >
-        <Plus className="h-7 w-7" />
-      </button>
+      {!modoEntrega ? (
+        <button
+          type="button"
+          className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition active:scale-90"
+          onClick={() => setModalAbierto(true)}
+          aria-label="Agregar beneficiario"
+        >
+          <Plus className="h-7 w-7" />
+        </button>
+      ) : (
+        seleccionados.length > 0 && (
+          <div className="fixed bottom-20 left-1/2 z-40 flex h-16 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 items-center justify-between rounded-xl bg-card border border-border p-3 shadow-lg">
+            <span className="text-sm font-semibold text-foreground">
+              {seleccionados.length} ración(es) seleccionada(s)
+            </span>
+            <Button
+              size="sm"
+              className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
+              disabled={delivering}
+              onClick={async () => {
+                setDelivering(true)
+                try {
+                  await request("/api/mobile/deliveries", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      beneficiaryIds: seleccionados,
+                      dishName: "Almuerzo del día",
+                    }),
+                  })
+                  toast.success("Raciones registradas correctamente")
+                  setModoEntrega(false)
+                  setSeleccionados([])
+                  router.push("/mobile/inicio")
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Error al registrar raciones")
+                } finally {
+                  setDelivering(false)
+                }
+              }}
+            >
+              {delivering ? "Registrando..." : "Confirmar"}
+            </Button>
+          </div>
+        )
+      )}
 
       <Sheet open={modalAbierto} onOpenChange={setModalAbierto}>
-        <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto rounded-t-2xl">
-          <SheetHeader>
-            <SheetTitle>Nuevo beneficiario</SheetTitle>
-            <SheetDescription>Completa los datos del beneficiario</SheetDescription>
+        <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-3xl border-t border-border bg-card px-5 shadow-2xl pb-0">
+          <SheetHeader className="pb-4 border-b border-border/40">
+            <SheetTitle className="text-lg font-bold text-foreground">Nuevo beneficiario</SheetTitle>
+            <SheetDescription className="text-sm text-muted-foreground">Completa los datos del beneficiario</SheetDescription>
           </SheetHeader>
 
-          <div className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName">Nombres *</Label>
-                <Input id="firstName" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="Nombres" />
-                {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+          <div className="mt-6 space-y-6 pb-12">
+            {/* Sección: Datos Personales */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Datos Personales</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName" className="text-sm font-semibold tracking-wide text-foreground/80">Nombres *</Label>
+                  <Input id="firstName" className="h-12 rounded-xl text-base" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="Nombres" />
+                  {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName" className="text-sm font-semibold tracking-wide text-foreground/80">Apellidos *</Label>
+                  <Input id="lastName" className="h-12 rounded-xl text-base" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Apellidos" />
+                  {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Apellidos *</Label>
-                <Input id="lastName" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Apellidos" />
-                {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="dni" className="text-sm font-semibold tracking-wide text-foreground/80">DNI</Label>
+                  <Input id="dni" className="h-12 rounded-xl text-base" value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value })} placeholder="12345678" maxLength={20} />
+                  {errors.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="birthDate" className="text-sm font-semibold tracking-wide text-foreground/80">Fecha de nacimiento *</Label>
+                  <Input id="birthDate" className="h-12 rounded-xl text-base" type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} />
+                  {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="gender" className="text-sm font-semibold tracking-wide text-foreground/80">Género</Label>
+                  <select
+                    id="gender"
+                    className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2523666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_1rem_center] bg-no-repeat pr-10 cursor-pointer transition-all duration-200"
+                    value={form.gender}
+                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                  >
+                    <option value="not_specified">No especificado</option>
+                    <option value="male">Masculino</option>
+                    <option value="female">Femenino</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <Label htmlFor="priorityLevel" className="text-sm font-semibold tracking-wide text-foreground/80">Prioridad</Label>
+                  <select
+                    id="priorityLevel"
+                    className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2523666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_1rem_center] bg-no-repeat pr-10 cursor-pointer transition-all duration-200"
+                    value={form.priorityLevel}
+                    onChange={(e) => setForm({ ...form, priorityLevel: e.target.value })}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="low">Baja</option>
+                    <option value="high">Alta</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <hr className="border-border/40" />
+
+            {/* Sección: Olla y Salud */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Olla y Salud</h3>
+              
+              {ollas.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="ollaId" className="text-sm font-semibold tracking-wide text-foreground/80">Olla común</Label>
+                  <select
+                    id="ollaId"
+                    className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2523666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_1rem_center] bg-no-repeat pr-10 cursor-pointer transition-all duration-200"
+                    value={form.ollaId}
+                    onChange={(e) => setForm({ ...form, ollaId: e.target.value })}
+                  >
+                    <option value="">Sin asignar</option>
+                    {ollas.map((o) => (
+                      <option key={o.id} value={o.id}>{o.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="space-y-1.5">
-                <Label htmlFor="dni">DNI</Label>
-                <Input id="dni" value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value })} placeholder="12345678" maxLength={20} />
-                {errors.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="birthDate">Fecha de nacimiento *</Label>
-                <Input id="birthDate" type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} />
-                {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate}</p>}
+                <Label className="text-sm font-semibold tracking-wide text-foreground/80">Condiciones de salud</Label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {healthConditions.map((hc) => {
+                    const selected = form.healthConditionIds.includes(hc.id)
+                    return (
+                      <button
+                        key={hc.id}
+                        type="button"
+                        className={`rounded-full border px-4 py-2 text-xs font-semibold cursor-pointer transition-all duration-200 active:scale-95 ${
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                            : "border-border bg-card text-muted-foreground hover:bg-muted"
+                        }`}
+                        onClick={() => toggleCondition(hc.id)}
+                      >
+                        {hc.name}
+                      </button>
+                    )
+                  })}
+                  {healthConditions.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Cargando condiciones...</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="gender">Género</Label>
-                <select
-                  id="gender"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={form.gender}
-                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                >
-                  <option value="not_specified">No especificado</option>
-                  <option value="male">Masculino</option>
-                  <option value="female">Femenino</option>
-                  <option value="other">Otro</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="priorityLevel">Prioridad</Label>
-                <select
-                  id="priorityLevel"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={form.priorityLevel}
-                  onChange={(e) => setForm({ ...form, priorityLevel: e.target.value })}
-                >
-                  <option value="normal">Normal</option>
-                  <option value="low">Baja</option>
-                  <option value="high">Alta</option>
-                </select>
+            <hr className="border-border/40" />
+
+            {/* Sección: Contacto */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Contacto</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-sm font-semibold tracking-wide text-foreground/80">Teléfono</Label>
+                  <Input id="phone" className="h-12 rounded-xl text-base" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="999 999 999" maxLength={30} />
+                  {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="address" className="text-sm font-semibold tracking-wide text-foreground/80">Dirección</Label>
+                  <Input id="address" className="h-12 rounded-xl text-base" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Dirección" />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Condiciones de salud</Label>
-              <div className="flex flex-wrap gap-2">
-                {healthConditions.map((hc) => {
-                  const selected = form.healthConditionIds.includes(hc.id)
-                  return (
-                    <button
-                      key={hc.id}
-                      type="button"
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                        selected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-muted-foreground"
-                      }`}
-                      onClick={() => toggleCondition(hc.id)}
-                    >
-                      {hc.name}
-                    </button>
-                  )
-                })}
-                {healthConditions.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Cargando condiciones...</p>
-                )}
-              </div>
+            <div className="pt-4">
+              <Button
+                className="h-14 w-full bg-primary text-primary-foreground hover:opacity-90 font-bold text-base rounded-xl transition-all duration-200 active:scale-95 shadow-lg shadow-primary/10"
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? "Guardando..." : "Guardar beneficiario"}
+              </Button>
             </div>
-
-            {ollas.length > 0 && (
-              <div className="space-y-1.5">
-                <Label htmlFor="ollaId">Olla común</Label>
-                <select
-                  id="ollaId"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={form.ollaId}
-                  onChange={(e) => setForm({ ...form, ollaId: e.target.value })}
-                >
-                  <option value="">Sin asignar</option>
-                  {ollas.map((o) => (
-                    <option key={o.id} value={o.id}>{o.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="999 999 999" maxLength={30} />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="address">Dirección</Label>
-              <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Dirección" />
-            </div>
-
-            <Button
-              className="h-12 w-full bg-primary text-primary-foreground hover:opacity-90"
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? "Guardando..." : "Guardar beneficiario"}
-            </Button>
           </div>
         </SheetContent>
       </Sheet>

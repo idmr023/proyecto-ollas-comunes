@@ -1,5 +1,5 @@
 import { Router, Response } from "express"
-import { getDashboard, getInventory, createMovement, getAlerts, getSuggestions } from "./service"
+import { getDashboard, getInventory, createMovement, getAlerts, getSuggestions, registerMealDelivery, runMenuPlanExecution, uploadDocument } from "./service"
 
 const mobileRouter = Router()
 
@@ -52,6 +52,33 @@ mobileRouter.get("/suggestions", async (request, response) => {
   try {
     const data = await getSuggestions(request.user!.tenantId)
     response.json({ ok: true, ...data })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+mobileRouter.post("/deliveries", async (request, response) => {
+  try {
+    const delivery = await registerMealDelivery(request.user!.tenantId, request.user!.userId, request.body)
+    response.status(201).json({ ok: true, delivery })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+mobileRouter.post("/menu-plans/execute", async (request, response) => {
+  try {
+    const plan = await runMenuPlanExecution(request.user!.tenantId, request.user!.userId, request.body)
+    response.status(201).json({ ok: true, plan })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+mobileRouter.post("/documents/upload", async (request, response) => {
+  try {
+    const document = await uploadDocument(request.user!.tenantId, request.user!.userId, request.body)
+    response.status(201).json({ ok: true, document })
   } catch (error) {
     handleError(error, response)
   }

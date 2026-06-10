@@ -33,6 +33,7 @@ interface Props {
   onComplete: (insumo: InsumoSeleccionado) => void
   onCancel?: () => void
   supplyItems?: { id: string; name: string; unit: string }[]
+  isSalida?: boolean
 }
 
 const SUGERENCIAS = [
@@ -40,7 +41,7 @@ const SUGERENCIAS = [
   "Leche en polvo", "Azúcar", "Sal", "Harina", "Conserva de pescado",
 ]
 
-export function InventoryStepper({ onComplete, onCancel, supplyItems }: Props) {
+export function InventoryStepper({ onComplete, onCancel, supplyItems, isSalida }: Props) {
   const [paso, setPaso] = useState(1)
   const [busqueda, setBusqueda] = useState("")
   const [seleccion, setSeleccion] = useState("")
@@ -193,20 +194,26 @@ export function InventoryStepper({ onComplete, onCancel, supplyItems }: Props) {
 
       {paso === 3 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-foreground">Fecha de vencimiento</h2>
-          <Input
-            type="date"
-            className="h-12 text-base"
-            value={fechaVenc}
-            onChange={(e) => setFechaVenc(e.target.value)}
-          />
+          {!isSalida ? (
+            <>
+              <h2 className="text-lg font-bold text-foreground">Fecha de vencimiento</h2>
+              <Input
+                type="date"
+                className="h-12 text-base"
+                value={fechaVenc}
+                onChange={(e) => setFechaVenc(e.target.value)}
+              />
+            </>
+          ) : (
+            <h2 className="text-lg font-bold text-foreground">Confirmar salida</h2>
+          )}
           <div className="rounded-xl bg-muted p-4">
             <h3 className="mb-2 text-sm font-semibold text-foreground">Resumen</h3>
             <div className="space-y-1 text-sm">
               <p className="flex justify-between"><span className="text-muted-foreground">Insumo</span><span className="font-medium text-foreground">{seleccion}</span></p>
               <p className="flex justify-between"><span className="text-muted-foreground">Cantidad</span><span className="font-medium text-foreground">{cantidad} {UNIDADES_MTZ[unidad]?.label}</span></p>
               {kgEq !== null && <p className="flex justify-between"><span className="text-muted-foreground">Equivale a</span><span className="font-medium text-foreground">{kgEq} kg</span></p>}
-              <p className="flex justify-between"><span className="text-muted-foreground">Vence</span><span className="font-medium text-foreground">{fechaVenc || "Sin fecha"}</span></p>
+              {!isSalida && <p className="flex justify-between"><span className="text-muted-foreground">Vence</span><span className="font-medium text-foreground">{fechaVenc || "Sin fecha"}</span></p>}
             </div>
           </div>
           <div className="flex gap-3">

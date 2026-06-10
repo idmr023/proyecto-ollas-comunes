@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { PackagePlus, PackageMinus, Users, Sparkles } from "lucide-react"
+import { PackagePlus, PackageMinus, Users, Sparkles, UploadCloud } from "lucide-react"
 
 const items = [
   { href: "/mobile/inventario?accion=ingreso", label: "Registrar Ingreso", icon: PackagePlus },
@@ -25,6 +25,16 @@ export function QuickAccessGrid() {
           <span className="text-center text-sm font-medium text-foreground">{label}</span>
         </Link>
       ))}
+
+      <Link
+        href="/mobile/evidencias"
+        className="col-span-2 flex items-center justify-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition active:scale-[0.97]"
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <UploadCloud className="h-5 w-5" />
+        </div>
+        <span className="text-center text-sm font-semibold text-foreground">Cargar Evidencias (Boletas / Fotos)</span>
+      </Link>
     </div>
   )
 }
