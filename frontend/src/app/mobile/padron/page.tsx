@@ -203,37 +203,56 @@ export default function PadronPage() {
     <div className="space-y-4 p-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Padrón</h1>
-          <p className="text-sm text-muted-foreground">{beneficiarios.length} beneficiarios</p>
+          <h1 className="text-xl font-bold text-foreground">
+            {modoEntrega ? "Entregar Raciones" : "Padrón"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {modoEntrega ? "Selecciona beneficiarios para la entrega" : `${beneficiarios.length} beneficiarios`}
+          </p>
         </div>
-        <Button
-          variant={modoEntrega ? "default" : "outline"}
-          size="sm"
-          onClick={() => {
-            setModoEntrega(!modoEntrega)
-            setSeleccionados([])
-          }}
-        >
-          {modoEntrega ? "Cancelar" : "Registrar Entrega"}
-        </Button>
+        {modoEntrega && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-destructive/30 text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              setModoEntrega(false)
+              setSeleccionados([])
+            }}
+          >
+            Cancelar
+          </Button>
+        )}
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="h-12 pl-10 pr-10 text-base"
-          placeholder="Buscar por nombre o DNI…"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-        {busqueda && (
-          <button
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-12 pl-10 pr-10 text-base"
+            placeholder="Buscar por nombre o DNI…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+          {busqueda && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              onClick={() => setBusqueda("")}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        {!modoEntrega && (
+          <Button
             type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            onClick={() => setBusqueda("")}
+            onClick={() => setModalAbierto(true)}
+            className="h-12 w-12 rounded-full shrink-0 flex items-center justify-center bg-primary text-primary-foreground shadow-sm active:scale-95 p-0"
+            aria-label="Agregar beneficiario"
           >
-            <X className="h-5 w-5" />
-          </button>
+            <Plus className="h-5 w-5" />
+          </Button>
         )}
       </div>
 
@@ -278,14 +297,17 @@ export default function PadronPage() {
       )}
 
       {!modoEntrega ? (
-        <button
-          type="button"
-          className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition active:scale-90"
-          onClick={() => setModalAbierto(true)}
-          aria-label="Agregar beneficiario"
-        >
-          <Plus className="h-7 w-7" />
-        </button>
+        <div className="fixed bottom-20 left-1/2 z-40 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 p-1">
+          <Button
+            onClick={() => {
+              setModoEntrega(true)
+              setSeleccionados([])
+            }}
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+          >
+            🍽️ Registrar Entrega de Ración
+          </Button>
+        </div>
       ) : (
         seleccionados.length > 0 && (
           <div className="fixed bottom-20 left-1/2 z-40 flex flex-col gap-2 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] -translate-x-1/2 rounded-xl bg-card border border-border p-3 shadow-lg">
