@@ -1,6 +1,7 @@
 import { BeneficiaryServiceError } from './errors'
 import { BeneficiaryPayload, BeneficiaryRecord, QueryFilters } from './types'
 import { beneficiaryRepository } from './repository'
+import { prisma } from '../../lib/prisma'
 
 function parsePayload(payload: unknown): BeneficiaryPayload {
   if (!payload || typeof payload !== 'object') {
@@ -116,7 +117,30 @@ function toResponse(record: BeneficiaryRecord) {
 
 export async function getAllBeneficiaries(tenantId: string, filters: QueryFilters) {
   const records = await beneficiaryRepository.findAll(tenantId, filters)
-  return records.map(toResponse)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const deliveriesToday = await prisma.mealDeliveryDetail.findMany({
+    where: {
+      delivery: {
+        deliveredAt: { gte: today, lt: tomorrow }
+      }
+    },
+    select: { beneficiaryId: true }
+  })
+
+  const eatenSet = new Set(deliveriesToday.map(d => d.beneficiaryId))
+
+  return records.map(record => {
+    const response = toResponse(record)
+    return {
+      ...response,
+      hasEatenToday: eatenSet.has(record.id)
+    }
+  })
 }
 
 export async function getBeneficiaryById(id: string, tenantId: string) {

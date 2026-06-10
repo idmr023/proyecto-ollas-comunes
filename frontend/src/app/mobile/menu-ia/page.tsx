@@ -50,9 +50,9 @@ export default function MenuIaPage() {
           servings: 100,
         }),
       })
-      toast.success(`Menú "${sugerencia.nombre}" aplicado y stock descontado.`)
+      toast.success(`Menú "${sugerencia.nombre}" aprobado para hoy.`)
       setSugerencia(null)
-      router.push("/mobile/inventario")
+      router.push("/mobile/inicio")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al aplicar el menú")
     } finally {

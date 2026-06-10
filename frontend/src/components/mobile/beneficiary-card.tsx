@@ -9,6 +9,7 @@ interface Beneficiary {
   apellido: string
   dni: string
   prioridad?: string[]
+  hasEatenToday?: boolean
 }
 
 const BADGE_STYLES: Record<string, string> = {
@@ -33,7 +34,8 @@ export function BeneficiaryCard({ beneficiary, onClick, isSelected }: Props) {
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-4 rounded-xl border p-4 text-left shadow-sm transition active:scale-[0.98]",
-        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card"
+        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card",
+        beneficiary.hasEatenToday && "opacity-75 bg-muted/30"
       )}
     >
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -60,7 +62,13 @@ export function BeneficiaryCard({ beneficiary, onClick, isSelected }: Props) {
           </div>
         )}
       </div>
-      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+      {beneficiary.hasEatenToday ? (
+        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-1 rounded shrink-0">
+          🟢 Entregado
+        </span>
+      ) : (
+        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+      )}
     </button>
   )
 }
