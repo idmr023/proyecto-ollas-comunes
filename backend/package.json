@@ -7,6 +7,7 @@
     "dev": "tsc && node --watch dist/server.js",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:db:pull": "prisma db pull",
     "prisma:db:push": "prisma db push",
@@ -46,6 +47,7 @@
     "@types/nodemailer": "^6.4.0",
     "@types/pg": "^8.20.0",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.8"
   }
 }
