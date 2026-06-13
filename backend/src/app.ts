@@ -25,10 +25,10 @@ app.set('trust proxy', 1)
 
 app.use(helmet())
 
-// Rate limiting for auth routes: max 5 requests per minute per IP
+// Rate limiting for auth routes: max 5 requests per minute per IP (relaxed in dev/test)
 const authLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },

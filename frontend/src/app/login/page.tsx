@@ -122,6 +122,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="login-email"
                   className="h-12 pl-10 text-base"
                   type="text"
                   placeholder="ej. lideresa@olla.pe"
@@ -138,6 +139,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="login-password"
                   className="h-12 pl-10 pr-12 text-base"
                   type={showPw ? "text" : "password"}
                   placeholder="••••••••"
