@@ -4,6 +4,7 @@ import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
 import { prisma } from '../lib/prisma'
+import { generate } from 'otplib/functional'
 
 let server: Server
 const PORT = 4002
@@ -24,11 +25,17 @@ async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
     return { token: loginData.token, tenantId: loginData.user.tenantId }
   }
 
-  const otpRecord = await prisma.otpCode.findFirst({
-    where: { email: 'admin@ollascomunes.pe', usedAt: null },
-    orderBy: { createdAt: 'desc' }
-  })
-  if (!otpRecord) throw new Error('No se encontró el código OTP en la Base de Datos')
+  // Generar el código TOTP dinámicamente
+  let secret = loginData.secret
+  if (!secret) {
+    const user = await prisma.appUser.findUnique({
+      where: { email: 'admin@ollascomunes.pe' }
+    })
+    secret = user?.totpSecret
+  }
+  if (!secret) throw new Error('No se encontró el secreto TOTP en la Base de Datos ni en la respuesta')
+
+  const code = await generate({ secret })
 
   const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
     method: 'POST',
@@ -36,7 +43,7 @@ async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
     body: JSON.stringify({
       email: 'admin@ollascomunes.pe',
       tempToken: loginData.tempToken,
-      code: otpRecord.code
+      code
     })
   })
   const verifyData = (await verifyRes.json()) as any
@@ -83,26 +90,35 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(body.service).toBe('supabase')
   })
 
-  it('I-03: Google OAuth - Url de Redirección', async () => {
-    const res = await fetch(`${BASE_URL}/api/auth/google/url`)
+  it('I-03: Consulta de Organizaciones (Multi-tenant)', async () => {
+    const res = await fetch(`${BASE_URL}/api/organizations`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
     expect(res.status).toBe(200)
     const body = (await res.json()) as any
     expect(body.ok).toBe(true)
-    expect(body.url).toContain('provider=google')
+    expect(body.items).toBeDefined()
+    expect(Array.isArray(body.items)).toBe(true)
   })
 
-  it('I-04: Google OAuth - Intercambio de códigos (Callback)', async () => {
-    // Probamos el endpoint de callback con un código falso para verificar el manejo de excepciones de Google OAuth API
-    const res = await fetch(`${BASE_URL}/api/auth/google/callback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: 'invalid-auth-code' })
-    })
+  it('I-04: Consulta de Ollas Comunes asociadas a una organización', async () => {
+    const tenant = await prisma.tenant.findUnique({ where: { id: testTenantId } })
+    const slug = tenant?.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ?? ''
 
-    // Debería fallar la validación con error 400/401 debido a credenciales inválidas ante Google OAuth API
-    expect([400, 401]).toContain(res.status)
+    const res = await fetch(`${BASE_URL}/api/organizations/${slug}/ollas`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
+    expect(res.status).toBe(200)
     const body = (await res.json()) as any
-    expect(body.ok).toBe(false)
+    expect(body.ok).toBe(true)
+    expect(body.items).toBeDefined()
+    expect(Array.isArray(body.items)).toBe(true)
   })
 
   /* --- SEGURIDAD Y ENRUTAMIENTO (I-05 a I-08) --- */
@@ -203,12 +219,12 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(user).toBeDefined()
   })
 
-  it('I-11: Envío de códigos OTP en BD', async () => {
-    const otp = await prisma.otpCode.findFirst({
+  it('I-11: Almacenamiento de secreto TOTP en BD', async () => {
+    const user = await prisma.appUser.findUnique({
       where: { email: 'admin@ollascomunes.pe' }
     })
-    expect(otp).toBeDefined()
-    expect(otp?.code).toHaveLength(6)
+    expect(user?.totpSecret).toBeDefined()
+    expect(user?.totpSecret).not.toBeNull()
   })
 
   it('I-12: Subida de archivos a Supabase Storage', async () => {

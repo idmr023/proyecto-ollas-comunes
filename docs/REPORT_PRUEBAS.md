@@ -19,9 +19,9 @@ El diseño de la suite de pruebas se acopló al stack moderno del proyecto (Next
 1.  **Ejecución con Aislamiento de Procesos (`pool: 'forks'`):**
     *   *Problema:* Al correr pruebas de base de datos con hilos concurrentes (`worker_threads`), el adaptador de base de datos de Prisma (`@prisma/adapter-pg`) experimentaba cierres de socket inesperados (`ConnectionClosed`), arrojando errores de base de datos aleatorios.
     *   *Solución:* Se reconfiguró el planificador de Vitest ([vitest.config.ts](file:///d:/proyecto-ollas-comunes/backend/vitest.config.ts)) para usar un pool de subprocesos aislados (`forks`) y deshabilitar el paralelismo de archivos. Esto asegura que la conexión con el Transaction Pooler (Supavisor) de Supabase sea persistente y secuencial.
-2.  **Bypass Seguro del Flujo Multifactor (MFA/OTP):**
-    *   *Problema:* El flujo de login del backend exige de forma obligatoria un código OTP enviado por correo electrónico, lo cual bloquea la automatización convencional.
-    *   *Solución:* En lugar de desactivar temporalmente la seguridad en la base de datos o cablear accesos alternativos, las pruebas automatizadas se conectan de forma segura a la base de datos de pruebas mediante Prisma, extraen el último código OTP generado para el usuario logueado en la tabla `otp_codes` y envían la confirmación en milisegundos. Esto valida el flujo real del backend con un 100% de apego a la arquitectura de seguridad del sistema.
+2.  **Bypass Seguro del Flujo Multifactor (MFA/TOTP):**
+    *   *Problema:* El flujo de login del backend exige de forma obligatoria un código TOTP multifactor (Google Authenticator), lo cual bloquea la automatización convencional de inicio de sesión.
+    *   *Solución:* Para simular la generación del código TOTP sin una aplicación móvil física, las pruebas automatizadas leen el secreto TOTP de la respuesta de inicio de sesión (en el setup inicial) o directamente del registro del usuario en la base de datos (`totpSecret` en la tabla `app_users`) y generan el token de 6 dígitos dinámicamente usando `otplib/functional`. Esto valida el flujo real del backend con un 100% de apego a la arquitectura de seguridad del sistema.
 3.  **Simulación y Aislamiento de APIs Externas (Gemini IA):**
     *   *Problema:* Las sugerencias de menús consumen créditos y dependen de la API de Gemini (Google Generative AI), lo cual puede causar demoras de red y fallas de conexión en entornos locales de desarrollo.
     *   *Solución:* Se configuró el test runner para inyectar una variable `GEMINI_API_KEY` vacía durante la prueba, obligando al backend a ejecutar su rama de contingencia local (*fallback offline*), respondiendo de forma instantánea con sugerencias preconfiguradas estructuradas sin romper la validación.
@@ -43,7 +43,7 @@ Validadas mediante aserciones estrictas en [functional.test.ts](file:///d:/proye
 *   **F-06:** Flujo de Login exitoso, verificando el paso inicial de MFA (retorna token temporal y estado `MFA_PENDING`).
 *   **F-07:** Rechazo de acceso ante el envío de contraseñas incorrectas (Código `401 Unauthorized`).
 *   **F-08:** Rechazo de acceso ante el intento con correos electrónicos no registrados.
-*   **F-09:** Bloqueo del inicio de sesión tras superar el límite de 3 intentos fallidos de código OTP.
+*   **F-09:** Validación de código TOTP incorrecto y rechazo de autenticación (MFA/TOTP).
 *   **F-10:** Registro correcto de movimientos de entrada de stock en inventario (`POST /api/mobile/inventory/movements`).
 *   **F-11:** Registro correcto de movimientos de salida de stock.
 *   **F-12:** Registro controlado de salidas de inventario que excedan el stock físico (crea alerta en lugar de abortar).
@@ -56,15 +56,15 @@ Validadas en [integration.test.ts](file:///d:/proyecto-ollas-comunes/backend/src
 
 *   **I-01:** Interconexión activa con la base de datos PostgreSQL mediante Prisma (`GET /api/health/prisma`).
 *   **I-02:** Conectividad y respuesta del SDK de Supabase Client en la nube (`GET /api/health/supabase`).
-*   **I-03:** Formateo correcto de la URL de autorización generada para el Login federado de Google OAuth.
-*   **I-04:** Manejo correcto de errores al enviar un código inválido al endpoint de callback de Google OAuth.
+*   **I-03:** Consulta de Organizaciones (Multi-tenant) a través del endpoint público (`GET /api/organizations`).
+*   **I-04:** Consulta de Ollas Comunes asociadas a una organización específica (`GET /api/organizations/:slug/ollas`).
 *   **I-05:** Garantía de aislamiento multi-tenant por RLS (un tenant no puede ver beneficiarios de otro).
 *   **I-06:** Funcionamiento del middleware de Rate Limiting (bloqueo automático tras 5 llamadas de login/min).
 *   **I-07:** Cabeceras CORS válidas presentes en las respuestas del API Gateway.
 *   **I-08:** Integridad transaccional y Rollback (fallar operaciones de inventario revierte todo el lote).
 *   **I-09:** Verificación de escritura del trigger forense en la tabla `audit_logs`.
 *   **I-10:** Activación del hilo de alerta de inicio de sesión de NodeMailer.
-*   **I-11:** Inserción y encriptación de claves de acceso dinámicas OTP de 6 dígitos.
+*   **I-11:** Almacenamiento seguro del secreto TOTP de 2FA en la base de datos (`totpSecret`).
 *   **I-12:** Subida y guardado de archivos JPG/PDF de evidencia en los Buckets de Supabase Storage.
 *   **I-13:** Cálculo lógico automatizado para detonar alertas de stock por debajo del límite mínimo.
 *   **I-14:** Consistencia del JSON Schema devuelto por el recomendador de menús interactivos.

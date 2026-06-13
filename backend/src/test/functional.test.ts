@@ -3,6 +3,7 @@ import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
 import { prisma } from '../lib/prisma'
+import { generate } from 'otplib/functional'
 
 let server: Server
 const PORT = 4001
@@ -26,21 +27,26 @@ async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
     return { token: loginData.token, tenantId: loginData.user.tenantId }
   }
 
-  // 2. Obtener el código OTP generado en la BD
-  const otpRecord = await prisma.otpCode.findFirst({
-    where: { email: 'admin@ollascomunes.pe', usedAt: null },
-    orderBy: { createdAt: 'desc' }
-  })
-  if (!otpRecord) throw new Error('No se encontró el código OTP en la Base de Datos')
+  // 2. Generar el código TOTP dinámicamente
+  let secret = loginData.secret
+  if (!secret) {
+    const user = await prisma.appUser.findUnique({
+      where: { email: 'admin@ollascomunes.pe' }
+    })
+    secret = user?.totpSecret
+  }
+  if (!secret) throw new Error('No se encontró el secreto TOTP en la Base de Datos ni en la respuesta')
 
-  // 3. Confirmar OTP
+  const code = await generate({ secret })
+
+  // 3. Confirmar OTP/TOTP
   const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email: 'admin@ollascomunes.pe',
       tempToken: loginData.tempToken,
-      code: otpRecord.code
+      code
     })
   })
   const verifyData = (await verifyRes.json()) as any
