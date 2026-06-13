@@ -176,7 +176,7 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
             supplyItemId: 'non-existent-id', // Esto causará un fallo de clave foránea
             movementType: 'in',
             quantity: 10,
-            userId: 'user-id'
+            createdBy: 'user-id'
           }
         })
       })
