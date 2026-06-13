@@ -116,6 +116,7 @@ function OtpVerification() {
                 ))}
               </div>
               <input
+                id="otp-code"
                 ref={inputRef}
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 inputMode="numeric"
@@ -133,6 +134,7 @@ function OtpVerification() {
             </div>
 
             <Button
+              type="submit"
               onClick={handleVerify}
               disabled={loading || code.length !== 6}
               className="h-12 w-full rounded-lg bg-[#0F3821] text-base font-semibold text-white hover:bg-[#0F3821]/90"
@@ -164,6 +166,7 @@ function OtpVerification() {
                 ))}
               </div>
               <input
+                id="otp-code"
                 ref={inputRef}
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 inputMode="numeric"
