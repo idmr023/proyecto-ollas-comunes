@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Package, Users, AlertTriangle } from "lucide-react"
+import { Home, Package, Users, AlertTriangle, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/auth-store"
 
 const tabs = [
   { href: "/mobile/inicio", label: "Inicio", icon: Home },
@@ -14,6 +15,8 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname()
+  const clearAuth = useAuthStore((s) => s.clearAuth)
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur safe-area-bottom">
       <div className="mx-auto flex max-w-md items-center justify-around px-2 py-1">
@@ -36,6 +39,13 @@ export function BottomNav() {
             </Link>
           )
         })}
+        <button
+          onClick={() => clearAuth()}
+          className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors min-h-[48px] min-w-[64px] text-muted-foreground hover:text-foreground cursor-pointer border-none bg-transparent"
+        >
+          <LogOut className="h-6 w-6" />
+          <span className="text-[11px] leading-tight">Salir</span>
+        </button>
       </div>
     </nav>
   )
