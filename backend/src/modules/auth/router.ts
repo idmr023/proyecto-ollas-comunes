@@ -1,8 +1,7 @@
 import { Router, Response } from 'express'
 import { requireAuth } from '../../lib/middleware/auth'
 import { AuthError } from './errors'
-import { login, register, getMe, verifyOtp, loginWithGoogle, loginWithGoogleCode } from './service'
-import { getGoogleOAuthUrl } from './google-oauth'
+import { login, register, getMe, verifyOtp } from './service'
 import { ZodError } from 'zod'
 
 const authRouter = Router()
@@ -30,7 +29,7 @@ function handleError(error: unknown, response: Response) {
   })
 }
 
-// POST /api/auth/login — Step 1: email + password → MFA_PENDING
+// POST /api/auth/login — email + password → TOTP setup / MFA_PENDING
 authRouter.post('/login', async (request, response) => {
   try {
     const result = await login(request.body)
@@ -40,7 +39,7 @@ authRouter.post('/login', async (request, response) => {
   }
 })
 
-// POST /api/auth/verify-otp — Step 2: OTP code → JWT
+// POST /api/auth/verify-otp — TOTP code → JWT
 authRouter.post('/verify-otp', async (request, response) => {
   try {
     const result = await verifyOtp(request.body)
@@ -69,36 +68,6 @@ authRouter.get('/me', requireAuth, async (request, response) => {
       return
     }
     response.json({ ok: true, user })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
-
-// GET /api/auth/google/url — Get Google OAuth URL
-authRouter.get('/google/url', async (_request, response) => {
-  try {
-    const url = getGoogleOAuthUrl()
-    response.json({ ok: true, url })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
-
-// POST /api/auth/google — Verify Google ID token (via GIS) and return JWT
-authRouter.post('/google', async (request, response) => {
-  try {
-    const result = await loginWithGoogle(request.body.credential)
-    response.json({ ok: true, ...result })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
-
-// POST /api/auth/google/callback — Exchange Google code for JWT (Supabase flow)
-authRouter.post('/google/callback', async (request, response) => {
-  try {
-    const result = await loginWithGoogleCode(request.body.code)
-    response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)
   }

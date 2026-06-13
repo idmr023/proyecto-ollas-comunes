@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,8 +15,6 @@ import { useAuthStore } from '@/store/auth-store';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
-
-const GOOGLE_CLIENT_ID = '426312719449-p9vpi2f58c41l30op4bou84dpqk54hfi.apps.googleusercontent.com'
 
 /* ── Step 1 schema ──────────────────────────── */
 const loginSchema = z.object({
@@ -43,9 +41,9 @@ export function LoginForm() {
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [tempToken, setTempToken] = useState('');
   const [mfaEmail, setMfaEmail] = useState('');
-
-  /* Google ref */
-  const googleInitialized = useRef(false);
+  const [isTotpSetup, setIsTotpSetup] = useState(false);
+  const [totpSecret, setTotpSecret] = useState('');
+  const [qrCodeUri, setQrCodeUri] = useState('');
 
   /* ── React Hook Form for Step 1 ── */
   const loginForm = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
@@ -55,59 +53,7 @@ export function LoginForm() {
   const otpForm = useForm<OtpFormValues>({ resolver: zodResolver(otpSchema) });
   const { register: otpRegister, handleSubmit: otpHandleSubmit, formState: { errors: otpErrors } } = otpForm;
 
-  /* ── Load GIS library ── */
-  useEffect(() => {
-    if (googleInitialized.current || typeof window === 'undefined') return;
-    googleInitialized.current = true;
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      const g = (window as any).google;
-      if (g?.accounts?.id) {
-        g.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredential,
-          cancel_on_tap_outside: false,
-        });
-      }
-    };
-    document.head.appendChild(script);
-  }, []);
-
-  function handleGoogleCredential(response: any) {
-    const credential = response?.credential;
-    if (!credential) {
-      toast.error('No se recibió la credencial de Google.');
-      return;
-    }
-    googleLogin(credential);
-  }
-
-  async function googleLogin(credential: string) {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential }),
-      });
-      const json = await res.json();
-      if (!json.ok || !json.token || !json.user) {
-        throw new Error(json.message ?? 'Error al iniciar sesión con Google.');
-      }
-      setAuth(json.user, json.token);
-      toast.success('Sesión iniciada con Google correctamente');
-      setTimeout(() => router.replace('/workspace/home'), 1200);
-    } catch (err) {
-      setIsLoading(false);
-      toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión con Google.');
-    }
-  }
-
-  /* ── Step 1: email + password → MFA_PENDING ── */
+  /* ── Step 1: email + password ── */
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
@@ -122,15 +68,26 @@ export function LoginForm() {
         throw new Error(json.message ?? 'Credenciales inválidas.');
       }
 
-      if (json.status === 'MFA_PENDING') {
+      if (json.status === 'TOTP_SETUP_REQUIRED') {
         setTempToken(json.tempToken);
         setMfaEmail(json.email);
+        setTotpSecret(json.secret);
+        setQrCodeUri(json.qrCodeUri);
+        setIsTotpSetup(true);
         setStep('otp');
         setIsLoading(false);
         return;
       }
 
-      // Direct token (fallback for dev)
+      if (json.status === 'MFA_PENDING') {
+        setTempToken(json.tempToken);
+        setMfaEmail(json.email);
+        setIsTotpSetup(false);
+        setStep('otp');
+        setIsLoading(false);
+        return;
+      }
+
       if (json.token && json.user) {
         setAuth(json.user, json.token);
         toast.success('Sesión iniciada correctamente');
@@ -145,7 +102,7 @@ export function LoginForm() {
     }
   }
 
-  /* ── Step 2: verify OTP ── */
+  /* ── Step 2: verify TOTP ── */
   async function onOtpSubmit(data: OtpFormValues) {
     setIsLoading(true);
     try {
@@ -172,17 +129,6 @@ export function LoginForm() {
   function goBackToLogin() {
     setStep('login');
     setIsLoading(false);
-  }
-
-  /* ── Google button click ── */
-  function handleGoogleClick() {
-    if (isLoading) return;
-    const g = (window as any).google;
-    if (g?.accounts?.id) {
-      g.accounts.id.prompt();
-    } else {
-      toast.error('La biblioteca de Google aún no se ha cargado. Intenta de nuevo.');
-    }
   }
 
   return (
@@ -281,43 +227,42 @@ export function LoginForm() {
                   {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Ingresando...</> : 'Iniciar sesión'}
                 </Button>
               </form>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">o continúa con</span>
-                </div>
-              </div>
-
-              <button type="button" disabled={isLoading} onClick={handleGoogleClick}
-                className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                Iniciar sesión con Google
-              </button>
-
-              <p className="mt-8 text-center text-xs text-muted-foreground">
-                ¿Problemas para ingresar?{' '}
-                <button type="button" className="font-medium text-accent underline transition-colors hover:text-accent/80">
-                  Contacta al administrador
-                </button>
-              </p>
             </>
           )}
 
-          {/* ══ OTP Step ══ */}
+          {/* ══ OTP / TOTP Setup Step ══ */}
           {step === 'otp' && (
             <>
               <div className="mb-8 text-center lg:text-left">
-                <h1 className="text-2xl font-bold tracking-tight font-heading text-foreground">Verificación en dos pasos</h1>
+                <h1 className="text-2xl font-bold tracking-tight font-heading text-foreground">
+                  {isTotpSetup ? 'Configurar autenticación' : 'Verificación en dos pasos'}
+                </h1>
                 <p className="mt-1.5 text-sm text-muted-foreground">
-                  Ingresa el código de 6 dígitos enviado a <strong>{mfaEmail}</strong>
+                  {isTotpSetup
+                    ? 'Escanea el código QR con tu app de autenticación y luego ingresa el código de 6 dígitos'
+                    : 'Ingresa el código de 6 dígitos de tu aplicación de autenticación para <strong>' + mfaEmail + '</strong>'
+                  }
                 </p>
               </div>
+
+              {isTotpSetup && qrCodeUri && (
+                <div className="mb-6 flex flex-col items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUri)}`}
+                    alt="Código QR para autenticación"
+                    className="h-48 w-48 rounded-lg border"
+                  />
+                  <details className="w-full">
+                    <summary className="cursor-pointer text-center text-xs text-muted-foreground hover:text-foreground">
+                      ¿No puedes escanear? Código manual
+                    </summary>
+                    <p className="mt-2 break-all rounded bg-muted p-2 font-mono text-xs text-foreground select-all">
+                      {totpSecret}
+                    </p>
+                  </details>
+                </div>
+              )}
 
               <form onSubmit={otpHandleSubmit(onOtpSubmit)} className="flex flex-col gap-5" noValidate>
                 <div className="flex flex-col gap-1.5">
@@ -330,7 +275,7 @@ export function LoginForm() {
 
                 <Button type="submit" disabled={isLoading}
                   className="mt-1 h-12 md:h-11 w-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all">
-                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verificando...</> : 'Verificar código'}
+                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verificando...</> : (isTotpSetup ? 'Confirmar y entrar' : 'Verificar código')}
                 </Button>
 
                 <button type="button" onClick={goBackToLogin} disabled={isLoading}

@@ -42,11 +42,3 @@ export const verifyOtpSchema = z.object({
     .string()
     .regex(/^\d{6}$/, 'El codigo debe tener exactamente 6 digitos.'),
 })
-
-export const googleCallbackSchema = z.object({
-  code: z.string().min(1, 'Codigo de autorizacion requerido.'),
-})
-
-export const googleCredentialSchema = z.object({
-  credential: z.string().min(1, 'Credencial de Google requerida.'),
-})
