@@ -1,6 +1,6 @@
 # Reporte de Implementación y Ejecución de Pruebas Automatizadas
 
-Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **45 escenarios de prueba automatizados** distribuidos equitativamente en tres categorías críticas.
+Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **76 escenarios de prueba automatizados** distribuidos equitativamente en cuatro categorías críticas.
 
 ---
 
@@ -89,6 +89,43 @@ Validadas en [run-usability-tests.mjs](file:///d:/proyecto-ollas-comunes/run-usa
 *   **U-14:** Deshabilitación de botones durante el proceso de envío para prevenir doble inserción.
 *   **U-15:** Adaptabilidad visual completa (contraste y legibilidad) al alternar entre modo claro y oscuro.
 
+### Suite D: Pruebas E2E y Offline PWA (31 Casos)
+Validadas en la suite de integración de cliente mediante Playwright:
+* **Escenarios Móviles (`e2e/mobile.spec.ts` - 15 casos):**
+  * **E-01:** Login con credenciales inválidas.
+  * **E-02:** MFA con código TOTP inválido.
+  * **E-03:** Login exitoso con TOTP dinámico.
+  * **E-04:** Dashboard muestra información correcta de la Olla.
+  * **E-05:** Barra de navegación inferior cambia de vista.
+  * **E-06:** Botón de Salir cierra la sesión.
+  * **E-07:** Padrón de beneficiarios carga listado.
+  * **E-08:** Búsqueda de beneficiarios filtra resultados.
+  * **E-09:** Formulario de nuevo beneficiario valida obligatorios.
+  * **E-10:** Creación exitosa de un beneficiario.
+  * **E-11:** Inventario muestra lista de stock actual.
+  * **E-12:** Registro de movimiento de ingreso en Inventario.
+  * **E-13:** Menú IA muestra panel de sugerencias.
+  * **E-14:** Solicitar sugerencia de Menú IA.
+  * **E-15:** Registro de entrega de raciones.
+* **Escenarios del Workspace (`e2e/workspace.spec.ts` - 15 casos):**
+  * **E-16:** Dashboard carga correctamente con KPIs y gráficos.
+  * **E-17:** Navegación del Sidebar.
+  * **E-18:** Listado de Beneficiarios.
+  * **E-19:** Búsqueda de Beneficiarios.
+  * **E-20:** Filtro de Beneficiarios por Olla Común.
+  * **E-21:** Formulario de Beneficiario - Validación.
+  * **E-22:** Registro Exitoso de Beneficiario.
+  * **E-23:** Edición de Beneficiario.
+  * **E-24:** Eliminación de Beneficiario.
+  * **E-25:** Listado de Organizaciones.
+  * **E-26:** Creación de Nueva Organización.
+  * **E-27:** Creación de Olla Común.
+  * **E-28:** Mi Perfil - Edición de Datos (Mock).
+  * **E-29:** Preferencias - Cambio de Tema.
+  * **E-30:** Configuración - Enlaces de Acceso.
+* **Escenarios Offline y PWA (`e2e/offline.spec.ts` - 1 caso):**
+  * **E-31 (Caso Offline):** Flujo completo de registro offline de beneficiario (uso de caché optimista local y cola IndexedDB) con reconexión de red y sincronización automática comprobada en Postgres.
+
 ---
 
 ## 3. Instrucciones de Ejecución
@@ -119,3 +156,13 @@ node run-usability-tests.mjs
 
 ### Paso 3: Visualizar el Reporte de Usabilidad
 Abre el archivo [reporte_usabilidad_lighthouse.html](file:///d:/proyecto-ollas-comunes/docs/reporte_usabilidad_lighthouse.html) ubicado en la carpeta `docs` haciendo doble clic desde el Explorador de Windows o abriéndolo directamente en tu navegador web.
+
+### Paso 4: Ejecutar la Suite de Pruebas E2E y Offline PWA (Playwright)
+Para validar los flujos de interfaz de usuario de escritorio y móvil, así como la sincronización PWA al simular la pérdida de internet:
+1. Asegúrate de tener los servidores de desarrollo de frontend (`localhost:3000`) y backend (`localhost:4000`) ejecutándose.
+2. Ejecuta el comando de pruebas en la carpeta del frontend:
+   ```bash
+   cd frontend
+   npm run test:e2e
+   ```
+*Resultado:* Playwright abrirá navegadores sin cabezal (headless) y ejecutará secuencialmente los 31 escenarios, imprimiendo el reporte final en la consola.
