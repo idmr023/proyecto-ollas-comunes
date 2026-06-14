@@ -1,5 +1,5 @@
 const DB_NAME = 'ollas-comunes-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export interface OfflineMutation {
   id?: number;
@@ -7,6 +7,18 @@ export interface OfflineMutation {
   method: 'POST' | 'PATCH' | 'DELETE';
   body: any;
   timestamp: number;
+  tempId?: string;
+}
+
+export interface FailedMutation {
+  id?: number;
+  path: string;
+  method: 'POST' | 'PATCH' | 'DELETE';
+  body: any;
+  timestamp: number;
+  originalTimestamp: number;
+  errorMessage: string;
+  status?: number;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -33,6 +45,9 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains('mutations')) {
         db.createObjectStore('mutations', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('failed_mutations')) {
+        db.createObjectStore('failed_mutations', { keyPath: 'id', autoIncrement: true });
       }
     };
   });
@@ -79,7 +94,12 @@ export async function setCache<T>(key: string, value: T): Promise<void> {
 
 // ─── OFFLINE MUTATIONS METHODS ──────────────────────────────────
 
-export async function addMutation(path: string, method: 'POST' | 'PATCH' | 'DELETE', body: any): Promise<number> {
+export async function addMutation(
+  path: string,
+  method: 'POST' | 'PATCH' | 'DELETE',
+  body: any,
+  tempId?: string
+): Promise<number> {
   try {
     const db = await openDatabase();
     return new Promise((resolve, reject) => {
@@ -90,6 +110,7 @@ export async function addMutation(path: string, method: 'POST' | 'PATCH' | 'DELE
         method,
         body,
         timestamp: Date.now(),
+        tempId,
       };
       const request = store.add(mutation);
 
@@ -143,6 +164,22 @@ export async function deleteMutation(id: number): Promise<void> {
   }
 }
 
+export async function updateMutation(mutation: OfflineMutation): Promise<void> {
+  try {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('mutations', 'readwrite');
+      const store = transaction.objectStore('mutations');
+      const request = store.put(mutation);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error('[IndexedDB Mutations] Error al actualizar mutation:', err);
+  }
+}
+
 export async function clearCache(): Promise<void> {
   try {
     const db = await openDatabase();
@@ -156,5 +193,94 @@ export async function clearCache(): Promise<void> {
     });
   } catch (err) {
     console.warn('[IndexedDB Cache] Error al limpiar:', err);
+  }
+}
+
+// ─── FAILED MUTATIONS METHODS ────────────────────────────────────
+
+export async function getFailedMutations(): Promise<FailedMutation[]> {
+  try {
+    const db = await openDatabase();
+    return new Promise((resolve) => {
+      const transaction = db.transaction('failed_mutations', 'readonly');
+      const store = transaction.objectStore('failed_mutations');
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+      request.onerror = () => {
+        resolve([]);
+      };
+    });
+  } catch (err) {
+    console.warn('[IndexedDB Failed Mutations] Error al leer cola:', err);
+    return [];
+  }
+}
+
+export async function addFailedMutation(
+  mutation: OfflineMutation,
+  errorMessage: string,
+  status?: number
+): Promise<number> {
+  try {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('failed_mutations', 'readwrite');
+      const store = transaction.objectStore('failed_mutations');
+      const failedRecord: Omit<FailedMutation, 'id'> = {
+        path: mutation.path,
+        method: mutation.method,
+        body: mutation.body,
+        originalTimestamp: mutation.timestamp,
+        timestamp: Date.now(),
+        errorMessage,
+        status,
+      };
+      const request = store.add(failedRecord);
+
+      request.onsuccess = () => {
+        resolve(request.result as number);
+      };
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  } catch (err) {
+    console.error('[IndexedDB Failed Mutations] Error al registrar fallo:', err);
+    throw err;
+  }
+}
+
+export async function deleteFailedMutation(id: number): Promise<void> {
+  try {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('failed_mutations', 'readwrite');
+      const store = transaction.objectStore('failed_mutations');
+      const request = store.delete(id);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error('[IndexedDB Failed Mutations] Error al eliminar fallo:', err);
+  }
+}
+
+export async function clearFailedMutations(): Promise<void> {
+  try {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('failed_mutations', 'readwrite');
+      const store = transaction.objectStore('failed_mutations');
+      const request = store.clear();
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.warn('[IndexedDB Failed Mutations] Error al limpiar:', err);
   }
 }
