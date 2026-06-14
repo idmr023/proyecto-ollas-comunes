@@ -132,7 +132,7 @@ export default function BeneficiariosPage() {
       ollaId: beneficiary.ollaId ?? '',
       priorityLevel: beneficiary.priorityLevel,
       status: beneficiary.status,
-      healthConditionIds: beneficiary.healthConditions.map((hc) => hc.id),
+      healthConditionIds: (beneficiary.healthConditions ?? []).map((hc) => hc.id),
     })
     setModalOpen(true)
   }
@@ -325,16 +325,16 @@ export default function BeneficiariosPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
-                          {b.healthConditions.length === 0 && (
+                          {(b.healthConditions ?? []).length === 0 && (
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
-                          {b.healthConditions.slice(0, 3).map((hc) => (
+                          {(b.healthConditions ?? []).slice(0, 3).map((hc) => (
                             <span key={hc.id} className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                               {hc.name}
                             </span>
                           ))}
-                          {b.healthConditions.length > 3 && (
-                            <span className="text-xs text-muted-foreground">+{b.healthConditions.length - 3}</span>
+                          {(b.healthConditions ?? []).length > 3 && (
+                            <span className="text-xs text-muted-foreground">+{(b.healthConditions ?? []).length - 3}</span>
                           )}
                         </div>
                       </td>
@@ -394,9 +394,9 @@ export default function BeneficiariosPage() {
                     <span>Edad: {age} años</span>
                     <span>Olla: {b.olla?.name ?? '—'}</span>
                   </div>
-                  {b.healthConditions.length > 0 && (
+                  {(b.healthConditions ?? []).length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-1">
-                      {b.healthConditions.map((hc) => (
+                      {(b.healthConditions ?? []).map((hc) => (
                         <span key={hc.id} className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                           {hc.name}
                         </span>

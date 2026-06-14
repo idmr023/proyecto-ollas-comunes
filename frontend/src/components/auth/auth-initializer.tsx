@@ -17,13 +17,18 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
     const stored = useAuthStore.getState()
 
     if (stored.token && stored.isAuthenticated) {
-      getMeRequest(stored.token).then((res) => {
-        if (res.ok && res.user) {
-          setAuth(res.user, stored.token!)
-        } else {
-          clearAuth()
-        }
-      })
+      getMeRequest(stored.token)
+        .then((res) => {
+          if (res.ok && res.user) {
+            setAuth(res.user, stored.token!)
+          } else {
+            clearAuth()
+          }
+        })
+        .catch(() => {
+          // Network error (offline): keep current session alive
+          setInitialized(true)
+        })
     } else {
       setInitialized(true)
     }
