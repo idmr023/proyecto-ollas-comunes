@@ -28,6 +28,6 @@ export async function verifyTotpCode(userId: string, code: string): Promise<void
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user?.totpSecret) throw new AuthError(400, 'TOTP no configurado. Solicita un nuevo codigo.')
 
-  const result = await verifyTotp({ token: code, secret: user.totpSecret, window: 1 })
+  const result = await verifyTotp({ token: code, secret: user.totpSecret, epochTolerance: 60 })
   if (!result.valid) throw new AuthError(401, 'Codigo incorrecto.')
 }
