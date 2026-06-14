@@ -17,6 +17,33 @@ function handleError(error: unknown, response: Response) {
     response.status(error.statusCode).json({ ok: false, message: error.message })
     return
   }
+
+  // Interceptar errores conocidos de Prisma
+  if (error && typeof error === 'object' && 'code' in error) {
+    const err = error as { code: string; message?: string }
+    if (err.code === 'P2002') {
+      response.status(409).json({
+        ok: false,
+        message: 'Conflicto: Ya existe un registro con valores duplicados para un campo único (DNI u otro).',
+      })
+      return
+    }
+    if (err.code === 'P2003') {
+      response.status(400).json({
+        ok: false,
+        message: 'Error de integridad: La operación hace referencia a un elemento que no existe (clave foránea no válida).',
+      })
+      return
+    }
+    if (err.code === 'P2025') {
+      response.status(404).json({
+        ok: false,
+        message: 'No encontrado: El registro solicitado para actualizar o eliminar no existe.',
+      })
+      return
+    }
+  }
+
   console.error('[beneficiaries] Error inesperado:', error)
   response.status(500).json({
     ok: false,

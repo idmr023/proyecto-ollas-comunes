@@ -25,6 +25,32 @@ function handleOrganizationError(
     return
   }
 
+  // Interceptar errores conocidos de Prisma
+  if (error && typeof error === 'object' && 'code' in error) {
+    const prismaErr = error as { code: string; message?: string }
+    if (prismaErr.code === 'P2002') {
+      response.status(409).json({
+        ok: false,
+        message: 'Conflicto: Ya existe un registro con valores duplicados para un campo único (DNI u otro).',
+      })
+      return
+    }
+    if (prismaErr.code === 'P2003') {
+      response.status(400).json({
+        ok: false,
+        message: 'Error de integridad: La operación hace referencia a un elemento que no existe (clave foránea no válida).',
+      })
+      return
+    }
+    if (prismaErr.code === 'P2025') {
+      response.status(404).json({
+        ok: false,
+        message: 'No encontrado: El registro solicitado para actualizar o eliminar no existe.',
+      })
+      return
+    }
+  }
+
   response.status(500).json({
     ok: false,
     message: 'No se pudo procesar la solicitud de organizaciones.',
