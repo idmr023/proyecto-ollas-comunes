@@ -16,12 +16,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     async function validateToken() {
       const stored = useAuthStore.getState()
       if (stored.token && stored.isAuthenticated) {
-        const res = await getMeRequest(stored.token)
-        if (res.ok && res.user) {
-          setAuth(res.user, stored.token)
-        } else {
-          clearAuth()
-          router.replace('/login')
+        try {
+          const res = await getMeRequest(stored.token)
+          if (res.ok && res.user) {
+            setAuth(res.user, stored.token)
+          } else {
+            clearAuth()
+            router.replace('/login')
+          }
+        } catch {
+          // Network error (offline): keep current session alive
+          setInitialized(true)
         }
       } else {
         setInitialized(true)

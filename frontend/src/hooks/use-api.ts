@@ -32,10 +32,13 @@ export function useApi() {
 
       try {
         const res = await fetch(url.toString(), { ...fetchOpts, headers })
-        if (res.status === 401) {
+        if (res.status === 401 && navigator.onLine) {
           clearAuth()
           if (typeof window !== "undefined") window.location.href = "/login"
           throw new Error("Sesión expirada. Ingresa nuevamente.")
+        }
+        if (res.status === 401) {
+          throw new Error("Sin conexión. No se pudo validar la sesión.")
         }
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))

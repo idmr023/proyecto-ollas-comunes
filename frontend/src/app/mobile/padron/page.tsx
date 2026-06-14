@@ -82,7 +82,7 @@ export default function PadronPage() {
           nombre: b.firstName,
           apellido: b.lastName,
           dni: b.dni ?? "",
-          prioridad: b.healthConditions.map((hc) => hc.name),
+          prioridad: (b.healthConditions ?? []).map((hc) => hc.name),
           hasEatenToday: b.hasEatenToday,
         })),
       )
