@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Ollas Comunes",
   "short_name": "OllasComunes",
   "description": "Plataforma SaaS para la gestión de ollas comunes en el Perú.",
@@ -7,6 +8,10 @@
   "background_color": "#ffffff",
   "theme_color": "#0F3821",
   "orientation": "portrait-primary",
+  "categories": [
+    "utilities",
+    "social"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -20,5 +25,22 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Ollas Comunes - Desktop Dashboard"
+    },
+    {
+      "src": "/screenshots/mobile.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Ollas Comunes - Mobile Registration"
+    }
   ]
 }
+
