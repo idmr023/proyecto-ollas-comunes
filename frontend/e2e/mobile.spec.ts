@@ -277,6 +277,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
   })
 
   test('Test 14: Solicitar sugerencia de Menú IA', async ({ page }) => {
+    test.setTimeout(60000)
     await loginAsAdmin(page)
     await page.goto('/mobile/menu-ia')
     await page.waitForLoadState('domcontentloaded')
@@ -288,7 +289,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
 
     // Esperar que termine de cargar (el botón se habilita de nuevo al terminar)
     // Puede tardar porque llama a la API de Gemini
-    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 25000 })
+    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 60000 })
 
     // Si la sugerencia se generó, debe verse el botón de "Usar este menú"
     // Si no hay suficientes insumos, se muestra un toast de error
