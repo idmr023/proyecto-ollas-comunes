@@ -2,6 +2,7 @@ import { BeneficiaryServiceError } from './errors'
 import { BeneficiaryPayload, BeneficiaryRecord, QueryFilters } from './types'
 import { beneficiaryRepository } from './repository'
 import { prisma } from '../../lib/prisma'
+import { getPeruDayRange } from '../../lib/date-utils'
 
 function parsePayload(payload: unknown): BeneficiaryPayload {
   if (!payload || typeof payload !== 'object') {
@@ -118,10 +119,7 @@ function toResponse(record: BeneficiaryRecord) {
 export async function getAllBeneficiaries(tenantId: string, filters: QueryFilters) {
   const records = await beneficiaryRepository.findAll(tenantId, filters)
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
+  const { start: today, end: tomorrow } = getPeruDayRange()
 
   const deliveriesToday = await prisma.mealDeliveryDetail.findMany({
     where: {

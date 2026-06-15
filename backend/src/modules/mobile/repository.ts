@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma"
+import { getPeruDayRange } from "../../lib/date-utils"
 
 export class MobileRepository {
   async getUserOlla(tenantId: string) {
@@ -10,15 +11,12 @@ export class MobileRepository {
   }
 
   async getDailySummary(ollaId: string) {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const { dateString } = getPeruDayRange()
 
     const menuPlan = await prisma.menuPlan.findFirst({
       where: {
         ollaId,
-        operationDate: { gte: today, lt: tomorrow },
+        operationDate: new Date(dateString),
         status: { in: ["draft", "approved", "executed"] },
       },
       select: {
@@ -472,17 +470,15 @@ Instrucciones:
     totalRations: number
     dishName?: string
   }) {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const { dateString } = getPeruDayRange()
+    const operationDate = new Date(dateString)
 
     return prisma.$transaction(async (tx) => {
       // 1. Get today's MenuPlan
       let menuPlan = await tx.menuPlan.findFirst({
         where: {
           ollaId: data.ollaId,
-          operationDate: { gte: today, lt: tomorrow },
+          operationDate,
         },
         include: {
           recipe: {
@@ -497,7 +493,7 @@ Instrucciones:
         menuPlan = await tx.menuPlan.create({
           data: {
             ollaId: data.ollaId,
-            operationDate: today,
+            operationDate,
             dishName: data.dishName || "Almuerzo del día",
             plannedServings: data.totalRations || data.beneficiaryIds.length,
             status: "executed",
@@ -533,10 +529,13 @@ Instrucciones:
       if (menuPlan.recipe && menuPlan.recipe.ingredients.length > 0) {
         const factor = servings / (menuPlan.recipe.estimatedServings || 1)
         for (const ing of menuPlan.recipe.ingredients) {
-          itemsToDiscount.push({
-            supplyItemId: ing.supplyItemId,
-            quantity: Number(ing.quantity) * factor,
-          })
+          const qty = Number((Number(ing.quantity) * factor).toFixed(2))
+          if (qty >= 0.01) {
+            itemsToDiscount.push({
+              supplyItemId: ing.supplyItemId,
+              quantity: qty,
+            })
+          }
         }
       } else {
         // Fallback: match keywords by name
@@ -558,10 +557,13 @@ Instrucciones:
         for (const kw of keywords) {
           const match = activeStock.find((s) => s.supplyItem.name.toLowerCase().includes(kw))
           if (match) {
-            itemsToDiscount.push({
-              supplyItemId: match.supplyItemId,
-              quantity: 0.1 * servings,
-            })
+            const qty = Number((0.1 * servings).toFixed(2))
+            if (qty >= 0.01) {
+              itemsToDiscount.push({
+                supplyItemId: match.supplyItemId,
+                quantity: qty,
+              })
+            }
           }
         }
       }
@@ -656,17 +658,15 @@ Instrucciones:
     servings: number
     recipeIngredients?: { supplyItemId: string; quantity: number }[]
   }) {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const { dateString } = getPeruDayRange()
+    const operationDate = new Date(dateString)
 
     return prisma.$transaction(async (tx) => {
       // 1. Get or create today's MenuPlan
       let menuPlan = await tx.menuPlan.findFirst({
         where: {
           ollaId: data.ollaId,
-          operationDate: { gte: today, lt: tomorrow },
+          operationDate,
         },
       })
 
@@ -711,7 +711,7 @@ Instrucciones:
         menuPlan = await tx.menuPlan.create({
           data: {
             ollaId: data.ollaId,
-            operationDate: today,
+            operationDate,
             dishName: data.dishName,
             plannedServings: data.servings,
             recipeId: recipe?.id || null,
