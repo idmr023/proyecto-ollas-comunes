@@ -1,4 +1,4 @@
-import { generateSecret, verify as verifyTotp } from 'otplib/functional'
+import { generateSecret, verify as verifyTotp } from 'otplib'
 import { prisma } from '../../lib/prisma'
 import { AuthError } from './errors'
 

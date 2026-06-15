@@ -1,6 +1,6 @@
 import './setup-env'
 import { test, expect, type Page } from '@playwright/test'
-import { generate } from 'otplib/functional'
+import { generate } from 'otplib'
 import { prisma } from '../../backend/src/lib/prisma'
 
 const TEST_EMAIL = 'admin@ollascomunes.pe'
