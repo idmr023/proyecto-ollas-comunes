@@ -2,8 +2,8 @@ import 'dotenv/config'
 import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
+import { generate } from 'otplib'
 import { prisma } from '../lib/prisma'
-import { generate } from 'otplib/functional'
 
 let server: Server
 const PORT = 4001

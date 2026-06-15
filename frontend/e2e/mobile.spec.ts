@@ -1,6 +1,6 @@
 import './setup-env'
 import { test, expect, type Page } from '@playwright/test'
-import { generate } from 'otplib/functional'
+import { generate } from 'otplib'
 import { prisma } from '../../backend/src/lib/prisma'
 
 const TEST_EMAIL = 'admin@ollascomunes.pe'
@@ -289,7 +289,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
 
     // Esperar que termine de cargar (el botón se habilita de nuevo al terminar)
     // Puede tardar porque llama a la API de Gemini
-    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 60000 })
+    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 50000 })
 
     // Si la sugerencia se generó, debe verse el botón de "Usar este menú"
     // Si no hay suficientes insumos, se muestra un toast de error

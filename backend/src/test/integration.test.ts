@@ -4,7 +4,7 @@ import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
 import { prisma } from '../lib/prisma'
-import { generate } from 'otplib/functional'
+import { generate } from 'otplib'
 
 let server: Server
 const PORT = 4002
