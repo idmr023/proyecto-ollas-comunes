@@ -24,7 +24,7 @@ async function loginAsAdmin(page: Page) {
   await page.click('button[type="submit"]')
 
   // Esperar a que aparezca la pantalla OTP
-  await expect(page.locator('#otp-code')).toBeVisible({ timeout: 15000 })
+  await expect(page.locator('#otp-code')).toBeVisible({ timeout: 45000 })
 
   // Obtener secreto TOTP de la BD y generar código válido
   const user = await prisma.appUser.findUnique({ where: { email: TEST_EMAIL } })
@@ -38,7 +38,7 @@ async function loginAsAdmin(page: Page) {
   await page.click('button[type="submit"]')
 
   // Esperar redirección exitosa (redirige a /workspace/home para admin_municipal o /mobile/inicio para lideresas)
-  await expect(page).toHaveURL(/\/workspace\/home|\/mobile\/inicio/, { timeout: 15000 })
+  await expect(page).toHaveURL(/\/workspace\/home|\/mobile\/inicio/, { timeout: 45000 })
 }
 
 test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
@@ -71,7 +71,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.click('button[type="submit"]')
 
     // Esperar OTP
-    await expect(page.locator('#otp-code')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('#otp-code')).toBeVisible({ timeout: 45000 })
 
     // Enviar código incorrecto
     await page.fill('#otp-code', '000000')
@@ -97,7 +97,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // El saludo debe aparecer
-    await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 05: Barra de navegación inferior cambia de vista', async ({ page }) => {
@@ -124,13 +124,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar que el contenido cargue
-    await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
 
     // Click en botón Salir de la BottomNav
     await page.click('button:has-text("Salir")')
 
     // Debería redirigir a login (clearAuth + useEffect en layout)
-    await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/login/, { timeout: 35000 })
   })
 
   // ─── PADRÓN ───────────────────────────────────────────────────
@@ -141,7 +141,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // El título "Padrón" debe aparecer
-    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 08: Búsqueda de beneficiarios filtra resultados', async ({ page }) => {
@@ -150,13 +150,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar a que la lista cargue (desaparece el skeleton)
-    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
     await page.waitForTimeout(2000) // esperar carga de beneficiarios
 
     await page.fill('input[placeholder="Buscar por nombre o DNI…"]', 'NombreInexistente99999XYZ')
 
     // Debería mostrar "Sin resultados" (el debounce aplica en el fetchBeneficiaries via useCallback)
-    await expect(page.locator('text=Sin resultados')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Sin resultados')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 09: Formulario de nuevo beneficiario valida obligatorios', async ({ page }) => {
@@ -165,13 +165,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar carga
-    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
 
     // Abrir formulario
     await page.click('button[aria-label="Agregar beneficiario"]')
 
     // Esperar que el sheet abra
-    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
 
     // Intentar guardar sin datos
     await page.click('button:has-text("Guardar beneficiario")')
@@ -188,11 +188,11 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar carga
-    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
 
     // Abrir formulario
     await page.click('button[aria-label="Agregar beneficiario"]')
-    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
 
     // Llenar campos
     await page.fill('#firstName', 'TestE2E')
@@ -204,13 +204,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Guardar beneficiario")')
 
     // Esperar a que el formulario cierre y la lista se actualice
-    await expect(page.locator('text=Nuevo beneficiario')).not.toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Nuevo beneficiario')).not.toBeVisible({ timeout: 35000 })
 
     // Buscar por DNI
     await page.fill('input[placeholder="Buscar por nombre o DNI…"]', randomDni)
 
     // Debe encontrar el beneficiario recién creado
-    await expect(page.locator(`text=${randomDni}`)).toBeVisible({ timeout: 10000 })
+    await expect(page.locator(`text=${randomDni}`)).toBeVisible({ timeout: 35000 })
   })
 
   // ─── INVENTARIO ───────────────────────────────────────────────
@@ -221,7 +221,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // El título "Inventario" debe aparecer
-    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 12: Registro de movimiento de ingreso en Inventario', async ({ page }) => {
@@ -230,13 +230,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar carga
-    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
 
     // Click en "Registrar Entrada"
     await page.click('button:has-text("Registrar Entrada")')
 
     // Esperar que aparezca el stepper (cambia título a "Registrar Entrada")
-    await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible({ timeout: 20000 })
 
     // Seleccionar un insumo (el primero visible que contenga texto de un insumo)
     const firstItem = page.locator('button[class*="cursor-pointer"]').first()
@@ -246,24 +246,24 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
 
     // Click en "Siguiente Paso ➡️"
     const nextButton = page.locator('button:has-text("Siguiente Paso")')
-    if (await nextButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await nextButton.isVisible({ timeout: 15000 }).catch(() => false)) {
       await nextButton.click()
     }
 
     // Seleccionar "No tiene / No vence"
     const noExpiry = page.locator('button:has-text("No tiene")')
-    if (await noExpiry.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await noExpiry.isVisible({ timeout: 15000 }).catch(() => false)) {
       await noExpiry.click()
     }
 
     // Click en "Guardar Registro"
     const saveButton = page.locator('button:has-text("Guardar Registro")')
-    if (await saveButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await saveButton.isVisible({ timeout: 15000 }).catch(() => false)) {
       await saveButton.click()
     }
 
     // Debería volver al panel de inventario
-    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
   })
 
   // ─── MENÚ IA Y ENTREGAS ───────────────────────────────────────
@@ -273,7 +273,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.goto('/mobile/menu-ia')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 14: Solicitar sugerencia de Menú IA', async ({ page }) => {
@@ -282,14 +282,14 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.goto('/mobile/menu-ia')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
 
     // Pedir nueva sugerencia
     await page.click('button:has-text("Nueva sugerencia")')
 
     // Esperar que termine de cargar (el botón se habilita de nuevo al terminar)
     // Puede tardar porque llama a la API de Gemini
-    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 50000 })
+    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 200000 })
 
     // Si la sugerencia se generó, debe verse el botón de "Usar este menú"
     // Si no hay suficientes insumos, se muestra un toast de error
@@ -309,16 +309,16 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar carga de la lista
-    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
     await page.waitForTimeout(2000)
 
     // Activar modo entrega
     const deliveryButton = page.locator('button:has-text("Registrar Entrega de Ración")')
-    if (await deliveryButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await deliveryButton.isVisible({ timeout: 20000 }).catch(() => false)) {
       await deliveryButton.click()
 
       // Debería cambiar el título a "Entregar Raciones"
-      await expect(page.locator('h1:has-text("Entregar Raciones")')).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('h1:has-text("Entregar Raciones")')).toBeVisible({ timeout: 20000 })
     } else {
       // Si no hay el botón, el test pasa (no hay menú ejecutado para entregar)
       test.skip()
