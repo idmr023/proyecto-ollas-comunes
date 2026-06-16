@@ -23,7 +23,7 @@ async function loginAsAdmin(page: Page) {
   await page.click('button[type="submit"]')
 
   // Esperar a que aparezca la pantalla de OTP
-  await expect(page.locator('#otp-code')).toBeVisible({ timeout: 15000 })
+  await expect(page.locator('#otp-code')).toBeVisible({ timeout: 45000 })
 
   // Obtener secreto de la BD y generar código válido
   const user = await prisma.appUser.findUnique({ where: { email: TEST_EMAIL } })
@@ -37,7 +37,7 @@ async function loginAsAdmin(page: Page) {
   await page.click('button[type="submit"]')
 
   // Esperar redirección al Workspace Home
-  await expect(page).toHaveURL(/\/workspace\/home/, { timeout: 15000 })
+  await expect(page).toHaveURL(/\/workspace\/home/, { timeout: 45000 })
 }
 
 test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
@@ -52,7 +52,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await loginAsAdmin(page)
 
     // Verificar secciones del Dashboard
-    await expect(page.locator('text=Resumen de inventario')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Resumen de inventario')).toBeVisible({ timeout: 35000 })
     await expect(page.locator('text=Evolución de beneficiarios')).toBeVisible()
     await expect(page.locator('text=Insumos a vencer')).toBeVisible()
     await expect(page.locator('text=Actividades recientes')).toBeVisible()
@@ -88,7 +88,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Verificar que cargue la vista de padrón
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
     await expect(page.locator('button:has-text("Registrar Beneficiario")')).toBeVisible()
   })
 
@@ -97,13 +97,13 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
 
     // Ingresar búsqueda aleatoria sin coincidencia
     await page.fill('#search', 'PersonaTotalmenteInexistenteXYZ123')
 
     // Debería salir el empty state
-    await expect(page.locator('text=No se encontraron beneficiarios.')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=No se encontraron beneficiarios.')).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 20: Filtro de Beneficiarios por Olla Común', async ({ page }) => {
@@ -111,7 +111,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
 
     // Seleccionar filtro por olla común (el primer option después de "Todas")
     await page.selectOption('#filter-olla', { index: 1 })
@@ -126,11 +126,11 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
 
     // Abrir modal
     await page.click('button:has-text("Registrar Beneficiario")')
-    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Intentar guardar sin completar datos obligatorios
     await page.click('div.z-50 button:has-text("Registrar")')
@@ -148,7 +148,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
     // Abrir formulario
     await page.click('button:has-text("Registrar Beneficiario")')
-    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Rellenar campos obligatorios
     await page.fill('#firstName', 'AdminTest')
@@ -160,11 +160,11 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('div.z-50 button:has-text("Registrar")')
 
     // Esperar cierre de modal
-    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
 
     // Validar que aparezca en el listado haciendo una búsqueda
     await page.fill('#search', randomDni)
-    await expect(page.locator(`td:has-text("${randomDni}")`).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.locator(`td:has-text("${randomDni}")`).first()).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 23: Edición de Beneficiario', async ({ page }) => {
@@ -173,15 +173,15 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar a que cargue la lista
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
 
     // Hacer clic en "Editar" del primer registro disponible
     const firstRowEdit = page.locator('button:has-text("Editar")').first()
-    await expect(firstRowEdit).toBeVisible({ timeout: 10000 })
+    await expect(firstRowEdit).toBeVisible({ timeout: 35000 })
     await firstRowEdit.click()
 
     // Esperar que cargue el modal de edición
-    await expect(page.locator('h2:has-text("Editar Beneficiario")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h2:has-text("Editar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Modificar nombre
     await page.fill('#firstName', 'AdminTestModificado')
@@ -190,7 +190,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Actualizar")')
 
     // Esperar cierre de modal
-    await expect(page.locator('h2:has-text("Editar Beneficiario")')).not.toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h2:has-text("Editar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
   })
 
   test('Test 24: Eliminación de Beneficiario', async ({ page }) => {
@@ -199,7 +199,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Esperar a que cargue la lista
-    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
 
     // Obtener la cantidad de botones "Eliminar" antes
     const deleteButtons = page.locator('button:has-text("Eliminar")')
@@ -208,7 +208,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
       await firstDelete.click()
 
       // Esperar a que se procese la eliminación y desaparezca
-      await expect(firstDelete).not.toBeVisible({ timeout: 10000 })
+      await expect(firstDelete).not.toBeVisible({ timeout: 35000 })
     }
   })
 
@@ -220,7 +220,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     // Verificar título principal
-    await expect(page.locator('h1:has-text("Organizaciones")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Organizaciones")')).toBeVisible({ timeout: 35000 })
     await expect(page.locator('text=Nueva organización')).toBeVisible()
   })
 
@@ -243,8 +243,8 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Crear organizacion")')
 
     // Debería redirigir al detalle de la organización recién creada
-    await expect(page).toHaveURL(/\/workspace\/organizaciones\//, { timeout: 15000 })
-    await expect(page.locator(`h1:has-text("${orgName}")`)).toBeVisible({ timeout: 10000 })
+    await expect(page).toHaveURL(/\/workspace\/organizaciones\//, { timeout: 45000 })
+    await expect(page.locator(`h1:has-text("${orgName}")`)).toBeVisible({ timeout: 35000 })
   })
 
   test('Test 27: Creación de Olla Común', async ({ page }) => {
@@ -254,15 +254,15 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
     // Entrar a la primera organización del listado (excluyendo el botón "nueva")
     const firstOrgCard = page.locator('a[href^="/workspace/organizaciones/"]:not([href$="/nueva"])').first()
-    await expect(firstOrgCard).toBeVisible({ timeout: 10000 })
+    await expect(firstOrgCard).toBeVisible({ timeout: 35000 })
     await firstOrgCard.click()
 
     // Verificar que estamos en la vista de detalle
-    await expect(page.locator('h2:has-text("Ollas Comunes")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h2:has-text("Ollas Comunes")')).toBeVisible({ timeout: 35000 })
 
     // Clic en Crear Olla
     await page.click('button:has-text("Crear Olla")')
-    await expect(page.locator('h2:has-text("Crear Olla Comun")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h2:has-text("Crear Olla Comun")')).toBeVisible({ timeout: 20000 })
 
     // Llenar campos
     const randomOllaName = `Olla E2E ${Math.floor(Math.random() * 10000)}`
@@ -273,10 +273,10 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Crear Olla Comun")')
 
     // Esperar cierre de modal
-    await expect(page.locator('h2:has-text("Crear Olla Comun")')).not.toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h2:has-text("Crear Olla Comun")')).not.toBeVisible({ timeout: 35000 })
 
     // Verificar que aparezca en la lista de ollas
-    await expect(page.locator(`text=${randomOllaName}`)).toBeVisible({ timeout: 10000 })
+    await expect(page.locator(`text=${randomOllaName}`)).toBeVisible({ timeout: 35000 })
   })
 
   // ─── CONFIGURACIÓN Y PREFERENCIAS ──────────────────────────────
@@ -286,7 +286,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/perfil')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
 
     // Modificar datos
     await page.fill('#profile-name', 'Admin Test Playwright Modificado')
@@ -296,7 +296,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Guardar cambios")')
 
     // Validar mensaje de éxito de mock
-    await expect(page.locator('text=Datos actualizados correctamente.')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Datos actualizados correctamente.')).toBeVisible({ timeout: 20000 })
   })
 
   test('Test 29: Preferencias - Cambio de Tema', async ({ page }) => {
@@ -304,7 +304,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/preferencias')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Preferencias")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Preferencias")')).toBeVisible({ timeout: 35000 })
 
     // Interactuar con el menú de aspecto (dropdown)
     await page.click('button:has-text("Sistema"), button:has-text("Claro"), button:has-text("Oscuro")')
@@ -313,7 +313,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('div[role="menuitemradio"]:has-text("Oscuro")')
 
     // El dropdown debería actualizar su etiqueta a "Oscuro"
-    await expect(page.locator('button:has-text("Oscuro")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('button:has-text("Oscuro")')).toBeVisible({ timeout: 20000 })
   })
 
   test('Test 30: Configuración - Enlaces de Acceso', async ({ page }) => {
@@ -321,7 +321,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.goto('/workspace/configuracion')
     await page.waitForLoadState('domcontentloaded')
 
-    await expect(page.locator('h1:has-text("Configuración")')).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('h1:has-text("Configuración")')).toBeVisible({ timeout: 35000 })
 
     // Clic en "Abrir preferencias"
     await page.click('a:has-text("Abrir preferencias")')

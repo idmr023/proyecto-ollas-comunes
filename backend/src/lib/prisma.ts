@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -14,10 +15,15 @@ function createPrismaClient(): PrismaClient {
     )
   }
 
-  const adapter = new PrismaPg({
+  const pool = new Pool({
     connectionString,
     ssl: { rejectUnauthorized: false },
+    max: 10, // Limit connections to avoid Supabase limits
+    idleTimeoutMillis: 30000, // Close idle connections after 30s
+    connectionTimeoutMillis: 2000,
   })
+
+  const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
     adapter,

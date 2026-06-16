@@ -1,6 +1,6 @@
 # Reporte de Implementación y Ejecución de Pruebas Automatizadas
 
-Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **76 escenarios de prueba automatizados** distribuidos equitativamente en cuatro categorías críticas.
+Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **79 escenarios de prueba automatizados** distribuidos equitativamente en cuatro categorías críticas.
 
 ---
 
@@ -89,7 +89,7 @@ Validadas en [run-usability-tests.mjs](file:///d:/proyecto-ollas-comunes/run-usa
 *   **U-14:** Deshabilitación de botones durante el proceso de envío para prevenir doble inserción.
 *   **U-15:** Adaptabilidad visual completa (contraste y legibilidad) al alternar entre modo claro y oscuro.
 
-### Suite D: Pruebas E2E y Offline PWA (31 Casos)
+### Suite D: Pruebas E2E y Offline PWA (34 Casos)
 Validadas en la suite de integración de cliente mediante Playwright:
 * **Escenarios Móviles (`e2e/mobile.spec.ts` - 15 casos):**
   * **E-01:** Login con credenciales inválidas.
@@ -123,8 +123,11 @@ Validadas en la suite de integración de cliente mediante Playwright:
   * **E-28:** Mi Perfil - Edición de Datos (Mock).
   * **E-29:** Preferencias - Cambio de Tema.
   * **E-30:** Configuración - Enlaces de Acceso.
-* **Escenarios Offline y PWA (`e2e/offline.spec.ts` - 1 caso):**
-  * **E-31 (Caso Offline):** Flujo completo de registro offline de beneficiario (uso de caché optimista local y cola IndexedDB) con reconexión de red y sincronización automática comprobada en Postgres.
+* **Escenarios Offline y PWA (`e2e/offline.spec.ts` - 4 casos):**
+  * **E-31:** Flujo completo de registro offline de beneficiario (uso de caché optimista local y cola IndexedDB) con reconexión de red y sincronización automática comprobada en Postgres.
+  * **E-32:** Registro offline de entrega de ración a beneficiario, con reconexión de red, desencadenador de sincronización automática y confirmación de persistencia del `MealDeliveryDetail` en base de datos.
+  * **E-33:** Registro offline de movimiento de inventario (Entrada de producto), búsqueda reactiva de insumos en el stepper móvil offline, sincronización automática y verificación de persistencia en base de datos.
+  * **E-34:** Control de conflictos de sincronización (DNI duplicado), validación de errores lógicos 409 del servidor, desvío del cambio en conflicto al panel de incidencias para evitar el atasco de cola, y visualización de la alerta en interfaz de usuario.
 
 ---
 
