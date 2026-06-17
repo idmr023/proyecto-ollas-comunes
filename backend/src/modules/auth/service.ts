@@ -1,24 +1,20 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { OAuth2Client } from 'google-auth-library'
 import { prisma } from '../../lib/prisma'
-import { isConsoleEmailMode, sendLoginAlertEmail } from '../../lib/email'
 import { AuthError } from './errors'
 import {
   loginSchema,
   registerSchema,
   verifyOtpSchema,
-  googleCallbackSchema,
-  googleCredentialSchema,
 } from './validators'
-import { createAndSendOtp, verifyOtp as verifyOtpCode } from './otp-service'
-import { exchangeGoogleCode } from './google-oauth'
+import { getOrCreateTotpSecret, verifyTotpCode } from './totp-service'
 import {
   AuthResponse,
   AuthUser,
   LoginInput,
   MfaPendingResponse,
   RegisterInput,
+  TotpSetupRequiredResponse,
   VerifyOtpInput,
 } from './types'
 
@@ -64,18 +60,9 @@ async function buildAuthUser(user: { id: string; email: string; fullName: string
   }
 }
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)
+/* ── Step 1: email + password ────────────────────── */
 
-async function verifyGoogleIdToken(credential: string): Promise<{ email: string; fullName: string; googleId: string }> {
-  const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID })
-  const payload = ticket.getPayload()
-  if (!payload || !payload.email) throw new AuthError(400, 'Google no proporciono un email valido.')
-  return { email: payload.email, fullName: payload.name ?? payload.email.split('@')[0], googleId: payload.sub }
-}
-
-/* ── Step 1: email + password → MFA_PENDING ──────── */
-
-export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse> {
+export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse> {
   const parsed = loginSchema.parse(input)
   const { email, password } = parsed
 
@@ -86,34 +73,31 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
 
-  const otpCode = await createAndSendOtp(user.id, user.email, user.fullName)
-  const tempToken = generateTempToken(user.id, user.email)
-
-  return {
-    status: 'MFA_PENDING',
-    tempToken,
-    email: user.email,
-    ...(isConsoleEmailMode() ? { devOtp: otpCode } : {}),
+  if (!user.totpSecret) {
+    const { secret, qrCodeUri } = await getOrCreateTotpSecret(user.id, user.email)
+    const tempToken = generateTempToken(user.id, user.email)
+    return { status: 'TOTP_SETUP_REQUIRED', tempToken, secret, qrCodeUri, email: user.email }
   }
+
+  const tempToken = generateTempToken(user.id, user.email)
+  return { status: 'MFA_PENDING', tempToken, email: user.email }
 }
 
-/* ── Step 2: OTP code → JWT ──────────────────────── */
+/* ── Step 2: TOTP code → JWT ────────────────────── */
 
 export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const parsed = verifyOtpSchema.parse(input)
   const { email, tempToken, code } = parsed
 
   const { userId } = verifyTempToken(tempToken)
-  const { userId: otpUserId } = await verifyOtpCode(email, code)
-  if (otpUserId !== userId) throw new AuthError(401, 'Discrepancia en la verificacion del usuario.')
+
+  await verifyTotpCode(userId, code)
 
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user || user.status === 'inactive') throw new AuthError(403, 'Cuenta no disponible.')
 
   const authUser = await buildAuthUser(user)
   const token = generateToken(authUser)
-
-  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
 
   return { user: authUser, token }
 }
@@ -147,61 +131,4 @@ export async function getMe(userId: string): Promise<AuthUser | null> {
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user || user.status === 'inactive') return null
   return buildAuthUser(user)
-}
-
-/* ── Google OAuth (ID token via GIS) ─────────────── */
-
-export async function loginWithGoogle(credential: string): Promise<AuthResponse> {
-  const parsed = googleCredentialSchema.parse({ credential })
-  const { email, fullName } = await verifyGoogleIdToken(parsed.credential)
-
-  let user = await prisma.appUser.findUnique({ where: { email } })
-
-  if (user) {
-    const authUser = await buildAuthUser(user)
-    const token = generateToken(authUser)
-  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
-    return { user: authUser, token }
-  }
-
-  const firstTenant = await prisma.tenant.findFirst({ orderBy: { createdAt: 'asc' } })
-  if (!firstTenant) throw new AuthError(400, 'No hay tenants disponibles. Contacta al administrador.')
-
-  user = await prisma.appUser.create({
-    data: { email, passwordHash: '', fullName, tenantId: firstTenant.id, role: 'operador_olla' },
-  })
-
-  const authUser = await buildAuthUser(user)
-  const token = generateToken(authUser)
-
-  sendLoginAlertEmail(user.email, user.fullName).catch((e) => console.error('[email] login alert error:', e))
-
-  return { user: authUser, token }
-}
-
-/* ── Legacy: Supabase GoTrue code exchange ───────── */
-
-export async function loginWithGoogleCode(code: string): Promise<AuthResponse> {
-  const parsed = googleCallbackSchema.parse({ code })
-  const { email, fullName } = await exchangeGoogleCode(parsed.code)
-
-  let user = await prisma.appUser.findUnique({ where: { email } })
-
-  if (user) {
-    const authUser = await buildAuthUser(user)
-    const token = generateToken(authUser)
-    return { user: authUser, token }
-  }
-
-  const firstTenant = await prisma.tenant.findFirst({ orderBy: { createdAt: 'asc' } })
-  if (!firstTenant) throw new AuthError(400, 'No hay tenants disponibles. Contacta al administrador.')
-
-  user = await prisma.appUser.create({
-    data: { email, passwordHash: '', fullName, tenantId: firstTenant.id, role: 'operador_olla' },
-  })
-
-  const authUser = await buildAuthUser(user)
-  const token = generateToken(authUser)
-
-  return { user: authUser, token }
 }

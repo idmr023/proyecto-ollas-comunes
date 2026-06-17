@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { AiMenuCard } from "@/components/mobile/ai-menu-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sparkles, RefreshCw } from "lucide-react"
@@ -13,10 +14,12 @@ interface Suggestion {
   nombre: string
   puntaje: number
   ingredientes: string[]
+  recipeIngredients?: { supplyItemId: string; quantity: number }[]
 }
 
 export default function MenuIaPage() {
-  const { get } = useApi()
+  const router = useRouter()
+  const { get, request } = useApi()
   const [loading, setLoading] = useState(false)
   const [sugerencia, setSugerencia] = useState<Suggestion | null>(null)
 
@@ -36,8 +39,27 @@ export default function MenuIaPage() {
     }
   }, [get])
 
-  const usarMenu = () => {
-    toast.success("Menú aplicado — stock descontado")
+  const usarMenu = async () => {
+    if (!sugerencia) return
+    setLoading(true)
+    try {
+      await request("/api/mobile/menu-plans/execute", {
+        method: "POST",
+        body: JSON.stringify({
+          recipeId: undefined,
+          dishName: sugerencia.nombre,
+          servings: 100,
+          recipeIngredients: sugerencia.recipeIngredients,
+        }),
+      })
+      toast.success(`Menú "${sugerencia.nombre}" aprobado para hoy.`)
+      setSugerencia(null)
+      router.push("/mobile/inicio")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al aplicar el menú")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

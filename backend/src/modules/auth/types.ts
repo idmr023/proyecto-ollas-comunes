@@ -34,12 +34,16 @@ export interface MfaPendingResponse {
   devOtp?: string
 }
 
+export interface TotpSetupRequiredResponse {
+  status: 'TOTP_SETUP_REQUIRED'
+  tempToken: string
+  secret: string
+  qrCodeUri: string
+  email: string
+}
+
 export interface VerifyOtpInput {
   email: string
   tempToken: string
-  code: string
-}
-
-export interface GoogleCallbackInput {
   code: string
 }

@@ -9,6 +9,7 @@ interface Beneficiary {
   apellido: string
   dni: string
   prioridad?: string[]
+  hasEatenToday?: boolean
 }
 
 const BADGE_STYLES: Record<string, string> = {
@@ -22,15 +23,20 @@ const BADGE_STYLES: Record<string, string> = {
 interface Props {
   beneficiary: Beneficiary
   onClick?: () => void
+  isSelected?: boolean
 }
 
-export function BeneficiaryCard({ beneficiary, onClick }: Props) {
+export function BeneficiaryCard({ beneficiary, onClick, isSelected }: Props) {
   const badges = beneficiary.prioridad ?? []
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left shadow-sm transition active:scale-[0.98]"
+      className={cn(
+        "flex w-full items-center gap-4 rounded-xl border p-4 text-left shadow-sm transition active:scale-[0.98]",
+        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card",
+        beneficiary.hasEatenToday && "opacity-75 bg-muted/30"
+      )}
     >
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
         <UserRound className="h-6 w-6 text-primary" />
@@ -56,7 +62,13 @@ export function BeneficiaryCard({ beneficiary, onClick }: Props) {
           </div>
         )}
       </div>
-      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+      {beneficiary.hasEatenToday ? (
+        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-1 rounded shrink-0">
+          🟢 Entregado
+        </span>
+      ) : (
+        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+      )}
     </button>
   )
 }
