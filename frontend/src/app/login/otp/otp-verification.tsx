@@ -16,7 +16,12 @@ function OtpVerification() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [countdown, setCountdown] = useState(120)
+  const [devOtp, setDevOtp] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setDevOtp(sessionStorage.getItem("dev-otp") ?? "")
+  }, [])
 
   useEffect(() => {
     if (countdown <= 0) return
@@ -36,6 +41,7 @@ function OtpVerification() {
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.message ?? "Código inválido o expirado"); return }
+      sessionStorage.removeItem("dev-otp")
       setAuth(data.user, data.token)
       toast.success("Sesión iniciada correctamente")
       const destino = data.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio"
@@ -82,6 +88,12 @@ function OtpVerification() {
             Ingresa el código de 6 dígitos enviado a
           </p>
           <p className="mt-1 text-sm font-semibold text-[#0F3821]">{email || "tu correo"}</p>
+          {devOtp ? (
+            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Codigo de desarrollo:{" "}
+              <strong className="font-mono text-lg tracking-widest">{devOtp}</strong>
+            </div>
+          ) : null}
         </div>
 
         {/* OTP: un input invisible + cajas visuales */}

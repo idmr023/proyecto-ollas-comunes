@@ -125,6 +125,9 @@ export function LoginForm() {
       if (json.status === 'MFA_PENDING') {
         setTempToken(json.tempToken);
         setMfaEmail(json.email);
+        if (json.devOtp) {
+          toast.info(`Código de desarrollo: ${json.devOtp}`, { duration: 120000 });
+        }
         setStep('otp');
         setIsLoading(false);
         return;

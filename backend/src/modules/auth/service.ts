@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { OAuth2Client } from 'google-auth-library'
 import { prisma } from '../../lib/prisma'
-import { sendLoginAlertEmail } from '../../lib/email'
+import { isConsoleEmailMode, sendLoginAlertEmail } from '../../lib/email'
 import { AuthError } from './errors'
 import {
   loginSchema,
@@ -86,10 +86,15 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
 
-  await createAndSendOtp(user.id, user.email, user.fullName)
+  const otpCode = await createAndSendOtp(user.id, user.email, user.fullName)
   const tempToken = generateTempToken(user.id, user.email)
 
-  return { status: 'MFA_PENDING', tempToken, email: user.email }
+  return {
+    status: 'MFA_PENDING',
+    tempToken,
+    email: user.email,
+    ...(isConsoleEmailMode() ? { devOtp: otpCode } : {}),
+  }
 }
 
 /* ── Step 2: OTP code → JWT ──────────────────────── */

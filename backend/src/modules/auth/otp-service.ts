@@ -23,7 +23,7 @@ export async function createAndSendOtp(
   userId: string,
   email: string,
   fullName: string,
-): Promise<void> {
+): Promise<string> {
   await invalidatePreviousCodes(userId)
 
   const code = generateOtpCode()
@@ -40,6 +40,7 @@ export async function createAndSendOtp(
   })
 
   await sendOtpEmail(email, code, fullName)
+  return code
 }
 
 export async function verifyOtp(

@@ -5,27 +5,26 @@ const SMTP_PORT = Number(process.env.SMTP_PORT) || 587
 const SMTP_USER = process.env.SMTP_USER ?? ''
 const SMTP_PASS = process.env.SMTP_PASS ?? ''
 const SMTP_FROM = process.env.SMTP_FROM ?? 'noreply@sigo-ollas.pe'
+const EMAIL_MODE =
+  process.env.EMAIL_MODE ?? (process.env.NODE_ENV === 'production' ? 'smtp' : 'console')
+
+export const isConsoleEmailMode = (): boolean => EMAIL_MODE === 'console'
 
 let transporter: nodemailer.Transporter | null = null
 
 function getTransporter(): nodemailer.Transporter {
   if (transporter) return transporter
 
-  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    })
-  } else {
-    // Dev fallback: log instead of send
-    transporter = nodemailer.createTransport({
-      host: 'localhost',
-      port: 1025,
-      ignoreTLS: true,
-    })
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error('SMTP no esta configurado. Define SMTP_HOST, SMTP_USER y SMTP_PASS.')
   }
+
+  transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  })
 
   return transporter
 }
@@ -35,6 +34,17 @@ export async function sendOtpEmail(
   code: string,
   fullName: string,
 ): Promise<void> {
+  if (isConsoleEmailMode()) {
+    console.log('\n========================================')
+    console.log('[DEV OTP] Codigo de inicio de sesion')
+    console.log(`Usuario: ${fullName}`)
+    console.log(`Correo: ${to}`)
+    console.log(`Codigo: ${code}`)
+    console.log('Expira en: 2 minutos')
+    console.log('========================================\n')
+    return
+  }
+
   const t = getTransporter()
 
   const html = `
@@ -63,6 +73,11 @@ export async function sendLoginAlertEmail(
   to: string,
   fullName: string,
 ): Promise<void> {
+  if (isConsoleEmailMode()) {
+    console.log(`[DEV EMAIL] Alerta de inicio de sesion omitida para ${fullName} <${to}>.`)
+    return
+  }
+
   const t = getTransporter()
 
   const html = `
@@ -92,5 +107,5 @@ export async function sendLoginAlertEmail(
 }
 
 export function isEmailConfigured(): boolean {
-  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
+  return isConsoleEmailMode() || Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
 }

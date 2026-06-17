@@ -32,6 +32,11 @@ export default function LoginPage() {
 
       if (data.status === "MFA_PENDING") {
         setToken(data.tempToken)
+        if (data.devOtp) {
+          sessionStorage.setItem("dev-otp", data.devOtp)
+        } else {
+          sessionStorage.removeItem("dev-otp")
+        }
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
       } else {
         setAuth(data.user, data.token)
