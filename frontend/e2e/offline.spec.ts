@@ -63,6 +63,9 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.fill('#dni', randomDni)
     await page.fill('#birthDate', '1995-08-25')
 
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
+
     // Confirmar registro (se guardará en la cola IndexedDB)
     await page.click('div.z-50 button:has-text("Registrar")')
 
@@ -309,6 +312,10 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', duplicateDni)
     await page.fill('#birthDate', '1992-06-12')
+
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
+
     await page.click('div.z-50 button:has-text("Registrar")')
 
     // El modal debería cerrarse e inyectar el cambio localmente
