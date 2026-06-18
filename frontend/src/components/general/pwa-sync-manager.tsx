@@ -157,10 +157,10 @@ export default function PwaSyncManager() {
     // Despachar evento para actualizar el banner
     window.dispatchEvent(new Event('offline-mutations-updated'))
 
-    // Si se sincronizó al menos una mutación exitosamente, recargamos la página para refrescar los datos frescos
+    // Si se sincronizó al menos una mutación exitosamente, despachamos un evento para actualizar datos
     if (syncCompletedAny) {
-      console.log('[PWA Sync] Recargando datos de la interfaz para reflejar base de datos remota.')
-      window.location.reload()
+      console.log('[PWA Sync] Despachando evento pwa-sync-completed para actualizar datos reactivamente.')
+      window.dispatchEvent(new Event('pwa-sync-completed'))
     }
   }
 

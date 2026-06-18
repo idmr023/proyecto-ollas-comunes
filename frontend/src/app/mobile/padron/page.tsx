@@ -70,6 +70,7 @@ export default function PadronPage() {
   const [activeDishName, setActiveDishName] = useState<string | null>(null)
   const [isMenuExecuted, setIsMenuExecuted] = useState(false)
   const [maxServingsRemaining, setMaxServingsRemaining] = useState<number>(0)
+  const [currentOllaId, setCurrentOllaId] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     firstName: "",
@@ -89,6 +90,8 @@ export default function PadronPage() {
     try {
       const params: Record<string, string> = {}
       if (busqueda.trim()) params.query = busqueda.trim()
+      if (currentOllaId) params.ollaId = currentOllaId
+      
       const data = await get<{ ok: boolean; items: BeneficiaryRecord[] }>("/api/beneficiaries", params)
       setBeneficiarios(
         data.items.map((b) => ({
@@ -105,12 +108,13 @@ export default function PadronPage() {
     } finally {
       setLoading(false)
     }
-  }, [get, busqueda])
+  }, [get, busqueda, currentOllaId])
 
   const fetchActiveMenu = useCallback(async () => {
     try {
       const data = await get<{
         ok: boolean
+        olla?: { id: string; name: string } | null
         summary?: {
           menu?: {
             dishName: string
@@ -119,6 +123,9 @@ export default function PadronPage() {
           } | null
         }
       }>("/api/mobile/dashboard")
+      if (data.ok && data.olla) {
+        setCurrentOllaId(data.olla.id)
+      }
       if (data.ok && data.summary?.menu) {
         setActiveDishName(data.summary.menu.dishName)
         setIsMenuExecuted(data.summary.menu.status === "executed")
@@ -130,15 +137,40 @@ export default function PadronPage() {
       }
     } catch (err) {
       console.error("Error fetching active menu", err)
+      setLoading(false)
     }
   }, [get])
 
   useEffect(() => {
-    fetchBeneficiaries()
-  }, [fetchBeneficiaries])
+    if (currentOllaId) {
+      fetchBeneficiaries()
+    } else {
+      // Si aún no tenemos ollaId resolved, podemos intentar cargar inicialmente
+      // pero una vez que cargue fetchActiveMenu se disparará de nuevo con la olla correcta.
+      fetchBeneficiaries()
+    }
+
+    const handleSync = () => {
+      console.log('[Padron Mobile] Sincronización completada. Refrescando beneficiarios...')
+      fetchBeneficiaries()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
+  }, [fetchBeneficiaries, currentOllaId])
 
   useEffect(() => {
     fetchActiveMenu()
+
+    const handleSync = () => {
+      console.log('[Padron Mobile] Sincronización completada. Refrescando menú activo...')
+      fetchActiveMenu()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchActiveMenu])
 
   useEffect(() => {
@@ -149,12 +181,16 @@ export default function PadronPage() {
       ]).then(([conditions, ollasData]) => {
         setHealthConditions(conditions.items)
         setOllas(ollasData.items)
+        // Autoseleccionar la olla de la lideresa activa si está disponible
+        if (currentOllaId) {
+          setForm((prev) => ({ ...prev, ollaId: currentOllaId }))
+        }
       })
     } else {
       setForm({ firstName: "", lastName: "", dni: "", birthDate: "", gender: "not_specified", phone: "", address: "", ollaId: "", priorityLevel: "normal", healthConditionIds: [] })
       setErrors({})
     }
-  }, [modalAbierto, get])
+  }, [modalAbierto, get, currentOllaId])
 
   const validate = () => {
     const result = beneficiarySchema.safeParse({

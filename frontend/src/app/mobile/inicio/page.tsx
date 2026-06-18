@@ -50,6 +50,15 @@ export default function InicioPage() {
 
   useEffect(() => {
     fetchDashboard()
+
+    const handleSync = () => {
+      console.log('[Inicio Mobile] Sincronización completada. Refrescando dashboard...')
+      fetchDashboard()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchDashboard])
 
   const nombreOlla = data?.olla?.name ?? "Olla común"
