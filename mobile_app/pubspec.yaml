@@ -1,0 +1,45 @@
+name: sigo_ollas
+description: "App móvil de SIGO-OLLAS — gestión de ollas comunes en campo."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Gestión de estado y dependencias
+  flutter_riverpod: ^2.6.1
+  get_it: ^8.0.3
+
+  # Estados de UI inmutables
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Navegación
+  auto_route: ^9.2.2
+
+  # Red y sesión
+  dio: ^5.7.0
+  flutter_secure_storage: ^9.2.4
+
+  # Utilidades
+  intl: ^0.20.2
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Generación de código
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.9.0
+  auto_route_generator: ^9.0.0
+
+flutter:
+  uses-material-design: true
