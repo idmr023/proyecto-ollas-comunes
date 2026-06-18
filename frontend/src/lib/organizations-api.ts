@@ -112,3 +112,65 @@ export async function updateOrganizationStatus(
 
   return payload?.item ?? null
 }
+
+export interface TenantStockRecord {
+  ollaName: string
+  ollaId: string
+  supplyItemId: string
+  supplyItemName: string
+  categoryName: string
+  quantity: number
+  unit: string
+  updatedAt: string
+}
+
+export interface TenantMovementRecord {
+  id: string
+  ollaName: string
+  ollaId: string
+  supplyItemName: string
+  unit: string
+  movementType: string
+  quantity: number
+  movementDate: string
+  notes: string | null
+  sourceName: string | null
+  createdByName: string
+}
+
+export async function getTenantInventoryStock() {
+  const payload = await apiRequest<TenantStockRecord>('/api/organizations/inventory/stock')
+  return payload?.items ?? []
+}
+
+export async function getTenantInventoryMovements() {
+  const payload = await apiRequest<TenantMovementRecord>('/api/organizations/inventory/movements')
+  return payload?.items ?? []
+}
+
+export interface TenantAlertRecord {
+  id: string
+  ollaName: string
+  ollaId: string | null
+  alertType: string
+  severity: string
+  message: string
+  status: string
+  detectedAt: string
+  resolvedAt: string | null
+}
+
+export async function getTenantAlerts() {
+  const payload = await apiRequest<TenantAlertRecord>('/api/organizations/alerts')
+  return payload?.items ?? []
+}
+
+export async function updateTenantAlert(id: string, status: string) {
+  const payload = await apiRequest<TenantAlertRecord>(`/api/organizations/alerts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  })
+  return payload?.item ?? null
+}
+
+

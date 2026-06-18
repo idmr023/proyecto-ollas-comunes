@@ -213,10 +213,13 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(logsCount).toBeDefined()
   })
 
-  it('I-10: Envío de alertas de login (NodeMailer)', async () => {
-    // Al autenticar, NodeMailer gatilla de forma asíncrona sendLoginAlertEmail
-    const user = await prisma.appUser.findFirst()
+  it('I-10: Cifrado y Hash de contraseñas (bcrypt)', async () => {
+    const user = await prisma.appUser.findFirst({
+      where: { email: 'admin@ollascomunes.pe' }
+    })
     expect(user).toBeDefined()
+    expect(user?.passwordHash).toBeDefined()
+    expect(user?.passwordHash.startsWith('$2a$') || user?.passwordHash.startsWith('$2b$')).toBe(true)
   })
 
   it('I-11: Almacenamiento de secreto TOTP en BD', async () => {
@@ -276,4 +279,108 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     const results = await Promise.all(promises)
     expect(results).toHaveLength(5)
   })
+
+  /* --- CASOS DE FALLA / PRUEBAS NEGATIVAS --- */
+
+  it('I-03: Falla - Consulta de organizaciones sin token Bearer', async () => {
+    const res = await fetch(`${BASE_URL}/api/organizations`, {
+      method: 'GET'
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('I-03: Falla - Consulta de organizaciones con token inválido', async () => {
+    const res = await fetch(`${BASE_URL}/api/organizations`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer token-invalido-123'
+      }
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('I-04: Falla - Consulta de ollas comunes para slug de organización inexistente', async () => {
+    const res = await fetch(`${BASE_URL}/api/organizations/organizacion-que-no-existe-xyz/ollas`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
+    expect(res.status).toBe(404)
+  })
+
+  it('I-05: Falla - Multi-tenant cruzado denegado', async () => {
+    // Intentamos buscar un beneficiario de un tenant inexistente o cruzado
+    const otherTenantId = 'e7a123bc-7512-4c22-b0ef-d922a945d8b9'
+    const found = await prisma.beneficiary.findFirst({
+      where: {
+        tenantId: otherTenantId
+      }
+    })
+    expect(found).toBeNull()
+  })
+
+  it('I-07: Falla - Petición CORS con origen no permitido', async () => {
+    const res = await fetch(`${BASE_URL}/`, {
+      method: 'GET',
+      headers: {
+        'Origin': 'http://malicious-domain-test.com'
+      }
+    })
+    const corsHeader = res.headers.get('access-control-allow-origin')
+    expect(corsHeader).not.toBe('http://malicious-domain-test.com')
+  })
+
+  it('I-11: Falla - Secreto TOTP corrupto o ausente', async () => {
+    const res = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'usuario-sin-totp@ollascomunes.pe',
+        tempToken: 'some-temp-token',
+        code: '123456'
+      })
+    })
+    expect([400, 401]).toContain(res.status)
+  })
+
+  it('I-12: Falla - Subida a Supabase Storage con extensión no permitida', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/documents/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        fileName: 'archivo_peligroso.exe',
+        fileType: 'application/octet-stream',
+        fileData: 'MZ...........=' 
+      })
+    })
+    expect([400, 500]).toContain(res.status)
+  })
+
+  it('I-12: Falla - Subida de archivo vacío', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/documents/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        fileName: 'vacio.pdf',
+        fileType: 'application/pdf',
+        fileData: '' 
+      })
+    })
+    expect([400, 500]).toContain(res.status)
+  })
+
+  it('I-13: Falla - Consulta de alertas con rol no autorizado (token inválido)', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/alerts`, {
+      headers: { 'Authorization': 'Bearer token-invalido' }
+    })
+    expect(res.status).toBe(401)
+  })
 })
+

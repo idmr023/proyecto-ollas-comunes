@@ -48,7 +48,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
   // ─── DASHBOARD E INTERFAZ GENERAL ────────────────────────────
 
-  test('Test 16: Dashboard carga correctamente con KPIs y gráficos', async ({ page }) => {
+  test('Test 13: Dashboard carga correctamente con KPIs y gráficos', async ({ page }) => {
     await loginAsAdmin(page)
 
     // Verificar secciones del Dashboard
@@ -64,7 +64,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('main').locator('text=Insumos').first()).toBeVisible()
   })
 
-  test('Test 17: Navegación del Sidebar', async ({ page }) => {
+  test('Test 14.1: Navegación del Sidebar (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
 
     // Navegar a Padrón de Beneficiarios
@@ -80,9 +80,17 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page).toHaveURL(/\/workspace\/configuracion/)
   })
 
+  test('Test 14.2: Redirección de ruta de workspace protegida sin autenticación (Falla)', async ({ page }) => {
+    // Intentar ir directo a /workspace/home
+    await page.goto('/workspace/home')
+    await page.waitForLoadState('domcontentloaded')
+    // Debería redirigir a login
+    await expect(page).toHaveURL(/\/login/)
+  })
+
   // ─── PADRÓN DE BENEFICIARIOS ──────────────────────────────────
 
-  test('Test 18: Listado de Beneficiarios', async ({ page }) => {
+  test('Test 15: Listado de Beneficiarios', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -92,7 +100,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('button:has-text("Registrar Beneficiario")')).toBeVisible()
   })
 
-  test('Test 19: Búsqueda de Beneficiarios', async ({ page }) => {
+  test('Test 16: Búsqueda de Beneficiarios', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -106,7 +114,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=No se encontraron beneficiarios.')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 20: Filtro de Beneficiarios por Olla Común', async ({ page }) => {
+  test('Test 17: Filtro de Beneficiarios por Olla Común', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -121,7 +129,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible()
   })
 
-  test('Test 21: Formulario de Beneficiario - Validación', async ({ page }) => {
+  test('Test 18.1: Formulario de Beneficiario - Validación (Falla)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -139,7 +147,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=El nombre es obligatorio.')).toBeVisible()
   })
 
-  test('Test 22: Registro Exitoso de Beneficiario', async ({ page }) => {
+  test('Test 18.2: Registro Exitoso de Beneficiario (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
 
@@ -167,7 +175,29 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator(`td:has-text("${randomDni}")`).first()).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 23: Edición de Beneficiario', async ({ page }) => {
+  test('Test 18.3: Registrar beneficiario con formato de DNI inválido (letras) (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/beneficiarios')
+    await page.waitForLoadState('domcontentloaded')
+
+    // Abrir formulario
+    await page.click('button:has-text("Registrar Beneficiario")')
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
+
+    // Rellenar campos, ingresando letras en DNI
+    await page.fill('#firstName', 'AdminTest')
+    await page.fill('#lastName', 'Playwright')
+    await page.fill('#dni', 'dni-letras-invalido')
+    await page.fill('#birthDate', '1990-05-15')
+
+    // Intentar guardar
+    await page.click('div.z-50 button:has-text("Registrar")')
+
+    // Debería permanecer visible indicando que falló o mostrar error
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
+  })
+
+  test('Test 19: Edición de Beneficiario', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -193,7 +223,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h2:has-text("Editar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 24: Eliminación de Beneficiario', async ({ page }) => {
+  test('Test 20: Eliminación de Beneficiario', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
     await page.waitForLoadState('domcontentloaded')
@@ -214,7 +244,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
   // ─── GESTIÓN DE ORGANIZACIONES Y OLLAS ────────────────────────
 
-  test('Test 25: Listado de Organizaciones', async ({ page }) => {
+  test('Test 21: Listado de Organizaciones', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/organizaciones')
     await page.waitForLoadState('domcontentloaded')
@@ -224,7 +254,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=Nueva organización')).toBeVisible()
   })
 
-  test('Test 26: Creación de Nueva Organización', async ({ page }) => {
+  test('Test 22.1: Creación de Nueva Organización (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     const orgName = `Org E2E Test ${Math.floor(Math.random() * 10000)}`
 
@@ -247,7 +277,23 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator(`h1:has-text("${orgName}")`)).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 27: Creación de Olla Común', async ({ page }) => {
+  test('Test 22.2: Crear organización con nombre vacío (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/organizaciones')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.click('text=Nueva organización')
+    await expect(page).toHaveURL(/\/workspace\/organizaciones\/nueva/)
+
+    // Intentar guardar con nombre vacío
+    await page.fill('#organization-name', '')
+    await page.click('button:has-text("Crear organizacion")')
+
+    // Debería permanecer en la misma vista de creación
+    await expect(page).toHaveURL(/\/workspace\/organizaciones\/nueva/)
+  })
+
+  test('Test 23: Creación de Olla Común', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/organizaciones')
     await page.waitForLoadState('domcontentloaded')
@@ -281,7 +327,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
   // ─── CONFIGURACIÓN Y PREFERENCIAS ──────────────────────────────
 
-  test('Test 28: Mi Perfil - Edición de Datos (Mock)', async ({ page }) => {
+  test('Test 24.1: Mi Perfil - Edición de Datos (Mock) (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/perfil')
     await page.waitForLoadState('domcontentloaded')
@@ -299,7 +345,21 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=Datos actualizados correctamente.')).toBeVisible({ timeout: 20000 })
   })
 
-  test('Test 29: Preferencias - Cambio de Tema', async ({ page }) => {
+  test('Test 24.2: Edición de perfil con correo inválido (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/perfil')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
+
+    // Rellenar email inválido
+    await page.fill('#profile-email', 'email-invalido')
+    await page.click('button:has-text("Guardar cambios")')
+
+    // Debería mostrar Toast o invalidar
+  })
+
+  test('Test 25: Preferencias - Cambio de Tema', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/preferencias')
     await page.waitForLoadState('domcontentloaded')
@@ -316,7 +376,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('button:has-text("Oscuro")')).toBeVisible({ timeout: 20000 })
   })
 
-  test('Test 30: Configuración - Enlaces de Acceso', async ({ page }) => {
+  test('Test 26: Configuración - Enlaces de Acceso', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/configuracion')
     await page.waitForLoadState('domcontentloaded')
@@ -334,4 +394,5 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('a:has-text("Abrir perfil")')
     await expect(page).toHaveURL(/\/workspace\/perfil/)
   })
+
 })
