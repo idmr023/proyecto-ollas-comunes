@@ -6,7 +6,7 @@ import { prisma } from '../../backend/src/lib/prisma'
 const TEST_EMAIL = 'admin@ollascomunes.pe'
 const TEST_PASSWORD = 'admin123'
 
-async function loginAsAdmin(page: Page) {
+async function O(page: Page) {
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()))
   page.on('pageerror', err => console.error('BROWSER ERROR:', err.message))
 

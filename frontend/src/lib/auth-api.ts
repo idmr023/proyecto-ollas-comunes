@@ -33,3 +33,19 @@ export async function getMeRequest(token: string): Promise<AuthResponse> {
 
   return response.json()
 }
+
+export async function updateProfileRequest(
+  token: string,
+  input: { fullName?: string; currentPassword?: string; newPassword?: string }
+): Promise<AuthResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  })
+
+  return response.json()
+}

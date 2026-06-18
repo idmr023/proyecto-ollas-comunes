@@ -132,3 +132,45 @@ export async function getMe(userId: string): Promise<AuthUser | null> {
   if (!user || user.status === 'inactive') return null
   return buildAuthUser(user)
 }
+
+/* ── Update user profile ──────────────────────────── */
+
+export async function updateProfile(
+  userId: string,
+  input: { fullName?: string; email?: string; currentPassword?: string; newPassword?: string }
+): Promise<{ user: AuthUser; token: string }> {
+  const user = await prisma.appUser.findUnique({ where: { id: userId } })
+  if (!user) throw new AuthError(404, 'Usuario no encontrado.')
+
+  const updateData: any = {}
+
+  if (input.fullName !== undefined) {
+    updateData.fullName = input.fullName
+  }
+
+  if (input.email !== undefined && input.email !== user.email) {
+    const existing = await prisma.appUser.findUnique({ where: { email: input.email } })
+    if (existing) throw new AuthError(409, 'Ya existe un usuario con ese email.')
+    updateData.email = input.email
+  }
+
+  if (input.newPassword) {
+    if (!input.currentPassword) {
+      throw new AuthError(400, 'Debe proporcionar la contraseña actual para cambiarla.')
+    }
+    const valid = await bcrypt.compare(input.currentPassword, user.passwordHash)
+    if (!valid) throw new AuthError(400, 'La contraseña actual es incorrecta.')
+
+    updateData.passwordHash = await bcrypt.hash(input.newPassword, BCRYPT_ROUNDS)
+  }
+
+  const updatedUser = await prisma.appUser.update({
+    where: { id: userId },
+    data: updateData,
+  })
+
+  const authUser = await buildAuthUser(updatedUser)
+  const token = generateToken(authUser)
+
+  return { user: authUser, token }
+}
