@@ -5,6 +5,9 @@ import '../../core/sesion/almacen_sesion.dart';
 import '../../features/auth/data/auth_api.dart';
 import '../../features/auth/data/auth_repositorio_impl.dart';
 import '../../features/auth/domain/repositorio_auth.dart';
+import '../../features/dashboard/data/dashboard_api.dart';
+import '../../features/dashboard/data/dashboard_repositorio_impl.dart';
+import '../../features/dashboard/domain/repositorio_dashboard.dart';
 
 /// Contenedor global de dependencias.
 final GetIt sl = GetIt.instance;
@@ -22,4 +25,8 @@ Future<void> configurarInyeccion() async {
   sl.registerLazySingleton<RepositorioAuth>(
     () => AuthRepositorioImpl(api: sl<AuthApi>(), almacenSesion: sl<AlmacenSesion>()),
   );
+
+  // Feature: dashboard
+  sl.registerLazySingleton<DashboardApi>(() => DashboardApi(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioDashboard>(() => DashboardRepositorioImpl(sl<DashboardApi>()));
 }
