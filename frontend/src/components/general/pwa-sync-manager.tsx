@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect } from 'react'
-import { getMutations, deleteMutation, updateMutation, addFailedMutation } from '@/lib/indexed-db'
+import { getMutations, deleteMutation, updateMutation, addFailedMutation, getFailedMutations } from '@/lib/indexed-db'
 
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
+const LS_MUTATION_COUNT = 'pwa-pending-mutation-count'
+const LS_FAILED_COUNT = 'pwa-failed-mutation-count'
 
 function getAuthHeaders(): Record<string, string> {
   try {
@@ -17,6 +19,79 @@ function getAuthHeaders(): Record<string, string> {
     }
   } catch {}
   return {}
+}
+
+function getAuthToken(): string | null {
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return parsed.state?.token ?? null
+    }
+  } catch {}
+  return null
+}
+
+async function detectDataLoss() {
+  if (typeof window === 'undefined') return
+  const prevPending = parseInt(localStorage.getItem(LS_MUTATION_COUNT) || '0', 10)
+  const prevFailed = parseInt(localStorage.getItem(LS_FAILED_COUNT) || '0', 10)
+  if (prevPending === 0 && prevFailed === 0) return
+
+  const mutations = await getMutations()
+  const failed = await getFailedMutations()
+  const currentPending = mutations.length
+  const currentFailed = failed.length
+
+  const lostPending = Math.max(0, prevPending - currentPending)
+  const lostFailed = Math.max(0, prevFailed - currentFailed)
+
+  if (lostPending > 0 || lostFailed > 0) {
+    console.warn('[PWA Sync] Datos perdidos detectados:', { lostPending, lostFailed })
+    const token = getAuthToken()
+    if (token) {
+      try {
+        await fetch(`${apiBaseUrl}/api/notifications/report-data-loss`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            pendingCount: lostPending,
+            failedCount: lostFailed,
+            message: `Se perdieron ${lostPending} mutaciones pendientes y ${lostFailed} fallos de sincronización en el almacenamiento local.`,
+          }),
+        })
+      } catch (err) {
+        console.warn('[PWA Sync] No se pudo reportar pérdida de datos:', err)
+      }
+    }
+  }
+}
+
+function updateLocalCounters() {
+  if (typeof window === 'undefined') return
+  getMutations().then((m) => localStorage.setItem(LS_MUTATION_COUNT, String(m.length)))
+  getFailedMutations().then((f) => localStorage.setItem(LS_FAILED_COUNT, String(f.length)))
+}
+
+async function backupMutationToServer(mutation: { path: string; method: string; body?: unknown; timestamp: number; errorMessage?: string; status?: number }) {
+  const token = getAuthToken()
+  if (!token) return
+  try {
+    await fetch(`${apiBaseUrl}/api/notifications/backup-mutation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        path: mutation.path,
+        method: mutation.method,
+        body: mutation.body,
+        errorMessage: mutation.errorMessage,
+        status: mutation.status,
+        originalTimestamp: mutation.timestamp,
+      }),
+    })
+  } catch {
+    // backup is optional, ignore errors
+  }
 }
 
 export default function PwaSyncManager() {
@@ -97,6 +172,8 @@ export default function PwaSyncManager() {
             // Registrar fallo en indexedDB
             await addFailedMutation(mutation, errMsg, res.status)
             await deleteMutation(mutation.id!)
+            // Backup del fallo al servidor
+            backupMutationToServer({ ...mutation, errorMessage: errMsg, status: res.status })
             
             // Limpieza en Cascada si la mutación tenía un tempId
             if (mutation.tempId) {
@@ -154,6 +231,9 @@ export default function PwaSyncManager() {
       }
     }
 
+    // Actualizar contadores locales
+    updateLocalCounters()
+
     // Despachar evento para actualizar el banner
     window.dispatchEvent(new Event('offline-mutations-updated'))
 
@@ -165,6 +245,9 @@ export default function PwaSyncManager() {
   }
 
   useEffect(() => {
+    // Detectar pérdida de datos en el almacenamiento local
+    detectDataLoss()
+
     // Sincronizar inmediatamente si estamos online al montar el componente
     syncOfflineMutations()
 
