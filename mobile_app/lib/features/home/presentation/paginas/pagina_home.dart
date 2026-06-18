@@ -5,7 +5,7 @@ import '../../../../shared/widgets/barra_navegacion.dart';
 import '../../../dashboard/presentation/paginas/pagina_dashboard.dart';
 import '../../../inventario/presentation/paginas/pagina_inventario.dart';
 import '../../../padron/presentation/paginas/pagina_padron.dart';
-import '../widgets/pestana_proximamente.dart';
+import '../../../mas/presentation/pagina_mas.dart';
 
 /// Shell principal de la app autenticada: aloja la barra de navegación inferior
 /// y las pestañas (Inicio, Inventario, Padrón, Más).
@@ -39,7 +39,7 @@ class _PaginaHomeState extends State<PaginaHome> {
           PaginaDashboard(onIrInventario: () => _irA(1), onIrPadron: () => _irA(2)),
           const PaginaInventario(),
           const PaginaPadron(),
-          const PestanaProximamente(titulo: 'Más opciones'),
+          const PaginaMas(),
         ],
       ),
       bottomNavigationBar: BarraNavegacion(indiceActivo: _indice, onCambio: _irA, items: _items),

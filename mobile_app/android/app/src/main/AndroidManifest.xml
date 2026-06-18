@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permiso de cámara para capturar evidencias (image_picker). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="sigo_ollas"
         android:name="${applicationName}"

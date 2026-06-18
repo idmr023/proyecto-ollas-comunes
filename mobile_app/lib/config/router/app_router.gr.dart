@@ -11,6 +11,22 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [PaginaAlertas]
+class AlertasRoute extends PageRouteInfo<void> {
+  const AlertasRoute({List<PageRouteInfo>? children})
+    : super(AlertasRoute.name, initialChildren: children);
+
+  static const String name = 'AlertasRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PaginaAlertas();
+    },
+  );
+}
+
+/// generated route for
 /// [PaginaDetalleInsumo]
 class DetalleInsumoRoute extends PageRouteInfo<DetalleInsumoRouteArgs> {
   DetalleInsumoRoute({
@@ -45,6 +61,22 @@ class DetalleInsumoRouteArgs {
   String toString() {
     return 'DetalleInsumoRouteArgs{key: $key, insumo: $insumo}';
   }
+}
+
+/// generated route for
+/// [PaginaEvidencias]
+class EvidenciasRoute extends PageRouteInfo<void> {
+  const EvidenciasRoute({List<PageRouteInfo>? children})
+    : super(EvidenciasRoute.name, initialChildren: children);
+
+  static const String name = 'EvidenciasRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PaginaEvidencias();
+    },
+  );
 }
 
 /// generated route for
@@ -161,6 +193,22 @@ class LoginRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const PaginaLogin();
+    },
+  );
+}
+
+/// generated route for
+/// [PaginaMenuIa]
+class MenuIaRoute extends PageRouteInfo<void> {
+  const MenuIaRoute({List<PageRouteInfo>? children})
+    : super(MenuIaRoute.name, initialChildren: children);
+
+  static const String name = 'MenuIaRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PaginaMenuIa();
     },
   );
 }

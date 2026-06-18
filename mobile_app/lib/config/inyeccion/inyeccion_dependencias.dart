@@ -14,6 +14,12 @@ import '../../features/inventario/domain/repositorio_inventario.dart';
 import '../../features/padron/data/padron_api.dart';
 import '../../features/padron/data/padron_repositorio_impl.dart';
 import '../../features/padron/domain/repositorio_padron.dart';
+import '../../features/alertas/data/alertas_repositorio_impl.dart';
+import '../../features/alertas/domain/repositorio_alertas.dart';
+import '../../features/menu_ia/data/menu_ia_repositorio_impl.dart';
+import '../../features/menu_ia/domain/repositorio_menu_ia.dart';
+import '../../features/evidencias/data/evidencias_repositorio_impl.dart';
+import '../../features/evidencias/domain/repositorio_evidencias.dart';
 
 /// Contenedor global de dependencias.
 final GetIt sl = GetIt.instance;
@@ -43,4 +49,13 @@ Future<void> configurarInyeccion() async {
   // Feature: padrón
   sl.registerLazySingleton<PadronApi>(() => PadronApi(sl<ClienteHttp>()));
   sl.registerLazySingleton<RepositorioPadron>(() => PadronRepositorioImpl(sl<PadronApi>()));
+
+  // Feature: alertas
+  sl.registerLazySingleton<RepositorioAlertas>(() => AlertasRepositorioImpl(sl<ClienteHttp>()));
+
+  // Feature: menú-IA
+  sl.registerLazySingleton<RepositorioMenuIa>(() => MenuIaRepositorioImpl(sl<ClienteHttp>()));
+
+  // Feature: evidencias
+  sl.registerLazySingleton<RepositorioEvidencias>(() => EvidenciasRepositorioImpl(sl<ClienteHttp>()));
 }
