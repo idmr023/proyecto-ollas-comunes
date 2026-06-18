@@ -6,7 +6,7 @@ import { prisma } from '../../backend/src/lib/prisma'
 const TEST_EMAIL = 'admin@ollascomunes.pe'
 const TEST_PASSWORD = 'admin123'
 
-async function loginAsAdmin(page: Page) {
+async function O(page: Page) {
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()))
   page.on('pageerror', err => console.error('BROWSER ERROR:', err.message))
 
@@ -62,6 +62,9 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', randomDni)
     await page.fill('#birthDate', '1995-08-25')
+
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
 
     // Confirmar registro (se guardará en la cola IndexedDB)
     await page.click('div.z-50 button:has-text("Registrar")')
@@ -309,6 +312,10 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', duplicateDni)
     await page.fill('#birthDate', '1992-06-12')
+
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
+
     await page.click('div.z-50 button:has-text("Registrar")')
 
     // El modal debería cerrarse e inyectar el cambio localmente

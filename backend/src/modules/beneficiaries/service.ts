@@ -44,8 +44,11 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
     throw new BeneficiaryServiceError(400, 'La fecha de nacimiento no puede ser futura.')
   }
 
-  const dni = typeof data.dni === 'string' ? data.dni.trim() || null : null
-  if (dni && dni.length > 20) {
+  const dni = typeof data.dni === 'string' ? data.dni.trim() : ''
+  if (!dni) {
+    throw new BeneficiaryServiceError(400, 'El DNI del beneficiario es obligatorio.')
+  }
+  if (dni.length > 20) {
     throw new BeneficiaryServiceError(400, 'El DNI no puede exceder 20 caracteres.')
   }
 
@@ -57,7 +60,11 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
 
   const phone = typeof data.phone === 'string' ? data.phone.trim() || null : null
   const address = typeof data.address === 'string' ? data.address.trim() || null : null
-  const ollaId = typeof data.ollaId === 'string' ? (data.ollaId.trim() || null) : null
+  const ollaId = typeof data.ollaId === 'string' ? data.ollaId.trim() : ''
+  if (!ollaId) {
+    throw new BeneficiaryServiceError(400, 'La olla común es obligatoria.')
+  }
+
   const priorityLevel = typeof data.priorityLevel === 'string' ? data.priorityLevel : 'normal'
   const validPriorities = ['low', 'normal', 'high']
   if (!validPriorities.includes(priorityLevel)) {
@@ -157,11 +164,34 @@ export async function registerBeneficiary(tenantId: string, payload: unknown) {
   if (data.dni) {
     const existing = await beneficiaryRepository.findByDni(data.dni, tenantId)
     if (existing) {
+      await prisma.alert.create({
+        data: {
+          tenantId,
+          ollaId: data.ollaId,
+          alertType: 'sync_conflict',
+          severity: 'medium',
+          message: `Intento de registro fallido: Beneficiario con DNI ${data.dni} ya está registrado.`,
+          status: 'open',
+        }
+      })
       throw new BeneficiaryServiceError(409, 'Ya existe un beneficiario con ese DNI en esta organizacion.')
     }
   }
 
   const record = await beneficiaryRepository.create({ ...data, tenantId })
+
+  // Registrar alerta de éxito
+  await prisma.alert.create({
+    data: {
+      tenantId,
+      ollaId: data.ollaId,
+      alertType: 'new_beneficiary',
+      severity: 'low',
+      message: `Nuevo beneficiario registrado: ${data.firstName} ${data.lastName} (DNI: ${data.dni || '—'})`,
+      status: 'open',
+    }
+  })
+
   return toResponse(record)
 }
 

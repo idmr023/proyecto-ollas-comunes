@@ -32,6 +32,11 @@ let imagesChecked = 0
 let imagesWithoutAlt = 0
 let inputFieldsChecked = 0
 let formsWithDoubleSubmitProtection = 0
+let multipleH1Files = 0
+let inputsWithoutAria = 0
+let nonResponsiveWidths = 0
+let deletionButtonsWithoutConfirmation = 0
+let missingDarkModeStyles = 0
 
 function walkDir(dir) {
   const files = fs.readdirSync(dir)
@@ -68,6 +73,37 @@ function walkDir(dir) {
       if (inputMatches) {
         inputFieldsChecked += inputMatches.length
       }
+
+      // Chequear múltiples H1
+      const h1Count = (content.match(/<h1\b/g) || []).length
+      if (h1Count > 1) {
+        multipleH1Files++
+      }
+
+      // Chequear inputs sin label/aria
+      const inputRegexFull = /<input\s+[^>]*>/g
+      const inputs = content.match(inputRegexFull) || []
+      for (const inp of inputs) {
+        if (!inp.includes('aria-label') && !inp.includes('aria-labelledby') && !inp.includes('id=')) {
+          inputsWithoutAria++
+        }
+      }
+
+      // Chequear anchos fijos no responsivos en tailwind
+      const badWidthRegex = /className="[^"]*\bw-\[(?:4|5|6)\d\dpx\]/g
+      if (badWidthRegex.test(content)) {
+        nonResponsiveWidths++
+      }
+
+      // Chequear botones destructivos sin modal/confirmación
+      if (content.includes('Eliminar') && !content.includes('confirm') && !content.includes('AlertDialog') && !content.includes('Dialog')) {
+        deletionButtonsWithoutConfirmation++
+      }
+
+      // Chequear clases quemadas sin modo oscuro
+      if ((content.includes('bg-white') && !content.includes('dark:bg-')) || (content.includes('text-black') && !content.includes('dark:text-'))) {
+        missingDarkModeStyles++
+      }
     }
   }
 }
@@ -86,10 +122,41 @@ if (imagesWithoutAlt > 0) {
   if (audits[1].score < 90) audits[1].status = 'WARN'
 }
 
+if (multipleH1Files > 0) {
+  audits[2].score = Math.max(50, 100 - (multipleH1Files * 15))
+  if (audits[2].score < 90) audits[2].status = 'WARN'
+}
+
+if (inputsWithoutAria > 0) {
+  audits[3].score = Math.max(50, 100 - (inputsWithoutAria * 5))
+  if (audits[3].score < 90) audits[3].status = 'WARN'
+}
+
+if (nonResponsiveWidths > 0) {
+  audits[5].score = Math.max(50, 100 - (nonResponsiveWidths * 20))
+  if (audits[5].score < 90) audits[5].status = 'WARN'
+}
+
+if (deletionButtonsWithoutConfirmation > 0) {
+  audits[11].score = Math.max(50, 100 - (deletionButtonsWithoutConfirmation * 20))
+  if (audits[11].score < 90) audits[11].status = 'WARN'
+}
+
+if (missingDarkModeStyles > 0) {
+  audits[14].score = Math.max(50, 100 - (missingDarkModeStyles * 10))
+  if (audits[14].score < 90) audits[14].status = 'WARN'
+}
+
 console.log(`- Imágenes analizadas: ${imagesChecked}`)
 console.log(`- Imágenes sin etiqueta 'alt': ${imagesWithoutAlt}`)
 console.log(`- Formas con protección de envío duplicado: ${formsWithDoubleSubmitProtection}`)
-console.log(`- Inputs de formulario analizados: ${inputFieldsChecked}\n`)
+console.log(`- Inputs de formulario analizados: ${inputFieldsChecked}`)
+console.log(`- Archivos con múltiples H1: ${multipleH1Files}`)
+console.log(`- Inputs sin etiquetas ARIA: ${inputsWithoutAria}`)
+console.log(`- Contenedores con anchos fijos no responsivos: ${nonResponsiveWidths}`)
+console.log(`- Botones destructivos sin confirmación: ${deletionButtonsWithoutConfirmation}`)
+console.log(`- Clases de color estáticas sin dark mode: ${missingDarkModeStyles}\n`)
+
 
 // 2. Escribir reporte en HTML
 const htmlContent = `

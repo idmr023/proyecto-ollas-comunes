@@ -1,7 +1,7 @@
 import { Router, Response } from 'express'
 import { requireAuth } from '../../lib/middleware/auth'
 import { AuthError } from './errors'
-import { login, register, getMe, verifyOtp } from './service'
+import { login, register, getMe, verifyOtp, updateProfile } from './service'
 import { ZodError } from 'zod'
 
 const authRouter = Router()
@@ -68,6 +68,16 @@ authRouter.get('/me', requireAuth, async (request, response) => {
       return
     }
     response.json({ ok: true, user })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+// PATCH /api/auth/profile — Update current user profile
+authRouter.patch('/profile', requireAuth, async (request, response) => {
+  try {
+    const result = await updateProfile(request.user!.userId, request.body)
+    response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)
   }

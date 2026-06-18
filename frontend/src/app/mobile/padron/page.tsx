@@ -12,6 +12,20 @@ import { toast } from "sonner"
 import { useApi } from "@/hooks/use-api"
 import { Label } from "@/components/ui/label"
 
+import { z } from "zod"
+
+const beneficiarySchema = z.object({
+  firstName: z.string().trim().min(1, "El nombre es obligatorio"),
+  lastName: z.string().trim().min(1, "Los apellidos son obligatorios"),
+  birthDate: z.string().trim().min(1, "La fecha de nacimiento es obligatoria").refine((val) => {
+    const d = new Date(val)
+    return !isNaN(d.getTime()) && d <= new Date()
+  }, { message: "Fecha de nacimiento inválida o futura" }),
+  dni: z.string().trim().min(1, "El DNI es obligatorio").max(20, "Máximo 20 caracteres"),
+  phone: z.string().trim().max(30, "Máximo 30 caracteres").optional().or(z.literal("")),
+  ollaId: z.string().trim().min(1, "La olla común es obligatoria"),
+})
+
 interface Beneficiary {
   id: string
   nombre: string
@@ -56,6 +70,7 @@ export default function PadronPage() {
   const [activeDishName, setActiveDishName] = useState<string | null>(null)
   const [isMenuExecuted, setIsMenuExecuted] = useState(false)
   const [maxServingsRemaining, setMaxServingsRemaining] = useState<number>(0)
+  const [currentOllaId, setCurrentOllaId] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     firstName: "",
@@ -75,6 +90,8 @@ export default function PadronPage() {
     try {
       const params: Record<string, string> = {}
       if (busqueda.trim()) params.query = busqueda.trim()
+      if (currentOllaId) params.ollaId = currentOllaId
+      
       const data = await get<{ ok: boolean; items: BeneficiaryRecord[] }>("/api/beneficiaries", params)
       setBeneficiarios(
         data.items.map((b) => ({
@@ -91,12 +108,13 @@ export default function PadronPage() {
     } finally {
       setLoading(false)
     }
-  }, [get, busqueda])
+  }, [get, busqueda, currentOllaId])
 
   const fetchActiveMenu = useCallback(async () => {
     try {
       const data = await get<{
         ok: boolean
+        olla?: { id: string; name: string } | null
         summary?: {
           menu?: {
             dishName: string
@@ -105,6 +123,9 @@ export default function PadronPage() {
           } | null
         }
       }>("/api/mobile/dashboard")
+      if (data.ok && data.olla) {
+        setCurrentOllaId(data.olla.id)
+      }
       if (data.ok && data.summary?.menu) {
         setActiveDishName(data.summary.menu.dishName)
         setIsMenuExecuted(data.summary.menu.status === "executed")
@@ -116,15 +137,40 @@ export default function PadronPage() {
       }
     } catch (err) {
       console.error("Error fetching active menu", err)
+      setLoading(false)
     }
   }, [get])
 
   useEffect(() => {
-    fetchBeneficiaries()
-  }, [fetchBeneficiaries])
+    if (currentOllaId) {
+      fetchBeneficiaries()
+    } else {
+      // Si aún no tenemos ollaId resolved, podemos intentar cargar inicialmente
+      // pero una vez que cargue fetchActiveMenu se disparará de nuevo con la olla correcta.
+      fetchBeneficiaries()
+    }
+
+    const handleSync = () => {
+      console.log('[Padron Mobile] Sincronización completada. Refrescando beneficiarios...')
+      fetchBeneficiaries()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
+  }, [fetchBeneficiaries, currentOllaId])
 
   useEffect(() => {
     fetchActiveMenu()
+
+    const handleSync = () => {
+      console.log('[Padron Mobile] Sincronización completada. Refrescando menú activo...')
+      fetchActiveMenu()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchActiveMenu])
 
   useEffect(() => {
@@ -135,27 +181,38 @@ export default function PadronPage() {
       ]).then(([conditions, ollasData]) => {
         setHealthConditions(conditions.items)
         setOllas(ollasData.items)
+        // Autoseleccionar la olla de la lideresa activa si está disponible
+        if (currentOllaId) {
+          setForm((prev) => ({ ...prev, ollaId: currentOllaId }))
+        }
       })
     } else {
       setForm({ firstName: "", lastName: "", dni: "", birthDate: "", gender: "not_specified", phone: "", address: "", ollaId: "", priorityLevel: "normal", healthConditionIds: [] })
       setErrors({})
     }
-  }, [modalAbierto, get])
+  }, [modalAbierto, get, currentOllaId])
 
   const validate = () => {
-    const errs: Record<string, string> = {}
-    if (!form.firstName.trim()) errs.firstName = "El nombre es obligatorio"
-    if (!form.lastName.trim()) errs.lastName = "Los apellidos son obligatorios"
-    if (!form.birthDate.trim()) errs.birthDate = "La fecha de nacimiento es obligatoria"
-    else {
-      const d = new Date(form.birthDate)
-      if (isNaN(d.getTime())) errs.birthDate = "Fecha inválida"
-      else if (d > new Date()) errs.birthDate = "No puede ser futura"
+    const result = beneficiarySchema.safeParse({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      birthDate: form.birthDate,
+      dni: form.dni,
+      phone: form.phone,
+      ollaId: form.ollaId,
+    })
+    if (!result.success) {
+      const errs: Record<string, string> = {}
+      result.error.issues.forEach((err) => {
+        if (err.path[0]) {
+          errs[err.path[0] as string] = err.message
+        }
+      })
+      setErrors(errs)
+      return false
     }
-    if (form.dni && form.dni.length > 20) errs.dni = "Máximo 20 caracteres"
-    if (form.phone && form.phone.length > 30) errs.phone = "Máximo 30 caracteres"
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    setErrors({})
+    return true
   }
 
   const handleSubmit = async () => {
@@ -167,12 +224,12 @@ export default function PadronPage() {
         body: JSON.stringify({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          dni: form.dni.trim() || undefined,
+          dni: form.dni.trim(),
           birthDate: form.birthDate,
           gender: form.gender,
           phone: form.phone.trim() || undefined,
           address: form.address.trim() || undefined,
-          ollaId: form.ollaId || undefined,
+          ollaId: form.ollaId,
           priorityLevel: form.priorityLevel,
           healthConditionIds: form.healthConditionIds,
         }),
@@ -317,7 +374,7 @@ export default function PadronPage() {
                   {seleccionados.length} ración(es) seleccionada(s)
                 </span>
                 <span className="text-xs text-muted-foreground truncate max-w-[200px] font-medium">
-                  Plato: {activeDishName || "Almuerzo del día"} | Quedan {maxServingsRemaining} raciones
+                  Plato: {activeDishName || "Almuerzo del día"} | Capacidad stock: {maxServingsRemaining} raciones
                 </span>
               </div>
               <Button
@@ -384,7 +441,7 @@ export default function PadronPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="dni" className="text-sm font-semibold tracking-wide text-foreground/80">DNI</Label>
+                  <Label htmlFor="dni" className="text-sm font-semibold tracking-wide text-foreground/80">DNI *</Label>
                   <Input id="dni" className="h-12 rounded-xl text-base" value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value })} placeholder="12345678" maxLength={20} />
                   {errors.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
                 </div>
@@ -433,22 +490,21 @@ export default function PadronPage() {
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-primary">Olla y Salud</h3>
 
-              {ollas.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="ollaId" className="text-sm font-semibold tracking-wide text-foreground/80">Olla común</Label>
+              <div className="space-y-1.5">
+                  <Label htmlFor="ollaId" className="text-sm font-semibold tracking-wide text-foreground/80">Olla común *</Label>
                   <select
                     id="ollaId"
                     className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2523666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.65rem_auto] bg-[right_1rem_center] bg-no-repeat pr-10 cursor-pointer transition-all duration-200"
                     value={form.ollaId}
                     onChange={(e) => setForm({ ...form, ollaId: e.target.value })}
                   >
-                    <option value="">Sin asignar</option>
+                    <option value="">-- Seleccionar olla --</option>
                     {ollas.map((o) => (
                       <option key={o.id} value={o.id}>{o.name}</option>
                     ))}
                   </select>
+                  {errors.ollaId && <p className="text-xs text-destructive">{errors.ollaId}</p>}
                 </div>
-              )}
 
               <div className="space-y-1.5">
                 <Label className="text-sm font-semibold tracking-wide text-foreground/80">Condiciones de salud</Label>

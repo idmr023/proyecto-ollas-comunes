@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Bell } from "lucide-react"
 import { useAuthStore } from "@/store/auth-store"
 import { QuickAccessGrid } from "@/components/mobile/quick-access-grid"
 import { DailySummary } from "@/components/mobile/daily-summary"
@@ -51,10 +50,24 @@ export default function InicioPage() {
 
   useEffect(() => {
     fetchDashboard()
+
+    const handleSync = () => {
+      console.log('[Inicio Mobile] Sincronización completada. Refrescando dashboard...')
+      fetchDashboard()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchDashboard])
 
   const nombreOlla = data?.olla?.name ?? "Olla común"
   const expiringCount = data?.expiring?.length ?? 0
+  const planificadas = data?.summary?.planificadas ?? 0
+  const entregadas = data?.summary?.entregadas ?? 0
+  const pendientes = Math.max(0, planificadas - entregadas)
+  const maxServingsRemaining = data?.summary?.menu?.maxServingsRemaining ?? 0
+  const stockInsuficiente = maxServingsRemaining < pendientes
 
   return (
     <div className="space-y-5 p-4 pb-12">
@@ -63,14 +76,6 @@ export default function InicioPage() {
           <p className="text-sm text-muted-foreground">¡Hola,</p>
           <h1 className="text-xl font-bold text-foreground">{user?.fullName?.split(" ")[0] ?? "Usuario"}!</h1>
           <p className="text-xs text-muted-foreground">{nombreOlla}</p>
-        </div>
-        <div className="relative">
-          <Bell className="h-6 w-6 text-muted-foreground" />
-          {expiringCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-              {expiringCount}
-            </span>
-          )}
         </div>
       </div>
 
@@ -126,11 +131,31 @@ export default function InicioPage() {
               </div>
 
               {/* Raciones disponibles/capacidad */}
-              <div className="rounded-lg bg-muted p-2.5 text-xs flex items-center justify-between">
-                <span className="text-muted-foreground font-medium">Raciones disponibles en almacén:</span>
-                <span className="font-bold text-foreground text-sm">
-                  {data.summary.menu.maxServingsRemaining ?? 0} raciones
-                </span>
+              <div className="rounded-lg bg-muted p-3 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-semibold">Stock de cocina:</span>
+                  {stockInsuficiente ? (
+                    <span className="font-bold text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded animate-pulse">
+                      Stock Insuficiente ⚠️
+                    </span>
+                  ) : (
+                    <span className="font-bold text-xs bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded">
+                      Suficiente
+                    </span>
+                  )}
+                </div>
+                {stockInsuficiente ? (
+                  <p className="text-[11px] text-destructive leading-snug font-medium">
+                    ⚠️ ¡Atención! Solo hay insumos para preparar{" "}
+                    <span className="font-bold">{maxServingsRemaining}</span> raciones,
+                    pero faltan entregar <span className="font-bold">{pendientes}</span> raciones para cubrir el padrón de hoy.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Faltan entregar <span className="font-bold text-foreground">{pendientes}</span> raciones hoy.
+                    El almacén cuenta con stock de respaldo (alcanza para hasta <span className="font-semibold text-foreground">{maxServingsRemaining} raciones</span>).
+                  </p>
+                )}
               </div>
             </div>
           ) : (

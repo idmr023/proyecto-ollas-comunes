@@ -13,6 +13,10 @@ export class MobileRepository {
   async getDailySummary(ollaId: string) {
     const { dateString } = getPeruDayRange()
 
+    const planificadas = await prisma.beneficiary.count({
+      where: { ollaId, status: "active" }
+    })
+
     const menuPlan = await prisma.menuPlan.findFirst({
       where: {
         ollaId,
@@ -44,7 +48,7 @@ export class MobileRepository {
       },
     })
 
-    if (!menuPlan) return { planificadas: 0, entregadas: 0, menu: null }
+    if (!menuPlan) return { planificadas, entregadas: 0, menu: null }
 
     const entregadas = menuPlan.deliveries.reduce((sum, d) => sum + d.totalRations, 0)
 
@@ -101,7 +105,7 @@ export class MobileRepository {
     const maxServingsRemaining = Math.max(0, maxServings)
 
     return {
-      planificadas: menuPlan.plannedServings,
+      planificadas,
       entregadas,
       menu: {
         id: menuPlan.id,
@@ -229,6 +233,20 @@ export class MobileRepository {
         create: { ollaId: data.ollaId, supplyItemId: data.supplyItemId, quantity: Math.max(0, stockDelta) },
         update: { quantity: newQty, updatedAt: new Date() },
       })
+
+      if (data.movementType === "out" && newQty === 0) {
+        const supplyItem = await tx.supplyItem.findUnique({ where: { id: data.supplyItemId } })
+        await tx.alert.create({
+          data: {
+            tenantId: data.tenantId,
+            ollaId: data.ollaId,
+            alertType: "low_stock",
+            severity: "critical",
+            message: `Insumo agotado: ${supplyItem?.name || "Insumo"} — Se registró una salida que dejó el stock en 0.`,
+            status: "open",
+          },
+        })
+      }
 
       return movement
     })
@@ -360,7 +378,7 @@ Instrucciones:
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: {
