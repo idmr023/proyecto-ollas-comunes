@@ -112,8 +112,8 @@ export default function LoginPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#0F3821]">
               <Lock className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-[#0F3821]">Iniciar sesión</h2>
-            <p className="mt-1 text-sm text-gray-500">Ingresa tus credenciales para continuar</p>
+            <h2 className="text-2xl font-bold text-[#0F3821]">Bienvenido de vuelta</h2>
+            <p className="mt-1 text-sm text-gray-500">Ingresa tu correo y contraseña para continuar</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
