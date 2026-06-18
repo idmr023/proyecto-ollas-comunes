@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: SIGO-OLLAS — API consumida por la app móvil
+  description: >
+    Contrato de los endpoints de la API REST de SIGO-OLLAS que utiliza la app
+    móvil Flutter (`mobile_app/`). Incluye autenticación (login + TOTP),
+    los endpoints del módulo `mobile` y el padrón de beneficiarios.
+    Todas las rutas (salvo login/verify-otp) requieren `Authorization: Bearer <jwt>`.
+  version: "1.0.0"
+servers:
+  - url: https://proyecto-ollas-comunes.onrender.com/api
+    description: Producción (Render)
+  - url: http://10.0.2.2:4000/api
+    description: Local (emulador Android → backend en el PC)
+
+tags:
+  - name: Autenticación
+  - name: Dashboard
+  - name: Inventario
+  - name: Padrón
+  - name: Alertas
+  - name: Menú-IA
+  - name: Evidencias
+
+paths:
+  /auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Paso 1 — correo y contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Requiere segundo factor (TOTP)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MfaPendiente"
+                  - $ref: "#/components/schemas/TotpSetupRequerido"
+        "401": { description: Credenciales inválidas }
+
+  /auth/verify-otp:
+    post:
+      tags: [Autenticación]
+      summary: Paso 2 — verifica el código TOTP y devuelve el JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, tempToken, code]
+              properties:
+                email: { type: string, format: email }
+                tempToken: { type: string }
+                code: { type: string, pattern: '^\d{6}$' }
+      responses:
+        "200":
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  token: { type: string }
+                  user: { $ref: "#/components/schemas/Usuario" }
+
+  /auth/me:
+    get:
+      tags: [Autenticación]
+      summary: Usuario de la sesión actual
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  user: { $ref: "#/components/schemas/Usuario" }
+
+  /mobile/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Resumen del día de la olla común
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  olla:
+                    nullable: true
+                    type: object
+                    properties:
+                      id: { type: string }
+                      name: { type: string }
+                      code: { type: string }
+                      address: { type: string }
+                  summary:
+                    type: object
+                    properties:
+                      planificadas: { type: integer }
+                      entregadas: { type: integer }
+                      menu:
+                        nullable: true
+                        type: object
+                        properties:
+                          dishName: { type: string }
+                          status: { type: string }
+                          maxServingsRemaining: { type: integer }
+                  expiring:
+                    type: array
+                    items: { $ref: "#/components/schemas/InsumoPorVencer" }
+
+  /mobile/inventory:
+    get:
+      tags: [Inventario]
+      summary: Inventario de la olla con su stock actual
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/InsumoInventario" }
+
+  /mobile/inventory/movements:
+    post:
+      tags: [Inventario]
+      summary: Registra un movimiento de entrada o salida
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [supplyItemId, movementType, quantity]
+              properties:
+                supplyItemId: { type: string }
+                movementType: { type: string, enum: [in, out, adjustment, waste] }
+                quantity: { type: number }
+                notes: { type: string }
+      responses:
+        "201": { description: Movimiento registrado }
+        "400": { description: Datos inválidos }
+
+  /mobile/alerts:
+    get:
+      tags: [Alertas]
+      summary: Alertas operativas de la olla
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        tipo: { type: string, enum: [bajo_stock, general, sincronizacion] }
+                        titulo: { type: string }
+                        descripcion: { type: string }
+                        fecha: { type: string }
+
+  /mobile/suggestions:
+    get:
+      tags: [Menú-IA]
+      summary: Sugerencias de menú según inventario y padrón
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        nombre: { type: string }
+                        puntaje: { type: integer }
+                        ingredientes:
+                          type: array
+                          items: { type: string }
+
+  /mobile/documents/upload:
+    post:
+      tags: [Evidencias]
+      summary: Sube una evidencia (foto en base64)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileName, fileType, documentType, title, base64Data]
+              properties:
+                fileName: { type: string }
+                fileType: { type: string }
+                documentType: { type: string }
+                title: { type: string }
+                description: { type: string }
+                base64Data: { type: string }
+      responses:
+        "201": { description: Evidencia subida }
+        "400": { description: Faltan campos obligatorios }
+
+  /beneficiaries:
+    get:
+      tags: [Padrón]
+      summary: Lista de beneficiarios (con búsqueda y filtros)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: query, in: query, schema: { type: string } }
+        - { name: ollaId, in: query, schema: { type: string } }
+        - { name: healthConditionId, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Beneficiario" }
+    post:
+      tags: [Padrón]
+      summary: Registra un beneficiario
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BeneficiarioPayload" }
+      responses:
+        "201": { description: Creado }
+
+  /beneficiaries/{id}:
+    patch:
+      tags: [Padrón]
+      summary: Actualiza un beneficiario
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BeneficiarioPayload" }
+      responses:
+        "200": { description: Actualizado }
+    delete:
+      tags: [Padrón]
+      summary: Elimina un beneficiario
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Eliminado }
+
+  /beneficiaries/conditions:
+    get:
+      tags: [Padrón]
+      summary: Condiciones de salud disponibles
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: OK }
+
+  /beneficiaries/ollas:
+    get:
+      tags: [Padrón]
+      summary: Ollas del tenant para asignar a un beneficiario
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: OK }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        fullName: { type: string }
+        role: { type: string }
+        tenantId: { type: string }
+        tenantName: { type: string }
+    MfaPendiente:
+      type: object
+      properties:
+        ok: { type: boolean }
+        status: { type: string, enum: [MFA_PENDING] }
+        tempToken: { type: string }
+        email: { type: string }
+    TotpSetupRequerido:
+      type: object
+      properties:
+        ok: { type: boolean }
+        status: { type: string, enum: [TOTP_SETUP_REQUIRED] }
+        tempToken: { type: string }
+        email: { type: string }
+        secret: { type: string }
+        qrCodeUri: { type: string }
+    InsumoInventario:
+      type: object
+      properties:
+        id: { type: string }
+        nombre: { type: string }
+        cantidad: { type: number }
+        unidad: { type: string }
+        esPerecedero: { type: boolean }
+    InsumoPorVencer:
+      type: object
+      properties:
+        nombre: { type: string }
+        cantidad: { type: string }
+        venceEn: { type: string }
+    Beneficiario:
+      type: object
+      properties:
+        id: { type: string }
+        dni: { type: string, nullable: true }
+        firstName: { type: string }
+        lastName: { type: string }
+        fullName: { type: string }
+        birthDate: { type: string, format: date-time }
+        phone: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        ollaId: { type: string, nullable: true }
+        priorityLevel: { type: string, enum: [low, normal, high] }
+        olla:
+          nullable: true
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+        healthConditions:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              name: { type: string }
+    BeneficiarioPayload:
+      type: object
+      required: [firstName, lastName, birthDate]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string, format: date }
+        dni: { type: string }
+        ollaId: { type: string }
+        priorityLevel: { type: string, enum: [low, normal, high] }
+        healthConditionIds:
+          type: array
+          items: { type: integer }

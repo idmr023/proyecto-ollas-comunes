@@ -27,6 +27,7 @@ SIGO-OLLAS centraliza toda esta gestión en una plataforma web accesible y fáci
 proyecto-ollas-comunes/
 ├── frontend/          → Next.js + TypeScript + Tailwind v4 + shadcn/ui
 ├── backend/           → Express + TypeScript + Supabase
+├── mobile_app/        → App móvil Flutter (clean architecture)
 ├── supabase/          → Migraciones SQL versionadas
 ├── docs/              → Documentación técnica del equipo
 └── README.md          → Este archivo
@@ -186,6 +187,9 @@ backend/src/modules/
 | `docs/INFORME_ADMINISTRACION_REPLICACION.md` | Replicación WAL, backups, plan de contingencia |
 | `docs/INFORME_SEGURIDAD_CIFRADO.md` | TLS, bcrypt, AES-256, JWT, RLS, RBAC, audit_logs |
 | `docs/CATALOGO_CONTROLES_SEGURIDAD.md` | 24 controles mapeados contra estándares internacionales |
+| `docs/BRIEF_APP_MOVIL.md` | Brief de producto de la app móvil Flutter |
+| `docs/PLAN_APP_MOVIL_FLUTTER.md` | Plan de implementación por fases de la app móvil |
+| `docs/openapi-mobile.yaml` | Contrato OpenAPI de la API que consume la app móvil |
 
 ---
 
