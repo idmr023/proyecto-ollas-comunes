@@ -164,6 +164,9 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.fill('#dni', randomDni)
     await page.fill('#birthDate', '1990-05-15')
 
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
+
     // Guardar
     await page.click('div.z-50 button:has-text("Registrar")')
 
@@ -189,6 +192,9 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', 'dni-letras-invalido')
     await page.fill('#birthDate', '1990-05-15')
+
+    // Seleccionar olla común
+    await page.selectOption('#ollaId', { index: 1 })
 
     // Intentar guardar
     await page.click('div.z-50 button:has-text("Registrar")')

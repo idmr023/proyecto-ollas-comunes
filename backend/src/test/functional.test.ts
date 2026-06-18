@@ -13,6 +13,7 @@ let authToken: string = ''
 let testTenantId: string = ''
 let testBeneficiaryId: string = ''
 let testInsumoId: string = ''
+let testOllaId: string = ''
 
 async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
   // 1. Iniciar login
@@ -69,6 +70,23 @@ beforeAll(async () => {
   authToken = auth.token
   testTenantId = auth.tenantId
 
+  // Asegurar que exista al menos una olla común
+  const firstOlla = await prisma.ollaComun.findFirst({
+    where: { tenantId: testTenantId }
+  })
+  if (firstOlla) {
+    testOllaId = firstOlla.id
+  } else {
+    const newOlla = await prisma.ollaComun.create({
+      data: {
+        name: 'Olla Test',
+        tenantId: testTenantId,
+        status: 'active'
+      }
+    })
+    testOllaId = newOlla.id
+  }
+
   // Asegurar que exista al menos un insumo en la base de datos
   const firstSupply = await prisma.supplyItem.findFirst()
   if (firstSupply) {
@@ -114,6 +132,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
         dni: '87654321',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal',
         healthConditionIds: []
       })
@@ -140,6 +159,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
         dni: '87654321', // DNI ya creado en F-01
         birthDate: '1990-01-01',
         gender: 'male',
+        ollaId: testOllaId,
         priorityLevel: 'normal',
         healthConditionIds: []
       })
@@ -160,8 +180,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
+        dni: '87654321',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'high'
       })
     })
@@ -185,8 +207,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
+        dni: '87654321',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'high',
         healthConditionIds: conditionIds
       })
@@ -410,8 +434,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: '',
         lastName: 'Prueba Fallida',
+        dni: '11223344',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal'
       })
     })
@@ -430,8 +456,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Nombre',
         lastName: 'Prueba Fallida',
+        dni: '11223344',
         birthDate: '2035-12-31',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal'
       })
     })
@@ -450,8 +478,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Nombre',
         lastName: 'Prueba Fallida',
+        dni: '11223344',
         birthDate: 'fecha-incorrecta',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal'
       })
     })
@@ -471,10 +501,55 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
         dni: '1234567890123456789012', // > 20
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal'
       })
     })
     expect(res.status).toBe(400)
+  })
+
+  it('F-01: Falla - Registro de beneficiario sin DNI', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Nombre',
+        lastName: 'Sin DNI',
+        dni: '', // vacío
+        birthDate: '1995-08-10',
+        gender: 'female',
+        ollaId: testOllaId,
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json() as any
+    expect(body.message).toContain('DNI')
+  })
+
+  it('F-01: Falla - Registro de beneficiario sin Olla Común', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Nombre',
+        lastName: 'Sin Olla',
+        dni: '11223344',
+        birthDate: '1995-08-10',
+        gender: 'female',
+        ollaId: '', // vacío
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json() as any
+    expect(body.message).toLowerCase().toContain('olla')
   })
 
   it('F-01: Falla - Registro de beneficiario sin cabecera Authorization', async () => {
@@ -486,8 +561,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Sin Token',
+        dni: '11223344',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'normal'
       })
     })
@@ -504,8 +581,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Inexistente',
         lastName: 'Modificado',
+        dni: '11223344',
         birthDate: '1990-01-01',
         gender: 'male',
+        ollaId: testOllaId,
         priorityLevel: 'high'
       })
     })
@@ -522,8 +601,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
+        dni: '87654321',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'urgente-maximo'
       })
     })
@@ -540,8 +621,10 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
+        dni: '87654321',
         birthDate: '1995-08-10',
         gender: 'female',
+        ollaId: testOllaId,
         priorityLevel: 'high',
         healthConditionIds: [-1, 99999] // Inválido e inexistente
       })

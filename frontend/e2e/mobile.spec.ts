@@ -184,9 +184,11 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     // Intentar guardar sin datos
     await page.click('button:has-text("Guardar beneficiario")')
 
-    // Mensajes de validación
+    // Mensajes de validación (ahora incluye DNI y Olla obligatorios)
     await expect(page.locator('text=El nombre es obligatorio')).toBeVisible()
     await expect(page.locator('text=Los apellidos son obligatorios')).toBeVisible()
+    await expect(page.locator('text=El DNI es obligatorio')).toBeVisible()
+    await expect(page.locator('text=La olla común es obligatoria')).toBeVisible()
   })
 
   test('Test 07.2: Creación exitosa de un beneficiario (Éxito)', async ({ page }) => {
@@ -202,11 +204,14 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.click('button[aria-label="Agregar beneficiario"]')
     await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
 
-    // Llenar campos
+    // Llenar campos obligatorios
     await page.fill('#firstName', 'TestE2E')
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', randomDni)
     await page.fill('#birthDate', '1995-02-20')
+
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
 
     // Guardar
     await page.click('button:has-text("Guardar beneficiario")')
@@ -235,6 +240,9 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.fill('#lastName', 'Registro')
     await page.fill('#dni', '87654321') // Creado previamente en functional tests
     await page.fill('#birthDate', '1995-02-20')
+
+    // Seleccionar olla común
+    await page.selectOption('#ollaId', { index: 1 })
 
     await page.click('button:has-text("Guardar beneficiario")')
 

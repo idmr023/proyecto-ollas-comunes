@@ -17,6 +17,15 @@ import {
   listBeneficiaries,
   updateBeneficiary,
 } from '@/lib/beneficiaries-api'
+import { z } from 'zod'
+
+const beneficiarySchema = z.object({
+  firstName: z.string().trim().min(1, 'El nombre es obligatorio.'),
+  lastName: z.string().trim().min(1, 'Los apellidos son obligatorios.'),
+  birthDate: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria.'),
+  dni: z.string().trim().min(1, 'El DNI es obligatorio.').max(20, 'El DNI no puede exceder 20 caracteres.'),
+  ollaId: z.string().trim().min(1, 'La olla común es obligatoria.'),
+})
 
 type PriorityStyle = { label: string; className: string }
 
@@ -138,13 +147,17 @@ export default function BeneficiariosPage() {
   }
 
   async function handleSave() {
-    const errors: string[] = []
-    if (!form.firstName.trim()) errors.push('El nombre es obligatorio.')
-    if (!form.lastName.trim()) errors.push('Los apellidos son obligatorios.')
-    if (!form.birthDate) errors.push('La fecha de nacimiento es obligatoria.')
+    const result = beneficiarySchema.safeParse({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      birthDate: form.birthDate,
+      dni: form.dni ?? '',
+      ollaId: form.ollaId ?? '',
+    })
 
-    if (errors.length > 0) {
-      toast.error(errors.join(' '))
+    if (!result.success) {
+      const messages = result.error.issues.map((e) => e.message)
+      toast.error(messages.join(' '))
       return
     }
 
@@ -455,7 +468,7 @@ export default function BeneficiariosPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="dni">DNI</Label>
+                  <Label htmlFor="dni">DNI *</Label>
                   <Input
                     id="dni"
                     maxLength={20}
@@ -522,14 +535,14 @@ export default function BeneficiariosPage() {
               </div>
 
               <div>
-                <Label htmlFor="ollaId">Olla Común</Label>
+                <Label htmlFor="ollaId">Olla Común *</Label>
                 <select
                   id="ollaId"
                   className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   value={form.ollaId ?? ''}
-                  onChange={(e) => updateFormField('ollaId', e.target.value || undefined)}
+                  onChange={(e) => updateFormField('ollaId', e.target.value)}
                 >
-                  <option value="">Sin asignar</option>
+                  <option value="">-- Seleccionar olla --</option>
                   {ollas.map((olla) => (
                     <option key={olla.id} value={olla.id}>{olla.name}</option>
                   ))}

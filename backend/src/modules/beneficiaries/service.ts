@@ -44,8 +44,11 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
     throw new BeneficiaryServiceError(400, 'La fecha de nacimiento no puede ser futura.')
   }
 
-  const dni = typeof data.dni === 'string' ? data.dni.trim() || null : null
-  if (dni && dni.length > 20) {
+  const dni = typeof data.dni === 'string' ? data.dni.trim() : ''
+  if (!dni) {
+    throw new BeneficiaryServiceError(400, 'El DNI del beneficiario es obligatorio.')
+  }
+  if (dni.length > 20) {
     throw new BeneficiaryServiceError(400, 'El DNI no puede exceder 20 caracteres.')
   }
 
@@ -57,7 +60,11 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
 
   const phone = typeof data.phone === 'string' ? data.phone.trim() || null : null
   const address = typeof data.address === 'string' ? data.address.trim() || null : null
-  const ollaId = typeof data.ollaId === 'string' ? (data.ollaId.trim() || null) : null
+  const ollaId = typeof data.ollaId === 'string' ? data.ollaId.trim() : ''
+  if (!ollaId) {
+    throw new BeneficiaryServiceError(400, 'La olla común es obligatoria.')
+  }
+
   const priorityLevel = typeof data.priorityLevel === 'string' ? data.priorityLevel : 'normal'
   const validPriorities = ['low', 'normal', 'high']
   if (!validPriorities.includes(priorityLevel)) {
@@ -153,17 +160,6 @@ export async function getBeneficiaryById(id: string, tenantId: string) {
 
 export async function registerBeneficiary(tenantId: string, payload: unknown) {
   const data = parsePayload(payload)
-
-  // Asignar Olla Común por defecto si no se especificó (para asegurar que aparezcan en el panel móvil)
-  if (!data.ollaId) {
-    const defaultOlla = await prisma.ollaComun.findFirst({
-      where: { tenantId, status: 'active' },
-      select: { id: true },
-    })
-    if (defaultOlla) {
-      data.ollaId = defaultOlla.id
-    }
-  }
 
   if (data.dni) {
     const existing = await beneficiaryRepository.findByDni(data.dni, tenantId)
