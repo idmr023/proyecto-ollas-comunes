@@ -35,6 +35,11 @@ export default function LoginPage() {
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}`)
       } else if (data.status === "MFA_PENDING") {
         setToken(data.tempToken)
+        if (data.devOtp) {
+          sessionStorage.setItem("dev-otp", data.devOtp)
+        } else {
+          sessionStorage.removeItem("dev-otp")
+        }
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
       } else {
         setAuth(data.user, data.token)

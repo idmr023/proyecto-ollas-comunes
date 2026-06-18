@@ -31,6 +31,7 @@ export interface MfaPendingResponse {
   status: 'MFA_PENDING'
   tempToken: string
   email: string
+  devOtp?: string
 }
 
 export interface TotpSetupRequiredResponse {
