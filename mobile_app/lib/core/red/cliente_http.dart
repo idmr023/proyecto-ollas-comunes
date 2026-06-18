@@ -60,6 +60,10 @@ class ClienteHttp {
     return _dio.put(ruta, data: cuerpo);
   }
 
+  Future<Response<dynamic>> actualizarParcial(String ruta, {Object? cuerpo}) {
+    return _dio.patch(ruta, data: cuerpo);
+  }
+
   Future<Response<dynamic>> eliminar(String ruta) {
     return _dio.delete(ruta);
   }

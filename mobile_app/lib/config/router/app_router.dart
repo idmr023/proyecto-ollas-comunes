@@ -8,6 +8,9 @@ import '../../features/home/presentation/paginas/pagina_home.dart';
 import '../../features/inventario/domain/entidades/insumo.dart';
 import '../../features/inventario/presentation/paginas/pagina_detalle_insumo.dart';
 import '../../features/inventario/presentation/paginas/pagina_movimiento.dart';
+import '../../features/padron/domain/entidades/beneficiario.dart';
+import '../../features/padron/presentation/paginas/pagina_ficha_beneficiario.dart';
+import '../../features/padron/presentation/paginas/pagina_formulario_beneficiario.dart';
 
 part 'app_router.gr.dart';
 
@@ -22,5 +25,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: HomeRoute.page),
         AutoRoute(page: DetalleInsumoRoute.page),
         AutoRoute(page: MovimientoRoute.page),
+        AutoRoute(page: FichaBeneficiarioRoute.page),
+        AutoRoute(page: FormularioBeneficiarioRoute.page),
       ];
 }

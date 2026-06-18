@@ -4,6 +4,7 @@ import '../../../../core/tema/colores_app.dart';
 import '../../../../shared/widgets/barra_navegacion.dart';
 import '../../../dashboard/presentation/paginas/pagina_dashboard.dart';
 import '../../../inventario/presentation/paginas/pagina_inventario.dart';
+import '../../../padron/presentation/paginas/pagina_padron.dart';
 import '../widgets/pestana_proximamente.dart';
 
 /// Shell principal de la app autenticada: aloja la barra de navegación inferior
@@ -37,7 +38,7 @@ class _PaginaHomeState extends State<PaginaHome> {
         children: <Widget>[
           PaginaDashboard(onIrInventario: () => _irA(1), onIrPadron: () => _irA(2)),
           const PaginaInventario(),
-          const PestanaProximamente(titulo: 'Padrón'),
+          const PaginaPadron(),
           const PestanaProximamente(titulo: 'Más opciones'),
         ],
       ),

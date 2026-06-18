@@ -11,6 +11,9 @@ import '../../features/dashboard/domain/repositorio_dashboard.dart';
 import '../../features/inventario/data/inventario_api.dart';
 import '../../features/inventario/data/inventario_repositorio_impl.dart';
 import '../../features/inventario/domain/repositorio_inventario.dart';
+import '../../features/padron/data/padron_api.dart';
+import '../../features/padron/data/padron_repositorio_impl.dart';
+import '../../features/padron/domain/repositorio_padron.dart';
 
 /// Contenedor global de dependencias.
 final GetIt sl = GetIt.instance;
@@ -36,4 +39,8 @@ Future<void> configurarInyeccion() async {
   // Feature: inventario
   sl.registerLazySingleton<InventarioApi>(() => InventarioApi(sl<ClienteHttp>()));
   sl.registerLazySingleton<RepositorioInventario>(() => InventarioRepositorioImpl(sl<InventarioApi>()));
+
+  // Feature: padrón
+  sl.registerLazySingleton<PadronApi>(() => PadronApi(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioPadron>(() => PadronRepositorioImpl(sl<PadronApi>()));
 }

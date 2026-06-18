@@ -48,6 +48,92 @@ class DetalleInsumoRouteArgs {
 }
 
 /// generated route for
+/// [PaginaFichaBeneficiario]
+class FichaBeneficiarioRoute extends PageRouteInfo<FichaBeneficiarioRouteArgs> {
+  FichaBeneficiarioRoute({
+    Key? key,
+    required Beneficiario beneficiario,
+    List<PageRouteInfo>? children,
+  }) : super(
+         FichaBeneficiarioRoute.name,
+         args: FichaBeneficiarioRouteArgs(key: key, beneficiario: beneficiario),
+         initialChildren: children,
+       );
+
+  static const String name = 'FichaBeneficiarioRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<FichaBeneficiarioRouteArgs>();
+      return PaginaFichaBeneficiario(
+        key: args.key,
+        beneficiario: args.beneficiario,
+      );
+    },
+  );
+}
+
+class FichaBeneficiarioRouteArgs {
+  const FichaBeneficiarioRouteArgs({this.key, required this.beneficiario});
+
+  final Key? key;
+
+  final Beneficiario beneficiario;
+
+  @override
+  String toString() {
+    return 'FichaBeneficiarioRouteArgs{key: $key, beneficiario: $beneficiario}';
+  }
+}
+
+/// generated route for
+/// [PaginaFormularioBeneficiario]
+class FormularioBeneficiarioRoute
+    extends PageRouteInfo<FormularioBeneficiarioRouteArgs> {
+  FormularioBeneficiarioRoute({
+    Key? key,
+    Beneficiario? beneficiario,
+    List<PageRouteInfo>? children,
+  }) : super(
+         FormularioBeneficiarioRoute.name,
+         args: FormularioBeneficiarioRouteArgs(
+           key: key,
+           beneficiario: beneficiario,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'FormularioBeneficiarioRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<FormularioBeneficiarioRouteArgs>(
+        orElse: () => const FormularioBeneficiarioRouteArgs(),
+      );
+      return PaginaFormularioBeneficiario(
+        key: args.key,
+        beneficiario: args.beneficiario,
+      );
+    },
+  );
+}
+
+class FormularioBeneficiarioRouteArgs {
+  const FormularioBeneficiarioRouteArgs({this.key, this.beneficiario});
+
+  final Key? key;
+
+  final Beneficiario? beneficiario;
+
+  @override
+  String toString() {
+    return 'FormularioBeneficiarioRouteArgs{key: $key, beneficiario: $beneficiario}';
+  }
+}
+
+/// generated route for
 /// [PaginaHome]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
