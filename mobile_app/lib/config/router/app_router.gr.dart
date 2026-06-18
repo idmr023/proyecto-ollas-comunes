@@ -11,6 +11,43 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [PaginaDetalleInsumo]
+class DetalleInsumoRoute extends PageRouteInfo<DetalleInsumoRouteArgs> {
+  DetalleInsumoRoute({
+    Key? key,
+    required Insumo insumo,
+    List<PageRouteInfo>? children,
+  }) : super(
+         DetalleInsumoRoute.name,
+         args: DetalleInsumoRouteArgs(key: key, insumo: insumo),
+         initialChildren: children,
+       );
+
+  static const String name = 'DetalleInsumoRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<DetalleInsumoRouteArgs>();
+      return PaginaDetalleInsumo(key: args.key, insumo: args.insumo);
+    },
+  );
+}
+
+class DetalleInsumoRouteArgs {
+  const DetalleInsumoRouteArgs({this.key, required this.insumo});
+
+  final Key? key;
+
+  final Insumo insumo;
+
+  @override
+  String toString() {
+    return 'DetalleInsumoRouteArgs{key: $key, insumo: $insumo}';
+  }
+}
+
+/// generated route for
 /// [PaginaHome]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
@@ -40,6 +77,43 @@ class LoginRoute extends PageRouteInfo<void> {
       return const PaginaLogin();
     },
   );
+}
+
+/// generated route for
+/// [PaginaMovimiento]
+class MovimientoRoute extends PageRouteInfo<MovimientoRouteArgs> {
+  MovimientoRoute({
+    Key? key,
+    required Insumo insumo,
+    List<PageRouteInfo>? children,
+  }) : super(
+         MovimientoRoute.name,
+         args: MovimientoRouteArgs(key: key, insumo: insumo),
+         initialChildren: children,
+       );
+
+  static const String name = 'MovimientoRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<MovimientoRouteArgs>();
+      return PaginaMovimiento(key: args.key, insumo: args.insumo);
+    },
+  );
+}
+
+class MovimientoRouteArgs {
+  const MovimientoRouteArgs({this.key, required this.insumo});
+
+  final Key? key;
+
+  final Insumo insumo;
+
+  @override
+  String toString() {
+    return 'MovimientoRouteArgs{key: $key, insumo: $insumo}';
+  }
 }
 
 /// generated route for

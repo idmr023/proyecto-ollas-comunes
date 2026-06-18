@@ -8,6 +8,9 @@ import '../../features/auth/domain/repositorio_auth.dart';
 import '../../features/dashboard/data/dashboard_api.dart';
 import '../../features/dashboard/data/dashboard_repositorio_impl.dart';
 import '../../features/dashboard/domain/repositorio_dashboard.dart';
+import '../../features/inventario/data/inventario_api.dart';
+import '../../features/inventario/data/inventario_repositorio_impl.dart';
+import '../../features/inventario/domain/repositorio_inventario.dart';
 
 /// Contenedor global de dependencias.
 final GetIt sl = GetIt.instance;
@@ -29,4 +32,8 @@ Future<void> configurarInyeccion() async {
   // Feature: dashboard
   sl.registerLazySingleton<DashboardApi>(() => DashboardApi(sl<ClienteHttp>()));
   sl.registerLazySingleton<RepositorioDashboard>(() => DashboardRepositorioImpl(sl<DashboardApi>()));
+
+  // Feature: inventario
+  sl.registerLazySingleton<InventarioApi>(() => InventarioApi(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioInventario>(() => InventarioRepositorioImpl(sl<InventarioApi>()));
 }
