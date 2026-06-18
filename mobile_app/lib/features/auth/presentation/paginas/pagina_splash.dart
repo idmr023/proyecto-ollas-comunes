@@ -59,6 +59,6 @@ class PaginaSplash extends StatelessWidget {
   }
 
   void _comenzar(BuildContext context) {
-    context.router.replace(const HomeRoute());
+    context.router.replace(const LoginRoute());
   }
 }
