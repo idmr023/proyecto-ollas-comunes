@@ -1,6 +1,7 @@
 # Reporte de Implementación y Ejecución de Pruebas Automatizadas
 
-Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **79 escenarios de prueba automatizados** distribuidos equitativamente en cuatro categorías críticas.
+Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y configurado **114 escenarios de prueba automatizados** distribuidos en cuatro categorías críticas, cubriendo exhaustivamente tanto la ruta feliz (casos de éxito) como múltiples caminos infelices (casos de falla/validación, inyecciones de datos incorrectos, fallas de autenticación y límites superados).
+
 
 ---
 
@@ -63,7 +64,7 @@ Validadas en [integration.test.ts](file:///d:/proyecto-ollas-comunes/backend/src
 *   **I-07:** Cabeceras CORS válidas presentes en las respuestas del API Gateway.
 *   **I-08:** Integridad transaccional y Rollback (fallar operaciones de inventario revierte todo el lote).
 *   **I-09:** Verificación de escritura del trigger forense en la tabla `audit_logs`.
-*   **I-10:** Activación del hilo de alerta de inicio de sesión de NodeMailer.
+*   **I-10:** Verificación del cifrado y hashing de contraseñas de usuarios mediante bcrypt.
 *   **I-11:** Almacenamiento seguro del secreto TOTP de 2FA en la base de datos (`totpSecret`).
 *   **I-12:** Subida y guardado de archivos JPG/PDF de evidencia en los Buckets de Supabase Storage.
 *   **I-13:** Cálculo lógico automatizado para detonar alertas de stock por debajo del límite mínimo.
@@ -143,7 +144,8 @@ Estas pruebas levantarán un servidor HTTP temporal en el puerto `4001` y se com
 cd backend
 npm run test
 ```
-*Resultado:* Verás el reporte de Vitest indicando `30 passed` de forma secuencial.
+*Resultado:* Verás el reporte de Vitest indicando `58 passed` de forma secuencial (33 correspondientes a la Suite Funcional y 25 a la Suite de Interoperabilidad, incluyendo tanto casos de éxito como múltiples casos de falla).
+
 
 ### Paso 2: Ejecutar Pruebas de Usabilidad y Accesibilidad
 Este comando analizará el código fuente del frontend, validará las reglas semánticas y actualizará el informe interactivo:

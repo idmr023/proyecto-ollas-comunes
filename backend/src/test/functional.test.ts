@@ -397,4 +397,308 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
     expect(body.summary).toBeDefined()
     expect(body.summary.entregadas).toBeGreaterThanOrEqual(0)
   })
+
+  /* --- CASOS DE FALLA / PRUEBAS NEGATIVAS --- */
+
+  it('F-01: Falla - Nombres y apellidos obligatorios vacíos o nulos', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: '',
+        lastName: 'Prueba Fallida',
+        birthDate: '1995-08-10',
+        gender: 'female',
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json() as any
+    expect(body.ok).toBe(false)
+  })
+
+  it('F-01: Falla - Fecha de nacimiento futura', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Nombre',
+        lastName: 'Prueba Fallida',
+        birthDate: '2035-12-31',
+        gender: 'female',
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json() as any
+    expect(body.ok).toBe(false)
+  })
+
+  it('F-01: Falla - Formato de fecha inválido', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Nombre',
+        lastName: 'Prueba Fallida',
+        birthDate: 'fecha-incorrecta',
+        gender: 'female',
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-01: Falla - DNI extremadamente largo', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Nombre',
+        lastName: 'Prueba Fallida',
+        dni: '1234567890123456789012', // > 20
+        birthDate: '1995-08-10',
+        gender: 'female',
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-01: Falla - Registro de beneficiario sin cabecera Authorization', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstName: 'Beneficiario',
+        lastName: 'Sin Token',
+        birthDate: '1995-08-10',
+        gender: 'female',
+        priorityLevel: 'normal'
+      })
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('F-03: Falla - Actualización de beneficiario inexistente', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries/d7a123bc-7512-4c22-b0ef-d922a945d8b8`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Inexistente',
+        lastName: 'Modificado',
+        birthDate: '1990-01-01',
+        gender: 'male',
+        priorityLevel: 'high'
+      })
+    })
+    expect(res.status).toBe(404)
+  })
+
+  it('F-03: Falla - Prioridad inválida', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries/${testBeneficiaryId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Beneficiario',
+        lastName: 'Prueba Vitest',
+        birthDate: '1995-08-10',
+        gender: 'female',
+        priorityLevel: 'urgente-maximo'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-04: Falla - Asignación de IDs médicos inexistentes o inválidos', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries/${testBeneficiaryId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        firstName: 'Beneficiario',
+        lastName: 'Prueba Vitest',
+        birthDate: '1995-08-10',
+        gender: 'female',
+        priorityLevel: 'high',
+        healthConditionIds: [-1, 99999] // Inválido e inexistente
+      })
+    })
+    expect([400, 404, 500]).toContain(res.status)
+  })
+
+  it('F-05: Falla - Eliminación con ID mal formado', async () => {
+    const res = await fetch(`${BASE_URL}/api/beneficiaries/id-invalido-123`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
+    expect([400, 404, 500]).toContain(res.status)
+  })
+
+  it('F-06: Falla - Login con campos faltantes', async () => {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@ollascomunes.pe' }) // sin password
+    })
+    expect([400, 401]).toContain(res.status)
+  })
+
+  it('F-09: Falla - Control MFA con OTP incorrecto', async () => {
+    // Iniciar login
+    const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@ollascomunes.pe', password: 'admin123' })
+    })
+    const loginData = await loginRes.json() as any
+
+    // Verificar con código incorrecto
+    const res = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'admin@ollascomunes.pe',
+        tempToken: loginData.tempToken,
+        code: '111111'
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json() as any
+    expect(body.ok).toBe(false)
+  })
+
+  it('F-10: Falla - Registro de ingreso con cantidad negativa', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/inventory/movements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        supplyItemId: testInsumoId,
+        movementType: 'in',
+        quantity: -10,
+        notes: 'Ingreso negativo fallido'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-10: Falla - Registro de ingreso con cantidad cero', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/inventory/movements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        supplyItemId: testInsumoId,
+        movementType: 'in',
+        quantity: 0,
+        notes: 'Ingreso cero fallido'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-10: Falla - Registro de movimiento para insumo inexistente', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/inventory/movements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        supplyItemId: 'd7a123bc-7512-4c22-b0ef-d922a945d8b8',
+        movementType: 'in',
+        quantity: 10,
+        notes: 'Insumo inexistente'
+      })
+    })
+    expect([400, 404, 500]).toContain(res.status)
+  })
+
+  it('F-11: Falla - Registro de egreso con cantidad <= 0', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/inventory/movements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        supplyItemId: testInsumoId,
+        movementType: 'out',
+        quantity: -5,
+        notes: 'Egreso negativo'
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-13: Falla - Plan de menú con raciones negativas', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/menu-plans/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        dishName: 'Arroz con pollo',
+        servings: -5
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-14: Falla - Registro de entregas con lista vacía de beneficiarios', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/deliveries`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        beneficiaryIds: [],
+        dishName: 'Arroz con pollo',
+        totalRations: 1
+      })
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('F-15: Falla - Dashboard con token corrupto', async () => {
+    const res = await fetch(`${BASE_URL}/api/mobile/dashboard`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer jwt-corrupto-malformado'
+      }
+    })
+    expect(res.status).toBe(401)
+  })
 })
+

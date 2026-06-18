@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Building2,
   CookingPot,
@@ -17,26 +17,31 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useApi } from "@/hooks/use-api"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const kpis = [
-  { label: "Organizaciones", value: "24", icon: Building2, change: "+12%", trend: "up", color: "from-[#0F3821]/20 to-transparent" },
-  { label: "Ollas comunes", value: "48", icon: CookingPot, change: "+8%", trend: "up", color: "from-emerald-500/20 to-transparent" },
-  { label: "Beneficiarios", value: "1,240", icon: Users, change: "+23%", trend: "up", color: "from-blue-500/20 to-transparent" },
-  { label: "Insumos", value: "86", icon: Package, change: "-5%", trend: "down", color: "from-amber-500/20 to-transparent" },
-]
-
-const actividades = [
-  { icon: CheckCircle2, color: "text-status-active", text: "Nueva donación registrada — 50 kg de arroz", time: "Hace 5 min" },
-  { icon: AlertTriangle, color: "text-highlight-foreground", text: "Alerta de stock bajo: Aceite vegetal (2 L)", time: "Hace 1 h" },
-  { icon: UserPlus, color: "text-blue-500", text: "Beneficiario registrado: María García", time: "Hace 2 h" },
-  { icon: Clock, color: "text-purple-500", text: "Inventario actualizado por OC San Juan", time: "Hace 4 h" },
-]
-
-const insumosVencer = [
-  { nombre: "Arroz", org: "Olla Virgen de la Candelaria", vence: "Mañana", stock: "25 kg", urgente: true },
-  { nombre: "Leche en polvo", org: "Comedor Los Olivos", vence: "En 3 días", stock: "10 kg", urgente: false },
-  { nombre: "Aceite vegetal", org: "Olla Villa María", vence: "En 5 días", stock: "15 L", urgente: false },
-]
+interface DashboardStats {
+  kpis: {
+    tenants: number
+    ollas: number
+    beneficiaries: number
+    supplyItems: number
+  }
+  activities: {
+    id: string
+    alertType: string
+    message: string
+    detectedAt: string
+    ollaName: string
+  }[]
+  lowStock: {
+    name: string
+    ollaName: string
+    stock: string
+    isCritical: boolean
+  }[]
+}
 
 const DonutChart = () => (
   <div className="flex items-center gap-6">
@@ -70,7 +75,60 @@ const LineChart = () => (
   </svg>
 )
 
+function formatTime(isoStr: string) {
+  const date = new Date(isoStr)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const mins = Math.floor(diff / (1000 * 60))
+  if (mins < 1) return "Ahora"
+  if (mins < 60) return `Hace ${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `Hace ${hours} h`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "Ayer"
+  return `Hace ${days} días`
+}
+
 export default function HomePage() {
+  const { get } = useApi()
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardStats | null>(null)
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await get<DashboardStats & { ok: boolean }>("/api/organizations/dashboard/stats")
+      setData(res)
+    } catch (err) {
+      toast.error("Error al cargar las estadísticas del dashboard")
+    } finally {
+      setLoading(false)
+    }
+  }, [get])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  const kpis = [
+    { label: "Organizaciones", value: loading ? "..." : String(data?.kpis.tenants ?? 0), icon: Building2, change: "+12%", trend: "up", color: "from-[#0F3821]/20 to-transparent" },
+    { label: "Ollas comunes", value: loading ? "..." : String(data?.kpis.ollas ?? 0), icon: CookingPot, change: "+8%", trend: "up", color: "from-emerald-500/20 to-transparent" },
+    { label: "Beneficiarios", value: loading ? "..." : (data?.kpis.beneficiaries ?? 0).toLocaleString("es-PE"), icon: Users, change: "+23%", trend: "up", color: "from-blue-500/20 to-transparent" },
+    { label: "Insumos", value: loading ? "..." : String(data?.kpis.supplyItems ?? 0), icon: Package, change: "-5%", trend: "down", color: "from-amber-500/20 to-transparent" },
+  ]
+
+  const getActivityConfig = (type: string) => {
+    switch (type) {
+      case "new_beneficiary":
+        return { icon: UserPlus, color: "text-blue-500" }
+      case "low_stock":
+        return { icon: AlertTriangle, color: "text-red-500" }
+      case "sync_conflict":
+        return { icon: AlertTriangle, color: "text-amber-500" }
+      default:
+        return { icon: Clock, color: "text-purple-500" }
+    }
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] space-y-6">
       {/* Header */}
@@ -132,25 +190,33 @@ export default function HomePage() {
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Insumos a vencer */}
         <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h3 className="mb-3 text-sm font-semibold text-foreground">Insumos a vencer</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">Insumos críticos y bajo stock</h3>
           <div className="space-y-3">
-            {insumosVencer.map((item) => (
-              <div key={item.nombre} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
-                  {item.nombre[0]}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{item.nombre}</p>
-                  <p className="text-xs text-muted-foreground">{item.org}</p>
-                </div>
-                <div className="text-right">
-                  <p className={cn("text-xs font-semibold", item.urgente ? "text-destructive" : "text-muted-foreground")}>
-                    {item.urgente ? "⚠ " : ""}{item.vence}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{item.stock}</p>
-                </div>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
               </div>
-            ))}
+            ) : !data?.lowStock || data.lowStock.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No hay insumos críticos.</p>
+            ) : (
+              data.lowStock.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                    {item.name[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.ollaName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={cn("text-xs font-semibold", item.isCritical ? "text-destructive" : "text-amber-500")}>
+                      {item.isCritical ? "⚠ Sin stock" : "Bajo stock"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{item.stock}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -158,17 +224,32 @@ export default function HomePage() {
         <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <h3 className="mb-3 text-sm font-semibold text-foreground">Actividades recientes</h3>
           <div className="space-y-0">
-            {actividades.map((act, i) => (
-              <div key={i} className="flex gap-3 border-l-2 border-border pb-4 pl-4 last:pb-0">
-                <div className={`-ml-[21px] flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-card`}>
-                  <act.icon className={`h-3.5 w-3.5 ${act.color}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-foreground">{act.text}</p>
-                  <p className="text-xs text-muted-foreground">{act.time}</p>
-                </div>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
               </div>
-            ))}
+            ) : !data?.activities || data.activities.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No hay actividades recientes.</p>
+            ) : (
+              data.activities.map((act, i) => {
+                const config = getActivityConfig(act.alertType)
+                return (
+                  <div key={act.id || i} className="flex gap-3 border-l-2 border-border pb-4 pl-4 last:pb-0">
+                    <div className={`-ml-[21px] flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-card`}>
+                      <config.icon className={`h-3.5 w-3.5 ${config.color}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-foreground">{act.message}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <span className="font-semibold">{act.ollaName}</span>
+                        <span>•</span>
+                        <span>{formatTime(act.detectedAt)}</span>
+                      </p>
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
       </div>

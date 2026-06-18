@@ -317,7 +317,7 @@ export default function PadronPage() {
                   {seleccionados.length} ración(es) seleccionada(s)
                 </span>
                 <span className="text-xs text-muted-foreground truncate max-w-[200px] font-medium">
-                  Plato: {activeDishName || "Almuerzo del día"} | Quedan {maxServingsRemaining} raciones
+                  Plato: {activeDishName || "Almuerzo del día"} | Capacidad stock: {maxServingsRemaining} raciones
                 </span>
               </div>
               <Button

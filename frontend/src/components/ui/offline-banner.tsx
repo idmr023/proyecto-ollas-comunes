@@ -259,8 +259,8 @@ export default function OfflineBanner() {
   // Render para modo offline activo
   return (
     <>
-      <div className="fixed bottom-4 left-1/2 z-[9999] flex -translate-x-1/2 items-center gap-3 rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black shadow-xl shadow-amber-950/20">
-        <WifiOff className="h-4 w-4 animate-pulse" />
+      <div className="fixed top-4 left-1/2 z-[9999] flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-amber-500/20 bg-amber-500/90 backdrop-blur-md px-4 py-1.5 text-xs md:text-sm font-semibold text-amber-950 shadow-md shadow-amber-900/10 pointer-events-auto transition-all duration-300 hover:scale-105">
+        <WifiOff className="h-3.5 w-3.5 animate-pulse text-amber-950" />
         <span>
           Sin conexión — Modo offline activo
           {pendingCount > 0 && ` (${pendingCount} guardado(s) local)`}
@@ -268,7 +268,7 @@ export default function OfflineBanner() {
         {failedCount > 0 && (
           <button
             onClick={() => setIsOpen(true)}
-            className="ml-2 rounded-full bg-black/20 px-3 py-1 text-xs font-bold hover:bg-black/30 transition-colors flex items-center gap-1"
+            className="ml-1.5 rounded-full bg-black/10 px-2.5 py-0.5 text-[10px] font-bold hover:bg-black/20 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <AlertTriangle className="h-3 w-3" />
             <span>{failedCount} error(es)</span>
