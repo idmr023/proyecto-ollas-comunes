@@ -7,6 +7,11 @@ import {
   listOrganizations,
   updateOrganizationBySlug,
   updateOrganizationStatusBySlug,
+  getAdminDashboard,
+  getTenantInventoryStock,
+  getTenantInventoryMovements,
+  getTenantAlerts,
+  updateTenantAlert,
 } from './service'
 import { createOlla, listOllasByTenantId } from '../ollas-comunes/service'
 import { OllaServiceError } from '../ollas-comunes/errors'
@@ -64,6 +69,61 @@ organizationsRouter.get('/', async (_request, response) => {
       ok: true,
       items: organizations,
     })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/dashboard/stats', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const data = await getAdminDashboard(tenantId)
+    response.json({ ok: true, ...data })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/inventory/stock', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantInventoryStock(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/inventory/movements', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantInventoryMovements(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/alerts', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantAlerts(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.patch('/alerts/:id', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const { status } = request.body
+    if (!status || typeof status !== 'string') {
+      response.status(400).json({ ok: false, message: 'Estado inválido o faltante.' })
+      return
+    }
+    const item = await updateTenantAlert(request.params.id, tenantId, status)
+    response.json({ ok: true, item })
   } catch (error) {
     handleOrganizationError(error, response)
   }

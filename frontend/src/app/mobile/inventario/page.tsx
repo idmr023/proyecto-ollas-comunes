@@ -93,6 +93,15 @@ function InventarioContent() {
 
   useEffect(() => {
     fetchInventory()
+
+    const handleSync = () => {
+      console.log('[Inventario Mobile] Sincronización completada. Refrescando inventario...')
+      fetchInventory()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchInventory])
 
   const handleComplete = async (insumo: InsumoSeleccionado) => {

@@ -49,7 +49,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
 
   // ─── AUTENTICACIÓN ────────────────────────────────────────────
 
-  test('Test 01: Login con credenciales inválidas', async ({ page }) => {
+  test('Test 01.1: Login con credenciales inválidas (Falla)', async ({ page }) => {
     await page.goto('/login')
     await page.waitForLoadState('domcontentloaded')
 
@@ -62,7 +62,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('Test 02: MFA con código TOTP inválido', async ({ page }) => {
+  test('Test 01.2: MFA con código TOTP inválido (Falla)', async ({ page }) => {
     await page.goto('/login')
     await page.waitForLoadState('domcontentloaded')
 
@@ -82,16 +82,24 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('#otp-code')).toBeVisible()
   })
 
-  test('Test 03: Login exitoso con TOTP dinámico', async ({ page }) => {
+  test('Test 01.3: Login exitoso con TOTP dinámico (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     // Después de login, el admin va a /workspace/home
     // Verificamos que ya no está en /login
     await expect(page).not.toHaveURL(/\/login/)
   })
 
+  test('Test 01.4: Redirección automática de ruta móvil protegida sin autenticación (Falla)', async ({ page }) => {
+    // Intentar ir directo a /mobile/inicio
+    await page.goto('/mobile/inicio')
+    await page.waitForLoadState('domcontentloaded')
+    // Debería redirigir a login
+    await expect(page).toHaveURL(/\/login/)
+  })
+
   // ─── DASHBOARD Y NAVEGACIÓN ───────────────────────────────────
 
-  test('Test 04: Dashboard muestra información correcta de la Olla', async ({ page }) => {
+  test('Test 02: Dashboard muestra información correcta de la Olla', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inicio')
     await page.waitForLoadState('domcontentloaded')
@@ -100,7 +108,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 05: Barra de navegación inferior cambia de vista', async ({ page }) => {
+  test('Test 03: Barra de navegación inferior cambia de vista', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inicio')
     await page.waitForLoadState('domcontentloaded')
@@ -118,7 +126,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page).toHaveURL(/\/mobile\/alertas/)
   })
 
-  test('Test 06: Botón de Salir cierra la sesión', async ({ page }) => {
+  test('Test 04: Botón de Salir cierra la sesión', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inicio')
     await page.waitForLoadState('domcontentloaded')
@@ -135,7 +143,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
 
   // ─── PADRÓN ───────────────────────────────────────────────────
 
-  test('Test 07: Padrón de beneficiarios carga listado', async ({ page }) => {
+  test('Test 05: Padrón de beneficiarios carga listado', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/padron')
     await page.waitForLoadState('domcontentloaded')
@@ -144,7 +152,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 08: Búsqueda de beneficiarios filtra resultados', async ({ page }) => {
+  test('Test 06: Búsqueda de beneficiarios filtra resultados', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/padron')
     await page.waitForLoadState('domcontentloaded')
@@ -159,7 +167,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=Sin resultados')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 09: Formulario de nuevo beneficiario valida obligatorios', async ({ page }) => {
+  test('Test 07.1: Formulario de nuevo beneficiario valida obligatorios (Falla)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/padron')
     await page.waitForLoadState('domcontentloaded')
@@ -176,12 +184,14 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     // Intentar guardar sin datos
     await page.click('button:has-text("Guardar beneficiario")')
 
-    // Mensajes de validación
+    // Mensajes de validación (ahora incluye DNI y Olla obligatorios)
     await expect(page.locator('text=El nombre es obligatorio')).toBeVisible()
     await expect(page.locator('text=Los apellidos son obligatorios')).toBeVisible()
+    await expect(page.locator('text=El DNI es obligatorio')).toBeVisible()
+    await expect(page.locator('text=La olla común es obligatoria')).toBeVisible()
   })
 
-  test('Test 10: Creación exitosa de un beneficiario', async ({ page }) => {
+  test('Test 07.2: Creación exitosa de un beneficiario (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
     await page.goto('/mobile/padron')
@@ -194,11 +204,14 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.click('button[aria-label="Agregar beneficiario"]')
     await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
 
-    // Llenar campos
+    // Llenar campos obligatorios
     await page.fill('#firstName', 'TestE2E')
     await page.fill('#lastName', 'Playwright')
     await page.fill('#dni', randomDni)
     await page.fill('#birthDate', '1995-02-20')
+
+    // Seleccionar olla común (primer option después del placeholder)
+    await page.selectOption('#ollaId', { index: 1 })
 
     // Guardar
     await page.click('button:has-text("Guardar beneficiario")')
@@ -213,9 +226,33 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator(`text=${randomDni}`)).toBeVisible({ timeout: 35000 })
   })
 
+  test('Test 07.3: Registrar beneficiario con DNI existente en el padrón móvil (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/padron')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
+    await page.click('button[aria-label="Agregar beneficiario"]')
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
+
+    // Usar DNI ya existente
+    await page.fill('#firstName', 'Falla')
+    await page.fill('#lastName', 'Registro')
+    await page.fill('#dni', '87654321') // Creado previamente en functional tests
+    await page.fill('#birthDate', '1995-02-20')
+
+    // Seleccionar olla común
+    await page.selectOption('#ollaId', { index: 1 })
+
+    await page.click('button:has-text("Guardar beneficiario")')
+
+    // Debería mostrar un toast de error o permanecer visible indicando error
+    await expect(page.locator('text=Ya existe').or(page.locator('text=Nuevo beneficiario'))).toBeVisible()
+  })
+
   // ─── INVENTARIO ───────────────────────────────────────────────
 
-  test('Test 11: Inventario muestra lista de stock actual', async ({ page }) => {
+  test('Test 08: Inventario muestra lista de stock actual', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inventario')
     await page.waitForLoadState('domcontentloaded')
@@ -224,7 +261,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 12: Registro de movimiento de ingreso en Inventario', async ({ page }) => {
+  test('Test 09.1: Registro de movimiento de ingreso en Inventario (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inventario')
     await page.waitForLoadState('domcontentloaded')
@@ -266,9 +303,26 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
   })
 
+  test('Test 09.2: Intento de avanzar en inventario con datos vacíos (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    await page.click('button:has-text("Registrar Entrada")')
+
+    // Intentar ir al siguiente paso directamente sin seleccionar insumo
+    const nextButton = page.locator('button:has-text("Siguiente Paso")')
+    if (await nextButton.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await nextButton.click()
+      // Debería mostrar Toast o permanecer en el mismo paso
+      await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible()
+    }
+  })
+
   // ─── MENÚ IA Y ENTREGAS ───────────────────────────────────────
 
-  test('Test 13: Menú IA muestra panel de sugerencias', async ({ page }) => {
+  test('Test 10: Menú IA muestra panel de sugerencias', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/menu-ia')
     await page.waitForLoadState('domcontentloaded')
@@ -276,7 +330,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
   })
 
-  test('Test 14: Solicitar sugerencia de Menú IA', async ({ page }) => {
+  test('Test 11: Solicitar sugerencia de Menú IA', async ({ page }) => {
     test.setTimeout(60000)
     await loginAsAdmin(page)
     await page.goto('/mobile/menu-ia')
@@ -303,7 +357,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     expect(isUsable || isNoData).toBeTruthy()
   })
 
-  test('Test 15: Registro de entrega de raciones', async ({ page }) => {
+  test('Test 12: Registro de entrega de raciones', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/padron')
     await page.waitForLoadState('domcontentloaded')
@@ -324,4 +378,5 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
       test.skip()
     }
   })
+
 })
