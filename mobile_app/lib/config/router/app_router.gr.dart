@@ -27,6 +27,22 @@ class AlertasRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PaginaCalculadora]
+class CalculadoraRoute extends PageRouteInfo<void> {
+  const CalculadoraRoute({List<PageRouteInfo>? children})
+    : super(CalculadoraRoute.name, initialChildren: children);
+
+  static const String name = 'CalculadoraRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PaginaCalculadora();
+    },
+  );
+}
+
+/// generated route for
 /// [PaginaDetalleInsumo]
 class DetalleInsumoRoute extends PageRouteInfo<DetalleInsumoRouteArgs> {
   DetalleInsumoRoute({

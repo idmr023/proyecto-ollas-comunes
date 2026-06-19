@@ -20,6 +20,8 @@ import '../../features/menu_ia/data/menu_ia_repositorio_impl.dart';
 import '../../features/menu_ia/domain/repositorio_menu_ia.dart';
 import '../../features/evidencias/data/evidencias_repositorio_impl.dart';
 import '../../features/evidencias/domain/repositorio_evidencias.dart';
+import '../../features/calculadora/data/calculadora_repositorio_impl.dart';
+import '../../features/calculadora/domain/repositorio_calculadora.dart';
 
 /// Contenedor global de dependencias.
 final GetIt sl = GetIt.instance;
@@ -58,4 +60,7 @@ Future<void> configurarInyeccion() async {
 
   // Feature: evidencias
   sl.registerLazySingleton<RepositorioEvidencias>(() => EvidenciasRepositorioImpl(sl<ClienteHttp>()));
+
+  // Feature: calculadora de preparación
+  sl.registerLazySingleton<RepositorioCalculadora>(() => CalculadoraRepositorioImpl(sl<ClienteHttp>()));
 }

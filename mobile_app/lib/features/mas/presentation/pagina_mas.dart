@@ -42,6 +42,7 @@ class PaginaMas extends ConsumerWidget {
             const SizedBox(height: 12),
             _Grupo(
               items: <Widget>[
+                _Opcion(icono: Icons.calculate_outlined, etiqueta: 'Calculadora de preparación', onTap: () => context.router.push(const CalculadoraRoute())),
                 _Opcion(icono: Icons.restaurant_menu_rounded, etiqueta: 'Sugerencias de menú', onTap: () => context.router.push(const MenuIaRoute())),
                 _Opcion(icono: Icons.notifications_none_rounded, etiqueta: 'Alertas', onTap: () => context.router.push(const AlertasRoute())),
                 _Opcion(icono: Icons.photo_camera_outlined, etiqueta: 'Subir evidencia', onTap: () => context.router.push(const EvidenciasRoute()), conBorde: false),

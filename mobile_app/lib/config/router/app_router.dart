@@ -14,6 +14,7 @@ import '../../features/padron/presentation/paginas/pagina_formulario_beneficiari
 import '../../features/alertas/presentation/pagina_alertas.dart';
 import '../../features/menu_ia/presentation/pagina_menu_ia.dart';
 import '../../features/evidencias/presentation/pagina_evidencias.dart';
+import '../../features/calculadora/presentation/pagina_calculadora.dart';
 
 part 'app_router.gr.dart';
 
@@ -33,5 +34,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: AlertasRoute.page),
         AutoRoute(page: MenuIaRoute.page),
         AutoRoute(page: EvidenciasRoute.page),
+        AutoRoute(page: CalculadoraRoute.page),
       ];
 }
