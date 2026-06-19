@@ -491,6 +491,8 @@ model Recommendation {
   description        String?
   generatedByType    String               @default("ia") @map("generated_by_type") @db.VarChar(20)
   status             String               @default("pending") @db.VarChar(20)
+  payload            Json?                @db.JsonB
+  expiresAt          DateTime?            @map("expires_at")
   approvedBy         String?              @map("approved_by") @db.Uuid
   approvedAt         DateTime?            @map("approved_at")
   createdAt          DateTime             @default(now()) @map("created_at")
@@ -499,6 +501,7 @@ model Recommendation {
   relatedRecipe      Recipe?              @relation(fields: [relatedRecipeId], references: [id], onDelete: SetNull)
   approvedByUser     AppUser?             @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
 
+  @@unique([ollaId, recommendationType, targetDate])
   @@index([tenantId])
   @@index([ollaId])
   @@index([recommendationType])

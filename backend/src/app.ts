@@ -15,6 +15,7 @@ import { authRouter } from './modules/auth/router'
 import { beneficiariesRouter } from './modules/beneficiaries/router'
 import { mobileRouter } from './modules/mobile/router'
 import { organizationsRouter } from './modules/organizations/router'
+import { internalRouter } from './modules/internal/router'
 
 const app = express()
 
@@ -63,6 +64,7 @@ app.use('/api/auth', authLimiter, authRouter)
 app.use('/api/beneficiaries', requireAuth, beneficiariesRouter)
 app.use('/api/mobile', requireAuth, mobileRouter)
 app.use('/api/organizations', requireAuth, organizationsRouter)
+app.use('/api/internal', internalRouter)
 
 app.get('/', (_request, response) => {
   response.json({

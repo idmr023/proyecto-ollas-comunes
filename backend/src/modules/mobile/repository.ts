@@ -784,6 +784,74 @@ Instrucciones:
   async countActiveBeneficiaries(ollaId: string) {
     return prisma.beneficiary.count({ where: { ollaId, status: "active" } })
   }
+
+  async listActiveOllas() {
+    return prisma.ollaComun.findMany({
+      where: { status: "active" },
+      select: { id: true, tenantId: true, name: true },
+    })
+  }
+
+  async getRecentDailyRations(ollaId: string, days: number): Promise<number[]> {
+    const desde = new Date()
+    desde.setUTCDate(desde.getUTCDate() - days)
+    const entregas = await prisma.mealDelivery.findMany({
+      where: { menuPlan: { ollaId }, deliveredAt: { gte: desde } },
+      select: { deliveredAt: true, totalRations: true },
+    })
+    const porDia = new Map<string, number>()
+    for (const e of entregas) {
+      const clave = e.deliveredAt.toISOString().slice(0, 10)
+      porDia.set(clave, (porDia.get(clave) ?? 0) + e.totalRations)
+    }
+    return Array.from(porDia.values())
+  }
+
+  async getRecomendacionVigente(ollaId: string, recommendationType: string, targetDate: Date) {
+    const reco = await prisma.recommendation.findUnique({
+      where: { ollaId_recommendationType_targetDate: { ollaId, recommendationType, targetDate } },
+    })
+    if (!reco) return null
+    if (reco.expiresAt && reco.expiresAt.getTime() < Date.now()) return null
+    return reco
+  }
+
+  async upsertRecomendacion(data: {
+    tenantId: string
+    ollaId: string
+    recommendationType: string
+    targetDate: Date
+    title: string
+    description?: string
+    payload: unknown
+    expiresAt: Date
+  }) {
+    const valores = {
+      title: data.title,
+      description: data.description ?? null,
+      payload: data.payload as object,
+      expiresAt: data.expiresAt,
+      generatedByType: "ia",
+      status: "pending",
+    }
+    return prisma.recommendation.upsert({
+      where: {
+        ollaId_recommendationType_targetDate: {
+          ollaId: data.ollaId,
+          recommendationType: data.recommendationType,
+          targetDate: data.targetDate,
+        },
+      },
+      create: {
+        tenantId: data.tenantId,
+        ollaId: data.ollaId,
+        recommendationType: data.recommendationType,
+        targetDate: data.targetDate,
+        ...valores,
+      },
+      update: valores,
+    })
+  }
 }
 
 export const mobileRepository = new MobileRepository()

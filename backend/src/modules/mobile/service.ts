@@ -4,9 +4,26 @@ import { prisma } from "../../lib/prisma"
 import { supabase } from "../../lib/supabase"
 import { mobileRepository } from "./repository"
 import { calcularRequerimientos } from "./preparacion"
+import { getPeruDayRange } from "../../lib/date-utils"
+import { TIPO_MENU_SUGERIDO, TIPO_PRONOSTICO_DEMANDA } from "../../jobs/generar_recomendaciones"
 
 function errorHttp(statusCode: number, mensaje: string) {
   return Object.assign(new Error(mensaje), { statusCode })
+}
+
+function fechaHoyPeru(): Date {
+  const { dateString } = getPeruDayRange()
+  return new Date(`${dateString}T00:00:00.000Z`)
+}
+
+function mapearSugerencias(lista: Array<Record<string, unknown>>) {
+  return lista.map((s, i) => ({
+    id: String(i + 1),
+    nombre: s.nombre,
+    puntaje: s.puntaje,
+    ingredientes: s.ingredientes,
+    recipeIngredients: s.recipeIngredients,
+  }))
 }
 
 export async function getDashboard(tenantId: string) {
@@ -95,16 +112,16 @@ export async function getSuggestions(tenantId: string) {
   const olla = await mobileRepository.getUserOlla(tenantId)
   if (!olla) return { items: [] }
 
-  const suggestions = await mobileRepository.getSuggestions(tenantId, olla.id)
-  return {
-    items: suggestions.map((s, i) => ({
-      id: String(i + 1),
-      nombre: s.nombre,
-      puntaje: s.puntaje,
-      ingredientes: s.ingredientes,
-      recipeIngredients: s.recipeIngredients,
-    })),
+  // Camino rápido: leer el menú sugerido cacheado por la IA pasiva.
+  const cache = await mobileRepository.getRecomendacionVigente(olla.id, TIPO_MENU_SUGERIDO, fechaHoyPeru())
+  const platos = (cache?.payload as { platos?: Array<Record<string, unknown>> } | null)?.platos
+  if (platos && platos.length > 0) {
+    return { items: mapearSugerencias(platos) }
   }
+
+  // Fallback: generar en vivo si todavía no hay caché.
+  const suggestions = await mobileRepository.getSuggestions(tenantId, olla.id)
+  return { items: mapearSugerencias(suggestions as Array<Record<string, unknown>>) }
 }
 
 function mapAlertType(type: string): string {
@@ -274,7 +291,7 @@ export async function calcularPreparacion(tenantId: string, payload: unknown) {
   }
 
   let personas: number | undefined
-  let fuentePersonas: "manual" | "padron" = "manual"
+  let fuentePersonas: "manual" | "padron" | "pronostico" = "manual"
   if (data.personas !== undefined && data.personas !== null) {
     const valor = Number(data.personas)
     if (!Number.isInteger(valor) || valor <= 0) {
@@ -297,9 +314,17 @@ export async function calcularPreparacion(tenantId: string, payload: unknown) {
   }
 
   if (personas === undefined) {
-    const activos = await mobileRepository.countActiveBeneficiaries(olla.id)
-    personas = activos > 0 ? activos : receta.racionesEstimadas
-    fuentePersonas = "padron"
+    // Preferir el pronóstico de demanda cacheado por la IA pasiva.
+    const cache = await mobileRepository.getRecomendacionVigente(olla.id, TIPO_PRONOSTICO_DEMANDA, fechaHoyPeru())
+    const pronosticado = (cache?.payload as { personas?: number } | null)?.personas
+    if (typeof pronosticado === "number" && pronosticado > 0) {
+      personas = pronosticado
+      fuentePersonas = "pronostico"
+    } else {
+      const activos = await mobileRepository.countActiveBeneficiaries(olla.id)
+      personas = activos > 0 ? activos : receta.racionesEstimadas
+      fuentePersonas = "padron"
+    }
   }
 
   const stockPorItem = await mobileRepository.getStockMap(olla.id)

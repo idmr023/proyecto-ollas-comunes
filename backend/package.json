@@ -7,6 +7,7 @@
     "dev": "tsc && node --watch dist/server.js",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "job:recomendaciones": "tsc && node dist/scripts/job-recomendaciones.js",
     "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:db:pull": "prisma db pull",
