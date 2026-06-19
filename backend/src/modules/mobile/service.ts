@@ -3,6 +3,11 @@ import path from "node:path"
 import { prisma } from "../../lib/prisma"
 import { supabase } from "../../lib/supabase"
 import { mobileRepository } from "./repository"
+import { calcularRequerimientos } from "./preparacion"
+
+function errorHttp(statusCode: number, mensaje: string) {
+  return Object.assign(new Error(mensaje), { statusCode })
+}
 
 export async function getDashboard(tenantId: string) {
   const olla = await mobileRepository.getUserOlla(tenantId)
@@ -253,4 +258,69 @@ export async function uploadDocument(tenantId: string, userId: string, payload: 
   })
 
   return doc
+}
+
+export async function getRecipes(tenantId: string) {
+  const items = await mobileRepository.listRecipes(tenantId)
+  return { items }
+}
+
+export async function calcularPreparacion(tenantId: string, payload: unknown) {
+  const data = (payload ?? {}) as Record<string, unknown>
+
+  const recipeId = typeof data.recipeId === "string" ? data.recipeId.trim() : ""
+  if (!recipeId) {
+    throw errorHttp(400, "El campo recipeId es obligatorio.")
+  }
+
+  let personas: number | undefined
+  let fuentePersonas: "manual" | "padron" = "manual"
+  if (data.personas !== undefined && data.personas !== null) {
+    const valor = Number(data.personas)
+    if (!Number.isInteger(valor) || valor <= 0) {
+      throw errorHttp(400, "El campo personas debe ser un entero positivo.")
+    }
+    personas = valor
+  }
+
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) {
+    throw errorHttp(404, "No hay una olla activa para tu organización.")
+  }
+
+  const receta = await mobileRepository.getRecipeWithIngredients(recipeId, tenantId)
+  if (!receta) {
+    throw errorHttp(404, "Receta no encontrada.")
+  }
+  if (receta.ingredientes.length === 0) {
+    throw errorHttp(422, "La receta no tiene ingredientes para calcular.")
+  }
+
+  if (personas === undefined) {
+    const activos = await mobileRepository.countActiveBeneficiaries(olla.id)
+    personas = activos > 0 ? activos : receta.racionesEstimadas
+    fuentePersonas = "padron"
+  }
+
+  const stockPorItem = await mobileRepository.getStockMap(olla.id)
+  const calculo = calcularRequerimientos({
+    racionesEstimadas: receta.racionesEstimadas,
+    ingredientes: receta.ingredientes,
+    stockPorItem,
+    personas,
+  })
+
+  return {
+    olla: { id: olla.id, name: olla.name },
+    receta: { id: receta.id, nombre: receta.nombre, racionesEstimadas: receta.racionesEstimadas },
+    personas,
+    fuentePersonas,
+    racionesPosiblesConStock: calculo.racionesPosiblesConStock,
+    alcanzaParaTodos: calculo.alcanzaParaTodos,
+    ingredientes: calculo.ingredientes,
+    resumen: {
+      totalIngredientes: calculo.ingredientes.length,
+      ingredientesFaltantes: calculo.ingredientes.filter((i) => !i.alcanza).length,
+    },
+  }
 }

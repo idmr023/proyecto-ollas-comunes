@@ -734,6 +734,56 @@ Instrucciones:
       return menuPlan
     })
   }
+
+  async listRecipes(tenantId: string) {
+    const recipes = await prisma.recipe.findMany({
+      where: { tenantId, status: "active" },
+      orderBy: { name: "asc" },
+      include: { ingredients: { select: { supplyItemId: true } } },
+    })
+    return recipes.map((r) => ({
+      id: r.id,
+      nombre: r.name,
+      racionesEstimadas: r.estimatedServings,
+      totalIngredientes: r.ingredients.length,
+    }))
+  }
+
+  async getRecipeWithIngredients(recipeId: string, tenantId: string) {
+    const recipe = await prisma.recipe.findFirst({
+      where: { id: recipeId, tenantId },
+      include: {
+        ingredients: {
+          include: { supplyItem: { select: { id: true, name: true, unit: true } } },
+        },
+      },
+    })
+    if (!recipe) return null
+    return {
+      id: recipe.id,
+      nombre: recipe.name,
+      racionesEstimadas: recipe.estimatedServings,
+      ingredientes: recipe.ingredients.map((i) => ({
+        supplyItemId: i.supplyItemId,
+        nombre: i.supplyItem.name,
+        unidad: i.supplyItem.unit,
+        cantidad: Number(i.quantity),
+      })),
+    }
+  }
+
+  async getStockMap(ollaId: string) {
+    const stock = await prisma.inventoryStock.findMany({ where: { ollaId } })
+    const mapa = new Map<string, number>()
+    for (const s of stock) {
+      mapa.set(s.supplyItemId, Number(s.quantity))
+    }
+    return mapa
+  }
+
+  async countActiveBeneficiaries(ollaId: string) {
+    return prisma.beneficiary.count({ where: { ollaId, status: "active" } })
+  }
 }
 
 export const mobileRepository = new MobileRepository()
