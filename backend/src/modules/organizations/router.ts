@@ -12,6 +12,7 @@ import {
   getTenantInventoryMovements,
   getTenantAlerts,
   updateTenantAlert,
+  getReportsSummary,
 } from './service'
 import { createOlla, listOllasByTenantId } from '../ollas-comunes/service'
 import { OllaServiceError } from '../ollas-comunes/errors'
@@ -23,9 +24,10 @@ function handleOrganizationError(
   response: import('express').Response,
 ) {
   if (error instanceof OrganizationServiceError || error instanceof OllaServiceError) {
-    response.status(error.statusCode).json({
+    const e = error as OrganizationServiceError
+    response.status(e.statusCode).json({
       ok: false,
-      message: error.message,
+      message: e.message,
     })
     return
   }
@@ -99,6 +101,17 @@ organizationsRouter.get('/inventory/movements', async (request, response) => {
     const tenantId = request.user!.tenantId
     const items = await getTenantInventoryMovements(tenantId)
     response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/reports/summary', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const { from, to, ollaId } = request.query as Record<string, string | undefined>
+    const data = await getReportsSummary(tenantId, from, to, ollaId)
+    response.json({ ok: true, ...data })
   } catch (error) {
     handleOrganizationError(error, response)
   }
