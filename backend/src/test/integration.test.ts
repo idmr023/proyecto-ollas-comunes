@@ -186,10 +186,11 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     const previousStock = await prisma.inventoryMovement.count()
 
     try {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         await tx.inventoryMovement.create({
           data: {
-            supplyItemId: 'non-existent-id', // Esto causará un fallo de clave foránea
+            tenantId: testTenantId,
+            supplyItemId: 'non-existent-id',
             movementType: 'in',
             quantity: 10,
             createdBy: 'user-id'
@@ -268,7 +269,8 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(res.status).toBe(200)
     const body = (await res.json()) as any
     expect(body.ok).toBe(true)
-    expect(body.items).toBeDefined()
+    expect(body.recommendations).toBeDefined()
+    expect(body.expiringStock).toBeDefined()
   })
 
   it('I-15: Balanceador de conexiones (Supavisor)', async () => {

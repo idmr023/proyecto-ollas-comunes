@@ -1,44 +1,20 @@
 import { z } from 'zod'
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .email('Email invalido.')
-    .max(255, 'Email demasiado largo.'),
-  password: z
-    .string()
-    .min(1, 'La contrasena es obligatoria.')
-    .max(128, 'Contrasena demasiado larga.'),
+  email: z.string().min(1, 'El email es requerido').email('Email inválido'),
+  password: z.string().min(1, 'La contraseña es requerida'),
 })
 
 export const registerSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .email('Email invalido.')
-    .max(255, 'Email demasiado largo.'),
-  password: z
-    .string()
-    .min(6, 'La contrasena debe tener al menos 6 caracteres.')
-    .max(128, 'Contrasena demasiado larga.'),
-  fullName: z
-    .string()
-    .trim()
-    .min(1, 'El nombre es obligatorio.')
-    .max(150, 'Nombre demasiado largo.'),
-  tenantId: z.string().uuid('Tenant invalido.'),
-  role: z.enum(['admin_municipal', 'lideresa_olla', 'supervisor']).optional(),
+  email: z.string().min(1, 'El email es requerido').email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  fullName: z.string().min(1, 'El nombre es requerido').max(150),
+  tenantId: z.string().min(1, 'El tenant es requerido'),
+  role: z.string().optional(),
 })
 
 export const verifyOtpSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .email('Email invalido.')
-    .max(255, 'Email demasiado largo.'),
-  tempToken: z.string().min(1, 'Token temporal requerido.'),
-  code: z
-    .string()
-    .regex(/^\d{6}$/, 'El codigo debe tener exactamente 6 digitos.'),
+  email: z.string().min(1, 'El email es requerido').email('Email inválido'),
+  tempToken: z.string().min(1, 'El token temporal es requerido. Vuelve a iniciar sesión.'),
+  code: z.string().regex(/^\d{6}$/, 'El código debe tener exactamente 6 dígitos'),
 })

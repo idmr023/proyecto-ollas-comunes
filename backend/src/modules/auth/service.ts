@@ -20,7 +20,7 @@ import {
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback-secret'
 const JWT_EXPIRES_IN = '24h'
-const TEMP_TOKEN_EXPIRES_IN = '2m'
+const TEMP_TOKEN_EXPIRES_IN = '5m'
 const BCRYPT_ROUNDS = 10
 
 /* ── Utilities ───────────────────────────────────── */

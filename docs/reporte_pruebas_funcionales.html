@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGO-Ollas — Reporte de Pruebas Funcionales</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem; background: #0f0f0f; color: #e0e0e0; }
+    h1 { color: #4ade80; }
+    h2 { border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-top: 2rem; color: #a3a3a3; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .stat-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: bold; color: #4ade80; }
+    .stat-label { font-size: 0.8rem; color: #a3a3a3; margin-top: 0.25rem; }
+    .grade-circle { width: 80px; height: 80px; border-radius: 50%; background: #4ade8022; border: 3px solid #4ade80; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: #4ade80; margin: 1rem auto; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { text-align: left; padding: 0.5rem 0.75rem; border: 1px solid #333; }
+    th { background: #1a1a1a; color: #a3a3a3; font-size: 0.85rem; }
+    pre { background: #1a1a1a; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; }
+    .section { margin: 1.5rem 0; }
+    .meta { color: #666; font-size: 0.85rem; }
+    code { background: #1a1a1a; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }
+    .progress-bar { height: 8px; border-radius: 4px; background: #333; margin: 0.5rem 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: #4ade80; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Reporte de Pruebas Funcionales</h1>
+  <p class="meta">Suite: <strong>ISO 25010 — Funcionalidad</strong> | Generado: 2026-06-20T00:03:32.920Z | Proyecto: SIGO-Ollas</p>
+
+  <div class="grade-circle">A</div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value">35<//div>
+      <div class="stat-label">Total Casos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#4ade80">35<//div>
+      <div class="stat-label">Aprobados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#4ade80">35<//div>
+      <div class="stat-label">Fallidos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Tasa de Éxito</div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" style="width:100%"></div>
+  </div>
+
+  
+  
+    <div class="section">
+      <h3>Salida de ejecución</h3>
+      
+      <pre>
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90mC:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend[39m
+
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Creación básica de beneficiario[33m 1502[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-02: Restricción de DNI duplicado[32m 208[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-03: Actualización de prioridad del beneficiario[33m 1583[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-04: Asignación de perfil médico[33m 1788[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-05: Eliminación física/lógica del beneficiario[33m 747[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-06: Autenticación - Credenciales correctas[32m 177[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-07: Autenticación - Contraseña inválida[32m 190[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-08: Autenticación - Email no registrado[32m 117[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-09: Control MFA - Bloqueo por intentos fallidos[33m 531[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-10: Inventario - Registro de ingreso (In)[33m 536[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-11: Inventario - Registro de egreso (Out)[33m 518[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-12: Inventario - Registro de egreso sin stock (Permitido con alerta)[33m 520[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-13: Menú IA - Simulación de raciones[33m 314[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-14: Entregas - Registro múltiple[33m 935[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-15: Dashboard - Métricas consolidadas[33m 986[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Nombres y apellidos obligatorios vacíos o nulos[32m 119[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Fecha de nacimiento futura[32m 107[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Formato de fecha inválido[32m 119[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - DNI extremadamente largo[32m 108[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Registro de beneficiario sin DNI[32m 121[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Registro de beneficiario sin Olla Común[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-01: Falla - Registro de beneficiario sin cabecera Authorization[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-03: Falla - Actualización de beneficiario inexistente[33m 333[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-03: Falla - Prioridad inválida[33m 320[2mms[22m[39m
+ [32m✓[39m src/test/functional.test.ts[2m > [22mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22mF-04: Falla - Asignación de IDs médicos inexistentes o inválidos[33m 327[2mms[22m[39m
+[90mstdout[2m | src/test/functional.test.ts[2m > [22m[2mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22m[2mF-05: Falla - Eliminación co</pre>
+    </div>
+    <div class="section">
+      <h3>Framework</h3>
+      
+      <pre>Vitest (v4.x) — POOL: forks, WORKERS: 1, ENV: node</pre>
+    </div>
+    <div class="section">
+      <h3>Casos de prueba</h3>
+      
+      <pre>15 casos funcionales + ~25 casos negativos. Cubren: CRUD beneficiarios, autenticación, inventario, menús, entregas, dashboard.</pre>
+    </div>
+    <div class="section">
+      <h3>Métricas</h3>
+      
+      <pre>Total: 0 | Aprobados: 0 | Fallidos: 0 | Tasa: 100%</pre>
+    </div>
+    <div class="section">
+      <h3>Observaciones</h3>
+      
+      <pre>✅ Todos los casos aprobados.</pre>
+    </div>
+
+  <h2>Nivel de Cumplimiento</h2>
+  <table>
+    <tr><td>Tasa de éxito</td><td style="color:#4ade80"><strong>100%</strong></td></tr>
+    <tr><td>Calificación</td><td><strong>A</strong></td></tr>
+    <tr><td>Estándar esperado</td><td>≥ 90% aprobados</td></tr>
+    <tr><td>Estado</td><td>✅ Cumple estándar esperado</td></tr>
+  </table>
+
+  <p class="meta">Reporte generado automáticamente por test-reporter.mjs</p>
+</body>
+</html>
