@@ -31,11 +31,9 @@ export default function LoginPage() {
       if (!res.ok) { toast.error(data.message ?? data.error ?? "Error al iniciar sesión"); return }
 
       if (data.status === "TOTP_SETUP_REQUIRED") {
-        setToken(data.tempToken)
-        router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}`)
+        router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}&token=${encodeURIComponent(data.tempToken)}`)
       } else if (data.status === "MFA_PENDING") {
-        setToken(data.tempToken)
-        router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
+        router.push(`/login/otp?email=${encodeURIComponent(data.email)}&token=${encodeURIComponent(data.tempToken)}`)
       } else {
         setAuth(data.user, data.token)
         const destino = data.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio"

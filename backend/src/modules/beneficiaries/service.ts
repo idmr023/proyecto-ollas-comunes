@@ -164,33 +164,11 @@ export async function registerBeneficiary(tenantId: string, payload: unknown) {
   if (data.dni) {
     const existing = await beneficiaryRepository.findByDni(data.dni, tenantId)
     if (existing) {
-      await prisma.alert.create({
-        data: {
-          tenantId,
-          ollaId: data.ollaId,
-          alertType: 'sync_conflict',
-          severity: 'medium',
-          message: `Intento de registro fallido: Beneficiario con DNI ${data.dni} ya está registrado.`,
-          status: 'open',
-        }
-      })
       throw new BeneficiaryServiceError(409, 'Ya existe un beneficiario con ese DNI en esta organizacion.')
     }
   }
 
   const record = await beneficiaryRepository.create({ ...data, tenantId })
-
-  // Registrar alerta de éxito
-  await prisma.alert.create({
-    data: {
-      tenantId,
-      ollaId: data.ollaId,
-      alertType: 'new_beneficiary',
-      severity: 'low',
-      message: `Nuevo beneficiario registrado: ${data.firstName} ${data.lastName} (DNI: ${data.dni || '—'})`,
-      status: 'open',
-    }
-  })
 
   return toResponse(record)
 }
