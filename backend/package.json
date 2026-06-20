@@ -9,6 +9,9 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "stress:test": "artillery run stress-test.yml -o stress-test-report.json",
+    "stress:report": "artillery report stress-test-report.json --output stress-test-report.html",
+    "stress:run": "npm run stress:test && npm run stress:report",
     "prisma:generate": "prisma generate",
     "prisma:db:pull": "prisma db pull",
     "prisma:db:push": "prisma db push",
@@ -49,6 +52,7 @@
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
     "@vitest/coverage-v8": "^4.1.9",
+    "artillery": "^2.0.33",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
     "vitest": "^4.1.8"
