@@ -1,0 +1,111 @@
+
+> backend@1.0.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90mC:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend[39m
+
+[90mstdout[2m | src/test/functional.test.ts[2m > [22m[2mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22m[2mF-05: Falla - Eliminación con ID mal formado
+[22m[39mprisma:error 
+Invalid `prisma.beneficiary.findFirst()` invocation in
+C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/repository.ts:42:42
+
+  39 }
+  40 
+  41 async findById(id: string, tenantId: string): Promise<BeneficiaryRecord | null> {
+→ 42   const row = await prisma.beneficiary.findFirst(
+Invalid input value: invalid input syntax for type uuid: "id-invalido-123"
+
+[90mstderr[2m | src/test/functional.test.ts[2m > [22m[2mSuite 1: Pruebas Funcionales Automatizadas (15 Casos)[2m > [22m[2mF-05: Falla - Eliminación con ID mal formado
+[22m[39m[beneficiaries] Error inesperado: PrismaClientKnownRequestError: 
+Invalid `prisma.beneficiary.findFirst()` invocation in
+C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/repository.ts:42:42
+
+  39 }
+  40 
+  41 async findById(id: string, tenantId: string): Promise<BeneficiaryRecord | null> {
+→ 42   const row = await prisma.beneficiary.findFirst(
+Invalid input value: invalid input syntax for type uuid: "id-invalido-123"
+    at zr.handleRequestError [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:65:8286[90m)[39m
+    at zr.handleAndLogRequestError [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:65:7581[90m)[39m
+    at zr.request [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:65:7288[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at a [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:75:6862[90m)[39m
+    at BeneficiaryRepository.findById (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/repository.ts:42:17)
+    at getBeneficiaryById (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/service.ts:152:18)
+    at C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/router.ts:203:25 {
+  code: [32m'P2007'[39m,
+  meta: {
+    modelName: [32m'Beneficiary'[39m,
+    driverAdapterError: DriverAdapterError: invalid input syntax for type uuid: "id-invalido-123"
+        at PrismaPgAdapter.onError [90m(file:///C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/[39mnode_modules/[4m@prisma/adapter-pg[24m/dist/index.mjs:642:11[90m)[39m
+        at PrismaPgAdapter.performIO [90m(file:///C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/[39mnode_modules/[4m@prisma/adapter-pg[24m/dist/index.mjs:637:12[90m)[39m
+    [90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+        at PrismaPgAdapter.queryRaw [90m(file:///C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/[39mnode_modules/[4m@prisma/adapter-pg[24m/dist/index.mjs:568:30[90m)[39m
+        at e.interpretNode [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:11:44621[90m)[39m
+        at e.interpretNode [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:11:43744[90m)[39m
+        at e.interpretNode [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:11:45065[90m)[39m
+        at e.interpretNode [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:11:46285[90m)[39m
+        at e.run [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:11:43335[90m)[39m
+        at execute [90m(C:\Users\idmr_\OneDrive\Escritorio\proyecto-ollas-comunes\backend\[39mnode_modules\[4m@prisma\client[24m\runtime\client.js:57:815[90m)[39m {
+      cause: [36m[Object][39m
+    }
+  },
+  clientVersion: [32m'7.8.0'[39m
+}
+
+ [32m✓[39m src/test/functional.test.ts [2m([22m[2m35 tests[22m[2m)[22m[33m 15815[2mms[22m[39m
+     [33m[2m✓[22m[39m F-01: Creación básica de beneficiario [33m 1530[2mms[22m[39m
+     [33m[2m✓[22m[39m F-03: Actualización de prioridad del beneficiario [33m 1640[2mms[22m[39m
+     [33m[2m✓[22m[39m F-04: Asignación de perfil médico [33m 1846[2mms[22m[39m
+     [33m[2m✓[22m[39m F-05: Eliminación física/lógica del beneficiario [33m 774[2mms[22m[39m
+     [33m[2m✓[22m[39m F-09: Control MFA - Bloqueo por intentos fallidos [33m 546[2mms[22m[39m
+     [33m[2m✓[22m[39m F-10: Inventario - Registro de ingreso (In) [33m 545[2mms[22m[39m
+     [33m[2m✓[22m[39m F-11: Inventario - Registro de egreso (Out) [33m 547[2mms[22m[39m
+     [33m[2m✓[22m[39m F-12: Inventario - Registro de egreso sin stock (Permitido con alerta) [33m 547[2mms[22m[39m
+     [33m[2m✓[22m[39m F-13: Menú IA - Simulación de raciones [33m 342[2mms[22m[39m
+     [33m[2m✓[22m[39m F-14: Entregas - Registro múltiple [33m 981[2mms[22m[39m
+     [33m[2m✓[22m[39m F-15: Dashboard - Métricas consolidadas [33m 1077[2mms[22m[39m
+     [33m[2m✓[22m[39m F-03: Falla - Actualización de beneficiario inexistente [33m 339[2mms[22m[39m
+     [33m[2m✓[22m[39m F-03: Falla - Prioridad inválida [33m 340[2mms[22m[39m
+     [33m[2m✓[22m[39m F-04: Falla - Asignación de IDs médicos inexistentes o inválidos [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m F-09: Falla - Control MFA con OTP incorrecto [33m 310[2mms[22m[39m
+[90mstdout[2m | src/test/integration.test.ts[2m > [22m[2mSuite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)[2m > [22m[2mI-08: Transaccionalidad Prisma (Rollback)
+[22m[39mprisma:error 
+Invalid `tx.inventoryMovement.create()` invocation in
+C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/test/integration.test.ts:190:36
+
+  187 
+  188 try {
+  189   await prisma.$transaction(async (tx: any) => {
+→ 190     await tx.inventoryMovement.create({
+            data: {
+              tenantId: "248a9abf-5156-4016-b658-f7904d4c453b",
+              supplyItemId: "non-existent-id",
+              movementType: "in",
+              quantity: 10,
+              createdBy: "user-id",
+          +   tenant: {
+          +     create: TenantCreateWithoutInventoryMovementsInput | TenantUncheckedCreateWithoutInventoryMovementsInput,
+          +     connectOrCreate: TenantCreateOrConnectWithoutInventoryMovementsInput,
+          +     connect: TenantWhereUniqueInput
+          +   }
+            }
+          })
+
+Argument `tenant` is missing.
+
+ [32m✓[39m src/test/integration.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 8499[2mms[22m[39m
+     [33m[2m✓[22m[39m I-02: Healthcheck de Supabase (Cliente e Infraestructura) [33m 1296[2mms[22m[39m
+     [33m[2m✓[22m[39m I-04: Consulta de Ollas Comunes asociadas a una organización [33m 337[2mms[22m[39m
+     [33m[2m✓[22m[39m I-05: Aislamiento RLS en BD (Aislamiento de Tenants) [33m 331[2mms[22m[39m
+     [33m[2m✓[22m[39m I-06: Rate Limiting de seguridad en Auth [33m 1883[2mms[22m[39m
+     [33m[2m✓[22m[39m I-08: Transaccionalidad Prisma (Rollback) [33m 444[2mms[22m[39m
+     [33m[2m✓[22m[39m I-14: Integración del recomendador de recetas IA [33m 543[2mms[22m[39m
+     [33m[2m✓[22m[39m I-15: Balanceador de conexiones (Supavisor) [33m 758[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m59 passed[39m[22m[90m (59)[39m
+[2m   Start at [22m 18:58:39
+[2m   Duration [22m 25.72s[2m (transform 249ms, setup 0ms, import 1.02s, tests 24.31s, environment 0ms)[22m
+

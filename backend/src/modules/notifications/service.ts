@@ -1,76 +1,64 @@
 import { prisma } from '../../lib/prisma'
-import { sendEmail } from '../../lib/email'
-import { BackupMutationInput, ReportDataLossInput } from './types'
 
-const ADMIN_EMAIL_TO = 'jparatupcya@gmail.com'
-const ADMIN_EMAIL_CC = 'francescorivar@gmail.com'
+export class NotificationsServiceError extends Error {
+  constructor(
+    public statusCode: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'NotificationsServiceError'
+  }
+}
 
-export async function backupMutation(input: BackupMutationInput): Promise<void> {
-  await prisma.failedSyncBackup.create({
+export async function reportDataLoss(payload: {
+  userId: string
+  pendingCount: number
+  failedCount: number
+  message: string
+}) {
+  await (prisma as any).failedSyncBackup.create({
     data: {
-      path: input.path,
-      method: input.method,
-      body: input.body as any,
-      errorMessage: input.errorMessage ?? null,
-      status: input.status ?? null,
-      originalTimestamp: new Date(input.originalTimestamp),
+      userId: payload.userId,
+      path: '/pwa/data-loss-report',
+      method: 'POST',
+      body: {
+        pendingCount: payload.pendingCount,
+        failedCount: payload.failedCount,
+        detectedAt: new Date().toISOString(),
+      },
+      errorMessage: payload.message,
+      status: 'reported',
     },
   })
+
+  console.warn(
+    `[notifications] Data loss report: pendientes=${payload.pendingCount}, fallidos=${payload.failedCount}`,
+  )
 }
 
-export async function reportDataLoss(input: ReportDataLossInput): Promise<void> {
-  const subject = `SIGO-Ollas: Datos perdidos en cliente (${input.pendingCount} pendientes, ${input.failedCount} fallos)`
-  const text = [
-    `Se ha detectado una posible pérdida de datos en un cliente offline.`,
-    ``,
-    `Mutaciones pendientes antes de la pérdida: ${input.pendingCount}`,
-    `Fallos anteriores: ${input.failedCount}`,
-    `Mensaje: ${input.message}`,
-    ``,
-    `Timestamp: ${new Date().toISOString()}`,
-  ].join('\n')
+export async function backupFailedMutation(payload: {
+  userId: string
+  path: string
+  method: string
+  body: unknown
+  errorMessage: string
+  statusCode: number
+}) {
+  const db: any = prisma
 
-  await sendEmail({
-    to: ADMIN_EMAIL_TO,
-    cc: ADMIN_EMAIL_CC,
-    subject,
-    text,
-  })
-}
-
-export async function processAndNotifyFailedMutations(): Promise<void> {
-  const pending = await prisma.failedSyncBackup.findMany({
-    where: { emailSent: false },
-    orderBy: { reportedAt: 'asc' },
-    take: 50,
+  await db.failedSyncBackup.create({
+    data: {
+      userId: payload.userId,
+      path: payload.path,
+      method: payload.method,
+      body: payload.body || {},
+      errorMessage: payload.errorMessage,
+      status: payload.statusCode >= 500 ? 'pending_retry' : 'failed',
+      reportedAt: new Date(),
+    },
   })
 
-  if (pending.length === 0) return
-
-  const subject = `SIGO-Ollas: ${pending.length} respaldo(s) de mutaciones pendientes`
-
-  const rows = pending.map((p) =>
-    `  - [${p.method}] ${p.path} | Error: ${p.errorMessage ?? 'N/A'} | Timestamp: ${p.originalTimestamp.toISOString()}`
-  ).join('\n')
-
-  const text = [
-    `Se encontraron ${pending.length} registro(s) de mutaciones que no pudieron completarse.`,
-    ``,
-    `Detalles:`,
-    rows,
-    ``,
-    `Timestamp: ${new Date().toISOString()}`,
-  ].join('\n')
-
-  await sendEmail({
-    to: ADMIN_EMAIL_TO,
-    cc: ADMIN_EMAIL_CC,
-    subject,
-    text,
-  })
-
-  await prisma.failedSyncBackup.updateMany({
-    where: { id: { in: pending.map((p) => p.id) } },
-    data: { emailSent: true },
-  })
+  console.warn(
+    `[notifications] Backed up failed mutation: ${payload.method} ${payload.path} (${payload.statusCode})`,
+  )
 }

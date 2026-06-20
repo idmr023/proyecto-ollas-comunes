@@ -14,6 +14,7 @@ function OtpVerification() {
   const isSetup = searchParams.get("setup") === "1"
   const secret = searchParams.get("secret") ?? ""
   const qrCodeUri = searchParams.get("qrCodeUri") ?? ""
+  const urlToken = searchParams.get("token") ?? ""
   const setAuth = useAuthStore((s) => s.setAuth)
   const [code, setCode] = useState("")
   const [loading, setLoading] = useState(false)
@@ -27,13 +28,13 @@ function OtpVerification() {
 
   const handleVerify = useCallback(async () => {
     if (code.length !== 6) { toast.error("Ingresa el código de 6 dígitos"); return }
+    if (!urlToken) { toast.error("Sesión expirada. Vuelve a iniciar sesión."); router.push("/login"); return }
     setLoading(true)
     try {
-      const tempToken = useAuthStore.getState().token
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code, tempToken }),
+        body: JSON.stringify({ email, code, tempToken: urlToken }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.message ?? "Código inválido o expirado"); return }
@@ -46,7 +47,7 @@ function OtpVerification() {
     } finally {
       setLoading(false)
     }
-  }, [code, email, router, setAuth])
+  }, [code, email, router, setAuth, urlToken])
 
   const handleCopySecret = useCallback(async () => {
     try {

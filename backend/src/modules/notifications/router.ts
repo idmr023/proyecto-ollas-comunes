@@ -1,26 +1,65 @@
 import { Router, Response } from 'express'
-import { requireAuth } from '../../lib/middleware/auth'
-import { backupMutation, reportDataLoss } from './service'
+import {
+  backupFailedMutation,
+  reportDataLoss,
+  NotificationsServiceError,
+} from './service'
 
 const notificationsRouter = Router()
 
-notificationsRouter.post('/backup-mutation', requireAuth, async (request, response) => {
+function handleError(error: unknown, response: Response) {
+  if (error instanceof NotificationsServiceError) {
+    response.status(error.statusCode).json({ ok: false, message: error.message })
+    return
+  }
+
+  console.error('[notifications] Error inesperado:', error)
+  response.status(500).json({
+    ok: false,
+    message: 'Error interno del servidor.',
+    ...(process.env.NODE_ENV !== 'production' ? { detail: String(error) } : {}),
+  })
+}
+
+notificationsRouter.get('/health', (_request, response) => {
+  response.json({ ok: true, module: 'notifications' })
+})
+
+notificationsRouter.post('/report-data-loss', async (request, response) => {
   try {
-    await backupMutation(request.body)
-    response.json({ ok: true })
+    const userId = request.user!.userId
+    const { pendingCount, failedCount, message } = request.body
+
+    await reportDataLoss({
+      userId,
+      pendingCount: Number(pendingCount) || 0,
+      failedCount: Number(failedCount) || 0,
+      message: typeof message === 'string' ? message : 'Pérdida de datos detectada en PWA.',
+    })
+
+    response.json({ ok: true, message: 'Reporte de pérdida de datos registrado.' })
   } catch (error) {
-    console.error('[notifications] Error en backup-mutation:', error)
-    response.status(500).json({ ok: false, message: 'Error interno del servidor.' })
+    handleError(error, response)
   }
 })
 
-notificationsRouter.post('/report-data-loss', requireAuth, async (request, response) => {
+notificationsRouter.post('/backup-mutation', async (request, response) => {
   try {
-    await reportDataLoss(request.body)
-    response.json({ ok: true })
+    const userId = request.user!.userId
+    const { path, method, body, errorMessage, status } = request.body
+
+    await backupFailedMutation({
+      userId,
+      path: typeof path === 'string' ? path : '/unknown',
+      method: typeof method === 'string' ? method : 'POST',
+      body: body || null,
+      errorMessage: typeof errorMessage === 'string' ? errorMessage : 'Error de sincronización PWA.',
+      statusCode: typeof status === 'number' ? status : 500,
+    })
+
+    response.json({ ok: true, message: 'Respaldo de mutación registrado.' })
   } catch (error) {
-    console.error('[notifications] Error en report-data-loss:', error)
-    response.status(500).json({ ok: false, message: 'Error interno del servidor.' })
+    handleError(error, response)
   }
 })
 

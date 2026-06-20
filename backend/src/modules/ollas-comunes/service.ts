@@ -1,95 +1,66 @@
+import { prisma } from '../../lib/prisma'
 import { OllaServiceError } from './errors'
-import { Olla, OllaPayload } from './types'
-import { ollaRepository } from './repository'
+import { Olla } from './types'
 import { sanitizeOllaText, toOlla } from './utils'
 
-function parseOllaPayload(payload: unknown): OllaPayload {
+function parseOllaPayload(payload: unknown) {
   if (!payload || typeof payload !== 'object') {
-    throw new OllaServiceError(400, 'Datos invalidos para la olla comun.')
+    throw new OllaServiceError(400, 'Datos inválidos para la olla común.')
   }
-
   const data = payload as Record<string, unknown>
   const name = sanitizeOllaText(data.name, 150)
-  const address = sanitizeOllaText(data.address, 500) || null
-  const contactName = sanitizeOllaText(data.contactName, 150) || null
-  const contactPhone = sanitizeOllaText(data.contactPhone, 30) || null
-
-  if (!name) {
-    throw new OllaServiceError(400, 'El nombre de la olla comun es obligatorio.')
+  const address = sanitizeOllaText(data.address, 200)
+  if (!name || !address) {
+    throw new OllaServiceError(400, 'Nombre y dirección son obligatorios.')
   }
-
-  const capacityRaw = data.estimatedDailyCapacity
-  const estimatedDailyCapacity =
-    typeof capacityRaw === 'number' && capacityRaw > 0 ? Math.floor(capacityRaw) : null
-
-  const latitudeRaw = data.latitude
-  const longitudeRaw = data.longitude
-  const latitude = typeof latitudeRaw === 'number' ? latitudeRaw : null
-  const longitude = typeof longitudeRaw === 'number' ? longitudeRaw : null
-
-  return { name, address, latitude, longitude, contactName, contactPhone, estimatedDailyCapacity }
+  return {
+    name,
+    address,
+    latitude: typeof data.latitude === 'number' ? data.latitude : null,
+    longitude: typeof data.longitude === 'number' ? data.longitude : null,
+    contactName: sanitizeOllaText(data.contactName, 150),
+    contactPhone: sanitizeOllaText(data.contactPhone, 20),
+    estimatedDailyCapacity: typeof data.estimatedDailyCapacity === 'number' ? data.estimatedDailyCapacity : 50,
+  }
 }
 
 export async function listOllasByTenantId(tenantId: string): Promise<Olla[]> {
-  const records = await ollaRepository.findByTenantId(tenantId)
+  const records = await prisma.ollaComun.findMany({
+    where: { tenantId },
+    orderBy: { name: 'asc' },
+  })
   return records.map(toOlla)
 }
 
-export async function createOlla(
-  tenantId: string,
-  payload: unknown,
-): Promise<Olla> {
+export async function createOlla(tenantId: string, payload: unknown): Promise<Olla> {
   const data = parseOllaPayload(payload)
 
-  const existingCodes = await ollaRepository.getExistingCodes(tenantId)
-  const code = buildUniqueOllaCode(data.name, existingCodes)
+  const lastOlla = await prisma.ollaComun.findFirst({
+    where: { tenantId: tenantId },
+    orderBy: { code: 'desc' },
+  })
 
-  const record = await ollaRepository.create({
-    tenantId,
-    code,
-    name: data.name,
-    address: data.address,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    contactName: data.contactName,
-    contactPhone: data.contactPhone,
-    estimatedDailyCapacity: data.estimatedDailyCapacity,
+  let nextNumber = 1
+  if (lastOlla?.code) {
+    const match = lastOlla.code.match(/(\d+)$/)
+    if (match) nextNumber = parseInt(match[1]) + 1
+  }
+  const code = `OC-${String(nextNumber).padStart(3, '0')}`
+
+  const record = await prisma.ollaComun.create({
+    data: {
+      code,
+      tenantId,
+      name: data.name,
+      address: data.address,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      contactName: data.contactName,
+      contactPhone: data.contactPhone,
+      estimatedDailyCapacity: data.estimatedDailyCapacity,
+      status: 'active',
+    },
   })
 
   return toOlla(record)
-}
-
-function buildBaseOllaCode(name: string) {
-  const normalized = name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-
-  return normalized.slice(0, 24) || 'OLLA'
-}
-
-function buildUniqueOllaCode(name: string, existingCodes: string[]) {
-  const takenCodes = new Set(existingCodes)
-  const baseCode = buildBaseOllaCode(name)
-
-  if (!takenCodes.has(baseCode)) {
-    return baseCode
-  }
-
-  let counter = 2
-
-  while (counter < 1000) {
-    const suffix = `-${counter}`
-    const candidate = `${baseCode.slice(0, Math.max(1, 24 - suffix.length))}${suffix}`
-
-    if (!takenCodes.has(candidate)) {
-      return candidate
-    }
-
-    counter += 1
-  }
-
-  return `${baseCode.slice(0, 20)}-${Date.now().toString().slice(-3)}`
 }
