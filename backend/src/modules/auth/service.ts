@@ -7,7 +7,7 @@ import {
   registerSchema,
   verifyOtpSchema,
 } from './validators'
-import { getOrCreateTotpSecret, verifyTotpCode } from './totp-service'
+import { generateTotpSecret, getExistingTotpSecret, saveTotpSecret, verifyTotpCode } from './totp-service'
 import {
   AuthResponse,
   AuthUser,
@@ -33,15 +33,15 @@ function generateToken(user: AuthUser): string {
   )
 }
 
-function generateTempToken(userId: string, email: string): string {
-  return jwt.sign({ userId, email, purpose: 'mfa' }, JWT_SECRET, { expiresIn: TEMP_TOKEN_EXPIRES_IN })
+function generateTempToken(userId: string, email: string, secret?: string): string {
+  return jwt.sign({ userId, email, secret, purpose: 'mfa' }, JWT_SECRET, { expiresIn: TEMP_TOKEN_EXPIRES_IN })
 }
 
-function verifyTempToken(token: string): { userId: string; email: string } {
+function verifyTempToken(token: string): { userId: string; email: string; secret?: string } {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; purpose: string }
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; secret?: string; purpose: string }
     if (payload.purpose !== 'mfa') throw new AuthError(400, 'Token temporal invalido.')
-    return { userId: payload.userId, email: payload.email }
+    return { userId: payload.userId, email: payload.email, secret: payload.secret }
   } catch (err) {
     if (err instanceof AuthError) throw err
     throw new AuthError(400, 'Token temporal invalido o expirado.')
@@ -73,13 +73,29 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
 
+  let totpSecret: string
+  let qrCodeUri: string
+  let isNewSetup: boolean
+
   if (!user.totpSecret) {
-    const { secret, qrCodeUri } = await getOrCreateTotpSecret(user.id, user.email)
-    const tempToken = generateTempToken(user.id, user.email)
-    return { status: 'TOTP_SETUP_REQUIRED', tempToken, secret, qrCodeUri, email: user.email }
+    const result = await generateTotpSecret(user.email)
+    totpSecret = result.secret
+    qrCodeUri = result.qrCodeUri
+    isNewSetup = true
+  } else {
+    const existing = await getExistingTotpSecret(user.id, user.email)
+    if (!existing) throw new AuthError(500, 'Error al recuperar configuracion TOTP.')
+    totpSecret = existing.secret
+    qrCodeUri = existing.qrCodeUri
+    isNewSetup = false
   }
 
-  const tempToken = generateTempToken(user.id, user.email)
+  const tempToken = generateTempToken(user.id, user.email, totpSecret)
+
+  if (isNewSetup) {
+    return { status: 'TOTP_SETUP_REQUIRED', tempToken, secret: totpSecret, qrCodeUri, email: user.email }
+  }
+
   return { status: 'MFA_PENDING', tempToken, email: user.email }
 }
 
@@ -89,12 +105,17 @@ export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const parsed = verifyOtpSchema.parse(input)
   const { email, tempToken, code } = parsed
 
-  const { userId } = verifyTempToken(tempToken)
+  const { userId, secret } = verifyTempToken(tempToken)
+  if (!secret) throw new AuthError(400, 'Configuracion TOTP no encontrada. Vuelve a iniciar sesion.')
 
-  await verifyTotpCode(userId, code)
+  await verifyTotpCode(secret, code)
 
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user || user.status === 'inactive') throw new AuthError(403, 'Cuenta no disponible.')
+
+  if (!user.totpSecret) {
+    await saveTotpSecret(userId, secret)
+  }
 
   const authUser = await buildAuthUser(user)
   const token = generateToken(authUser)
