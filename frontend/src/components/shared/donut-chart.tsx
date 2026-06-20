@@ -7,7 +7,7 @@ interface DonutChartProps {
   title?: string
 }
 
-const renderLabel = ({ percent }: { percent: number }) => `${(percent * 100).toFixed(0)}%`
+const renderLabel = ({ percent }: { percent?: number }) => `${((percent ?? 0) * 100).toFixed(0)}%`
 
 export function DonutChart({ data, title }: DonutChartProps) {
   const total = data.reduce((s, d) => s + d.value, 0)
