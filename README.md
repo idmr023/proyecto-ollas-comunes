@@ -29,7 +29,19 @@ proyecto-ollas-comunes/
 ├── backend/           → Express + TypeScript + Supabase
 ├── supabase/          → Migraciones SQL versionadas
 ├── docs/              → Documentación técnica del equipo
-└── README.md          → Este archivo
+│   ├── ARGUMENTACION_PROYECTO.md   → Argumentación completa para sustentación
+│   ├── reporte_pruebas_funcionales.html   → Reporte funcional (ISO 25010)
+│   ├── reporte_pruebas_integracion.html   → Reporte de integración
+│   ├── reporte_pruebas_usabilidad.html    → Reporte de usabilidad
+│   ├── reporte_usabilidad_lighthouse.html → Reporte Lighthouse
+│   ├── reporte_seguridad_web.html         → Reporte de seguridad
+│   ├── screenshots/                      → Capturas de ejecución
+│   └── ... (documentación adicional)
+├── test-reporter.cjs      → Generador de reportes de prueba
+├── run-usability-tests.mjs → Evaluación de usabilidad ISO 25010
+├── test-cloud.mjs         → Validación en plataforma cloud (nuevo)
+├── security-scan.cjs      → Escáner de seguridad automatizado
+└── README.md              → Este archivo
 ```
 
 ### Stack Tecnológico
@@ -39,8 +51,10 @@ proyecto-ollas-comunes/
 | **Frontend** | Next.js (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Sonner (notificaciones) |
 | **Backend** | Express.js, TypeScript, `@supabase/supabase-js` |
 | **Base de Datos** | PostgreSQL 15 vía Supabase |
-| **Autenticación** | Supabase Auth con JWT |
-| **Despliegue** | Vercel (frontend), Supabase (backend + BD) |
+| **Autenticación** | JWT + TOTP (admin) + Cloudflare Turnstile captcha (lideresas) |
+| **Despliegue** | Vercel (frontend) + Render (backend) + Supabase (BD + Storage) |
+| **Pruebas** | Vitest + Playwright + análisis de usabilidad ISO 25010 |
+| **Captcha** | Cloudflare Turnstile (nuevo en v2) |
 
 ---
 

@@ -1,45 +1,20 @@
+import { mobileRepository } from './repository'
 import { prisma } from '../../lib/prisma'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db: any = prisma
+const db = prisma
 
 export async function getMobileDashboard(tenantId: string, ollaId: string) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
 
   const [olla, stock, todayPlan, deliveries, beneficiaryCount, activeAlerts] =
     await Promise.all([
-      db.ollaComun.findFirst({
-        where: { id: ollaId, tenantId },
-        select: { id: true, name: true, estimatedDailyCapacity: true },
-      }),
-      db.inventoryStock.findMany({
-        where: { ollaId },
-        include: {
-          supplyItem: { select: { name: true, unit: true, category: { select: { name: true } } } },
-        },
-      }),
-      db.menuPlan.findFirst({
-        where: { ollaId, operationDate: today },
-        include: { recipe: { select: { name: true, estimatedServings: true } } },
-        orderBy: { createdAt: 'desc' },
-      }),
-      db.mealDelivery.findMany({
-        where: {
-          menuPlan: { ollaId, operationDate: today },
-        },
-        select: { totalRations: true },
-      }),
-      db.beneficiary.count({
-        where: { ollaId, tenantId, status: 'active' },
-      }),
-      db.alert.findMany({
-        where: { ollaId, tenantId, status: { in: ['open', 'in_progress'] } },
-        orderBy: { detectedAt: 'desc' },
-        take: 5,
-      }),
+      mobileRepository.getDashboardOlla(tenantId, ollaId),
+      mobileRepository.getStock(ollaId),
+      mobileRepository.getTodayMenuPlan(ollaId, today),
+      mobileRepository.getTodayDeliveries(ollaId, today),
+      mobileRepository.getBeneficiaryCount(tenantId, ollaId),
+      mobileRepository.getActiveAlerts(tenantId, ollaId),
     ])
 
   if (!olla) return null
@@ -200,9 +175,9 @@ export async function registerMealDelivery(
 
   const delivery = await db.mealDelivery.create({
     data: {
-      menuPlanId: planId || undefined,
+      menuPlanId: planId!,
       totalRations,
-      createdBy: payload.createdBy || undefined,
+      createdBy: payload.createdBy ?? null,
       deliveredAt: new Date(),
       details: {
         create: payload.beneficiaryIds.map((beneficiaryId: string) => ({

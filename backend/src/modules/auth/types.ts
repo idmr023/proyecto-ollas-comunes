@@ -3,6 +3,7 @@ export type UserRole = 'admin_municipal' | 'lideresa_olla' | 'supervisor' | 'ope
 export interface LoginInput {
   email: string
   password: string
+  captchaToken?: string
 }
 
 export interface RegisterInput {
@@ -38,6 +39,11 @@ export interface TotpSetupRequiredResponse {
   tempToken: string
   secret: string
   qrCodeUri: string
+  email: string
+}
+
+export interface CaptchaRequiredResponse {
+  status: 'CAPTCHA_REQUIRED'
   email: string
 }
 
