@@ -1,12 +1,11 @@
 {
-  "dependencies": {
-    "mammoth": "^1.12.0",
-    "pdf-parse": "^1.1.1"
-  },
   "scripts": {
     "security:scan": "node security-scan.cjs",
     "security:scan:zap": "node security-scan.cjs --zap",
     "test:report": "node test-reporter.cjs",
-    "test:coverage": "cd backend && npm run test:coverage"
+    "test:coverage": "cd backend && npm run test:coverage",
+    "test:cloud": "node test-cloud.mjs",
+    "test:usability": "node run-usability-tests.mjs",
+    "test:all": "node test-reporter.cjs && node run-usability-tests.mjs && node test-cloud.mjs"
   }
 }

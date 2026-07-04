@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/auth-store"
+import { CaptchaWidget } from "@/components/login/captcha-widget"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,18 +18,27 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email || !password) { toast.error("Completa todos los campos"); return }
+  const [captchaToken, setCaptchaToken] = useState("")
+  const [captchaRequired, setCaptchaRequired] = useState(false)
+  const [captchaEmail, setCaptchaEmail] = useState("")
+
+  const doLogin = useCallback(async (captcha?: string) => {
     setLoading(true)
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: captchaEmail || email, password, captchaToken: captcha }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.message ?? data.error ?? "Error al iniciar sesión"); return }
+
+      if (data.status === "CAPTCHA_REQUIRED") {
+        setCaptchaRequired(true)
+        setCaptchaEmail(data.email)
+        setLoading(false)
+        return
+      }
 
       if (data.status === "TOTP_SETUP_REQUIRED") {
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}&token=${encodeURIComponent(data.tempToken)}`)
@@ -44,7 +54,22 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }, [email, password, router, setAuth, setToken])
+  }, [email, password, captchaEmail, router, setAuth, setToken])
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) { toast.error("Completa todos los campos"); return }
+    await doLogin()
+  }, [email, password, doLogin])
+
+  const handleCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token)
+    doLogin(token)
+  }, [doLogin])
+
+  const handleCaptchaExpire = useCallback(() => {
+    setCaptchaToken("")
+  }, [])
 
   return (
     <div className="flex min-h-screen">
@@ -155,6 +180,15 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {captchaRequired && (
+              <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <p className="text-center text-sm text-amber-800">
+                  Verificación de seguridad requerida
+                </p>
+                <CaptchaWidget onToken={handleCaptchaToken} onExpire={handleCaptchaExpire} />
+              </div>
+            )}
 
             <div className="text-right">
               <button type="button" className="text-sm text-[#0F3821] underline" onClick={() => toast.info("Función próximamente")}>

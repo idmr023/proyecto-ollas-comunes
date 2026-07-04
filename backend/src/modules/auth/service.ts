@@ -8,9 +8,11 @@ import {
   verifyOtpSchema,
 } from './validators'
 import { generateTotpSecret, getExistingTotpSecret, saveTotpSecret, verifyTotpCode } from './totp-service'
+import { verifyCaptcha } from './captcha-service'
 import {
   AuthResponse,
   AuthUser,
+  CaptchaRequiredResponse,
   LoginInput,
   MfaPendingResponse,
   RegisterInput,
@@ -60,11 +62,11 @@ async function buildAuthUser(user: { id: string; email: string; fullName: string
   }
 }
 
-/* ── Step 1: email + password ────────────────────── */
+/* ── Step 1: email + password (+ captcha) ────────── */
 
-export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse> {
+export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse | CaptchaRequiredResponse> {
   const parsed = loginSchema.parse(input)
-  const { email, password } = parsed
+  const { email, password, captchaToken } = parsed
 
   const user = await prisma.appUser.findUnique({ where: { email } })
   if (!user) throw new AuthError(401, 'Credenciales invalidas.')
@@ -72,6 +74,19 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
 
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
+
+  if (user.role === 'lideresa_olla') {
+    if (!captchaToken) {
+      return { status: 'CAPTCHA_REQUIRED', email: user.email }
+    }
+    const captchaResult = await verifyCaptcha(captchaToken)
+    if (!captchaResult.success) {
+      throw new AuthError(400, 'Captcha invalido. Por favor, intenta de nuevo.')
+    }
+    const authUser = await buildAuthUser(user)
+    const token = generateToken(authUser)
+    return { user: authUser, token }
+  }
 
   let totpSecret: string
   let qrCodeUri: string
