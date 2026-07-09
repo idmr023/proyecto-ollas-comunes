@@ -1,54 +1,33 @@
+import { generateSecret, verify as verifyTotp } from 'otplib'
 import { prisma } from '../../lib/prisma'
 import { AuthError } from './errors'
-import { generateSecret, toKeyUri, verify, base32Encode, base32Decode } from '@digitalbazaar/totp'
 
-export async function generateTotpSecret(
-  email: string,
-): Promise<{ secret: string; qrCodeUri: string }> {
-  const { secret: secretBytes } = await generateSecret({ algorithm: 'SHA-1' })
-  const encodedSecret = base32Encode(secretBytes)
+const TOTP_SERVICE_NAME = 'SIGO-Ollas'
 
-  const qrCodeUri = toKeyUri({
-    type: 'totp',
-    secret: encodedSecret,
-    label: email,
-    issuer: 'SIGO-Ollas',
-    accountname: email,
-  })
+export async function getOrCreateTotpSecret(userId: string, email: string): Promise<{ secret: string; qrCodeUri: string }> {
+  const user = await prisma.appUser.findUnique({ where: { id: userId } })
+  if (!user) throw new AuthError(404, 'Usuario no encontrado.')
 
-  return { secret: encodedSecret, qrCodeUri }
-}
+  if (user.totpSecret) {
+    const qrCodeUri = `otpauth://totp/${encodeURIComponent(TOTP_SERVICE_NAME)}:${encodeURIComponent(email)}?secret=${user.totpSecret}&issuer=${encodeURIComponent(TOTP_SERVICE_NAME)}`
+    return { secret: user.totpSecret, qrCodeUri }
+  }
 
-export async function saveTotpSecret(userId: string, secret: string): Promise<void> {
+  const secret = generateSecret()
+  const qrCodeUri = `otpauth://totp/${encodeURIComponent(TOTP_SERVICE_NAME)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(TOTP_SERVICE_NAME)}`
+
   await prisma.appUser.update({
     where: { id: userId },
     data: { totpSecret: secret },
   })
+
+  return { secret, qrCodeUri }
 }
 
-export async function getExistingTotpSecret(
-  userId: string,
-  email: string,
-): Promise<{ secret: string; qrCodeUri: string } | null> {
+export async function verifyTotpCode(userId: string, code: string): Promise<void> {
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
-  if (!user?.totpSecret) return null
+  if (!user?.totpSecret) throw new AuthError(400, 'TOTP no configurado. Solicita un nuevo codigo.')
 
-  const qrCodeUri = toKeyUri({
-    type: 'totp',
-    secret: user.totpSecret,
-    label: email,
-    issuer: 'SIGO-Ollas',
-    accountname: email,
-  })
-
-  return { secret: user.totpSecret, qrCodeUri }
-}
-
-export async function verifyTotpCode(secret: string, code: string): Promise<void> {
-  const secretBytes = base32Decode(secret)
-  const isValid = await verify({ secret: secretBytes, token: code, delta: 2 })
-
-  if (!isValid) {
-    throw new AuthError(401, 'Código incorrecto.')
-  }
+  const result = await verifyTotp({ token: code, secret: user.totpSecret, epochTolerance: 60 })
+  if (!result.valid) throw new AuthError(401, 'Codigo incorrecto.')
 }

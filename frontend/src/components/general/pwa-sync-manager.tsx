@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { getMutations, deleteMutation, updateMutation, addFailedMutation, getFailedMutations } from '@/lib/indexed-db'
+import type { OfflineMutation } from '@/lib/indexed-db'
 
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
@@ -94,23 +95,148 @@ async function backupMutationToServer(mutation: { path: string; method: string; 
   }
 }
 
+async function rewriteDependentMutations(
+  mutations: OfflineMutation[],
+  startIndex: number,
+  tempId: string,
+  realId: string
+): Promise<void> {
+  for (let j = startIndex; j < mutations.length; j++) {
+    const sub = mutations[j]
+    let modified = false
+
+    if (sub.path.includes(tempId)) {
+      sub.path = sub.path.replaceAll(tempId, realId)
+      modified = true
+    }
+    if (sub.body) {
+      const bodyStr = JSON.stringify(sub.body)
+      if (bodyStr.includes(tempId)) {
+        sub.body = JSON.parse(bodyStr.replaceAll(tempId, realId))
+        modified = true
+      }
+    }
+    if (modified) await updateMutation(sub)
+  }
+}
+
+async function shouldDiscardByPath(
+  mutation: OfflineMutation,
+  failedTempId: string
+): Promise<boolean> {
+  return (
+    mutation.path.includes(failedTempId) &&
+    (mutation.method === 'PATCH' || mutation.method === 'DELETE')
+  )
+}
+
+async function discardDependentMutation(
+  mutation: OfflineMutation,
+  reason: string
+): Promise<void> {
+  await addFailedMutation(mutation, reason, 400)
+  await deleteMutation(mutation.id!)
+}
+
+async function scrubBodyReference(
+  mutation: OfflineMutation,
+  failedTempId: string
+): Promise<void> {
+  if (!mutation.body) return
+  if (!JSON.stringify(mutation.body).includes(failedTempId)) return
+
+  let modified = false
+  if (Array.isArray(mutation.body.beneficiaryIds)) {
+    mutation.body.beneficiaryIds = mutation.body.beneficiaryIds.filter(
+      (id: string) => id !== failedTempId
+    )
+    modified = true
+  }
+  if (JSON.stringify(mutation.body).includes(failedTempId)) {
+    mutation.body = JSON.parse(
+      JSON.stringify(mutation.body).replaceAll(failedTempId, 'deleted-offline')
+    )
+    modified = true
+  }
+  if (modified) await updateMutation(mutation)
+}
+
+async function discardDependentMutations(
+  mutations: OfflineMutation[],
+  startIndex: number,
+  failedTempId: string,
+  reason: string
+): Promise<void> {
+  for (let j = startIndex; j < mutations.length; j++) {
+    const sub = mutations[j]
+    if (await shouldDiscardByPath(sub, failedTempId)) {
+      await discardDependentMutation(sub, reason)
+      mutations.splice(j, 1)
+      j--
+      continue
+    }
+    await scrubBodyReference(sub, failedTempId)
+  }
+}
+
+type FailedHandlingResult = { retryable: boolean; progressed: boolean }
+
+async function handleFailedMutation(
+  mutation: OfflineMutation,
+  res: Response,
+  mutations: OfflineMutation[],
+  i: number
+): Promise<FailedHandlingResult> {
+  if (res.status === 401 || res.status === 403) {
+    console.warn('[PWA Sync] Error de autenticación. Deteniendo sincronización.')
+    window.dispatchEvent(new Event('pwa-sync-auth-required'))
+    return { retryable: false, progressed: false }
+  }
+
+  if (res.status < 400 || res.status >= 500) {
+    return { retryable: true, progressed: false }
+  }
+
+  const errBody = await res.json().catch(() => ({}))
+  const errMsg = errBody.message || `Error del servidor (${res.status})`
+  console.error('[PWA Sync] Error lógico descartable:', errMsg)
+
+  await addFailedMutation(mutation, errMsg, res.status)
+  await deleteMutation(mutation.id!)
+  backupMutationToServer({ ...mutation, errorMessage: errMsg, status: res.status })
+
+  if (mutation.tempId) {
+    console.warn(`[PWA Sync] Limpieza en cascada para ${mutation.tempId} fallido...`)
+    await discardDependentMutations(
+      mutations,
+      i + 1,
+      mutation.tempId,
+      'Cancelado por error en cascada: No se pudo registrar el beneficiario original.'
+    )
+  }
+
+  window.dispatchEvent(new Event('offline-failed-mutations-updated'))
+  return { retryable: false, progressed: true }
+}
+
 export default function PwaSyncManager() {
   const syncOfflineMutations = async () => {
-    // Verificar si estamos realmente online
     if (typeof navigator !== 'undefined' && !navigator.onLine) return
 
     const mutations = await getMutations()
     if (mutations.length === 0) return
 
-    console.log('[PWA Sync] Iniciando sincronización de', mutations.length, 'cambios en cola...');
+    console.log('[PWA Sync] Iniciando sincronización de', mutations.length, 'cambios en cola...')
 
-    let syncCompletedAny = false;
+    let syncCompletedAny = false
 
     for (let i = 0; i < mutations.length; i++) {
       const mutation = mutations[i]
       const url = `${apiBaseUrl}${mutation.path}`
+      let res: Response
+
       try {
-        const res = await fetch(url, {
+        res = await fetch(url, {
           method: mutation.method,
           headers: {
             'Content-Type': 'application/json',
@@ -118,126 +244,35 @@ export default function PwaSyncManager() {
           },
           body: mutation.body ? JSON.stringify(mutation.body) : undefined,
         })
-
-        if (res.ok) {
-          console.log('[PWA Sync] Sincronizado con éxito:', mutation.method, mutation.path)
-          
-          // Reescritura de IDs temporales (tempId) si es un POST exitoso
-          const responseData = await res.json().catch(() => ({}))
-          const realId = responseData.item?.id || responseData.delivery?.id || responseData.movement?.id
-          if (realId && mutation.tempId) {
-            console.log(`[PWA Sync] Reescritura de IDs: Reemplazando ${mutation.tempId} por ${realId}`)
-            // Buscar y actualizar el resto de mutaciones en cola
-            for (let j = i + 1; j < mutations.length; j++) {
-              const subMutation = mutations[j]
-              let modified = false
-              
-              // 1. Reemplazar en path
-              if (subMutation.path.includes(mutation.tempId)) {
-                subMutation.path = subMutation.path.replaceAll(mutation.tempId, realId)
-                modified = true
-              }
-              
-              // 2. Reemplazar en body
-              if (subMutation.body) {
-                let bodyStr = JSON.stringify(subMutation.body)
-                if (bodyStr.includes(mutation.tempId)) {
-                  bodyStr = bodyStr.replaceAll(mutation.tempId, realId)
-                  subMutation.body = JSON.parse(bodyStr)
-                  modified = true
-                }
-              }
-              
-              if (modified) {
-                await updateMutation(subMutation)
-              }
-            }
-          }
-
-          await deleteMutation(mutation.id!)
-          syncCompletedAny = true
-        } else {
-          console.warn('[PWA Sync] Error del servidor en mutación:', mutation.id, res.status)
-          
-          if (res.status === 401 || res.status === 403) {
-            console.warn('[PWA Sync] Error de autenticación. Deteniendo sincronización.')
-            // Disparar evento para alertar
-            window.dispatchEvent(new Event('pwa-sync-auth-required'))
-            break
-          } else if (res.status >= 400 && res.status < 500) {
-            const errBody = await res.json().catch(() => ({}))
-            const errMsg = errBody.message || `Error del servidor (${res.status})`
-            console.error('[PWA Sync] Error lógico descartable:', errMsg)
-            
-            // Registrar fallo en indexedDB
-            await addFailedMutation(mutation, errMsg, res.status)
-            await deleteMutation(mutation.id!)
-            // Backup del fallo al servidor
-            backupMutationToServer({ ...mutation, errorMessage: errMsg, status: res.status })
-            
-            // Limpieza en Cascada si la mutación tenía un tempId
-            if (mutation.tempId) {
-              console.warn(`[PWA Sync] Limpieza en cascada para ${mutation.tempId} fallido...`)
-              for (let j = i + 1; j < mutations.length; j++) {
-                const subMutation = mutations[j]
-                
-                // Si es edición o eliminación del recurso fallido, descartarlo
-                if (subMutation.path.includes(mutation.tempId) && (subMutation.method === 'PATCH' || subMutation.method === 'DELETE')) {
-                  console.warn(`[PWA Sync] Descartando mutación dependiente en path: ${subMutation.method} ${subMutation.path}`)
-                  await addFailedMutation(subMutation, `Cancelado por error en cascada: No se pudo registrar el beneficiario original.`, 400)
-                  await deleteMutation(subMutation.id!)
-                  
-                  // Removerlo de la cola en este ciclo
-                  mutations.splice(j, 1)
-                  j--
-                }
-                // Si es una entrega o movimiento que lo referencia en su body
-                else if (subMutation.body) {
-                  let bodyStr = JSON.stringify(subMutation.body)
-                  if (bodyStr.includes(mutation.tempId)) {
-                    let modified = false
-                    // Si contiene el ID temporal, intentar filtrar
-                    if (Array.isArray(subMutation.body.beneficiaryIds)) {
-                      subMutation.body.beneficiaryIds = subMutation.body.beneficiaryIds.filter((id: string) => id !== mutation.tempId)
-                      bodyStr = JSON.stringify(subMutation.body)
-                      modified = true
-                    }
-                    // Si tiene el tempId en otro campo del body o si ya se filtró, actualizar
-                    if (bodyStr.includes(mutation.tempId)) {
-                      bodyStr = bodyStr.replaceAll(mutation.tempId, "deleted-offline")
-                      subMutation.body = JSON.parse(bodyStr)
-                      modified = true
-                    }
-                    if (modified) {
-                      await updateMutation(subMutation)
-                    }
-                  }
-                }
-              }
-            }
-            
-            syncCompletedAny = true
-            // Despachar evento para alertar al banner que hay cambios fallidos
-            window.dispatchEvent(new Event('offline-failed-mutations-updated'))
-            continue
-          } else {
-            // 500 u otros errores temporales de servidor
-            break
-          }
-        }
       } catch (err) {
         console.error('[PWA Sync] Error de conexión durante sincronización:', err)
         break
       }
+
+      if (res.ok) {
+        console.log('[PWA Sync] Sincronizado con éxito:', mutation.method, mutation.path)
+        const responseData = await res.json().catch(() => ({}))
+        const realId = responseData.item?.id || responseData.delivery?.id || responseData.movement?.id
+
+        if (realId && mutation.tempId) {
+          console.log(`[PWA Sync] Reescritura de IDs: Reemplazando ${mutation.tempId} por ${realId}`)
+          await rewriteDependentMutations(mutations, i + 1, mutation.tempId, realId)
+        }
+
+        await deleteMutation(mutation.id!)
+        syncCompletedAny = true
+        continue
+      }
+
+      console.warn('[PWA Sync] Error del servidor en mutación:', mutation.id, res.status)
+      const { retryable, progressed } = await handleFailedMutation(mutation, res, mutations, i)
+      if (retryable) break
+      if (progressed) syncCompletedAny = true
     }
 
-    // Actualizar contadores locales
     updateLocalCounters()
-
-    // Despachar evento para actualizar el banner
     window.dispatchEvent(new Event('offline-mutations-updated'))
 
-    // Si se sincronizó al menos una mutación exitosamente, despachamos un evento para actualizar datos
     if (syncCompletedAny) {
       console.log('[PWA Sync] Despachando evento pwa-sync-completed para actualizar datos reactivamente.')
       window.dispatchEvent(new Event('pwa-sync-completed'))

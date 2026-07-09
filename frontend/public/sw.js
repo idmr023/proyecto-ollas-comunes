@@ -2,6 +2,11 @@ const CACHE_NAME = 'ollas-comunes-cache-v1';
 const PRECACHE_ASSETS = [
   '/login',
   '/login/otp',
+  '/file.svg',
+  '/globe.svg',
+  '/next.svg',
+  '/vercel.svg',
+  '/window.svg'
 ];
 
 // Instalar el Service Worker y almacenar en caché recursos estáticos básicos
@@ -10,7 +15,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Pre-caching critical assets');
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[Service Worker] Pre-caching failed:', err);
+        console.warn('[Service Worker] Pre-caching failed (some assets might not be available yet):', err);
       });
     }).then(() => self.skipWaiting())
   );
@@ -47,35 +52,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Fallback HTML mínimo para mostrar cuando no hay conexión ni caché
-  const OFFLINE_HTML = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sin conexión</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f0eb;color:#0F3821;text-align:center;padding:1rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#666;margin-bottom:2rem}.btn{background:#0F3821;color:#fff;border:none;padding:.75rem 2rem;border-radius:.5rem;font-size:1rem;cursor:pointer;text-decoration:none}</style></head><body><div><h1>Sin conexión</h1><p>No hay conexión a Internet.<br>Vuelve a intentarlo cuando tengas señal.</p><a class="btn" href="/login">Reintentar</a></div></body></html>`;
-
   event.respondWith(
-    (async () => {
-      try {
-        const response = await fetch(request);
+    fetch(request)
+      .then((response) => {
+        // Si la petición es exitosa y es de nuestro origen, clonar y guardar en caché para actualizaciones silenciosas
         if (response.status === 200 && url.origin === self.location.origin) {
           const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone)).catch(() => {});
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
         }
         return response;
-      } catch {
-        try {
-          const cachedResponse = await caches.match(request);
-          if (cachedResponse) return cachedResponse;
-          if (request.mode === 'navigate') {
-            const loginPage = await caches.match('/login');
-            if (loginPage) return loginPage;
+      })
+      .catch(() => {
+        // Si falla la red (offline), intentar responder con la caché
+        return caches.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
-        } catch {
-          // cache.match también falló
-        }
-        return new Response(OFFLINE_HTML, {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: new Headers({ 'Content-Type': 'text/html; charset=utf-8' }),
+          // Si es una navegación de página y no se encuentra en caché, devolvemos el cascarón del Login
+          if (request.mode === 'navigate') {
+            return caches.match('/login');
+          }
         });
-      }
-    })()
+      })
   );
 });

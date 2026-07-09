@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,14 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/auth-store';
-import { CaptchaWidget } from '@/components/login/captcha-widget';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
-
-function roleRedirect(role: string): string {
-  return role === 'admin_municipal' ? '/workspace/home' : '/mobile/inicio'
-}
 
 /* ── Step 1 schema ──────────────────────────── */
 const loginSchema = z.object({
@@ -50,12 +45,6 @@ export function LoginForm() {
   const [totpSecret, setTotpSecret] = useState('');
   const [qrCodeUri, setQrCodeUri] = useState('');
 
-  /* Captcha state */
-  const [captchaRequired, setCaptchaRequired] = useState(false);
-  const [captchaEmail, setCaptchaEmail] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [captchaPassword, setCaptchaPassword] = useState('');
-
   /* ── React Hook Form for Step 1 ── */
   const loginForm = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
   const { register, handleSubmit, formState: { errors } } = loginForm;
@@ -64,13 +53,14 @@ export function LoginForm() {
   const otpForm = useForm<OtpFormValues>({ resolver: zodResolver(otpSchema) });
   const { register: otpRegister, handleSubmit: otpHandleSubmit, formState: { errors: otpErrors } } = otpForm;
 
-  async function doLogin(email: string, password: string, captcha?: string) {
+  /* ── Step 1: email + password ── */
+  async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, captchaToken: captcha }),
+        body: JSON.stringify({ email: data.email, password: data.password }),
       });
       const json = await res.json();
 
@@ -78,19 +68,23 @@ export function LoginForm() {
         throw new Error(json.message ?? 'Credenciales inválidas.');
       }
 
-      if (json.status === 'CAPTCHA_REQUIRED') {
-        setCaptchaRequired(true);
-        setCaptchaEmail(json.email);
-        setCaptchaPassword(password);
-        setIsLoading(false);
-        return;
-      }
-
       if (json.status === 'TOTP_SETUP_REQUIRED') {
         setTempToken(json.tempToken);
         setMfaEmail(json.email);
-        setTotpSecret(json.secret);
-        setQrCodeUri(json.qrCodeUri);
+        // Segundo paso: pedir al backend que genere/persista el secret. Solo
+        // en este momento el secret se guarda en BD.
+        const setupRes = await fetch(`${API_BASE}/api/auth/totp/setup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tempToken: json.tempToken }),
+        });
+        if (!setupRes.ok) {
+          const err = await setupRes.json().catch(() => ({}));
+          throw new Error(err.message ?? 'No se pudo iniciar la configuración TOTP.');
+        }
+        const setup = await setupRes.json();
+        setTotpSecret(setup.secret);
+        setQrCodeUri(setup.qrCodeUri);
         setIsTotpSetup(true);
         setStep('otp');
         setIsLoading(false);
@@ -109,7 +103,7 @@ export function LoginForm() {
       if (json.token && json.user) {
         setAuth(json.user, json.token);
         toast.success('Sesión iniciada correctamente');
-        setTimeout(() => router.replace(roleRedirect(json.user.role)), 1200);
+        setTimeout(() => router.replace('/workspace/home'), 1200);
         return;
       }
 
@@ -119,16 +113,6 @@ export function LoginForm() {
       toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión.');
     }
   }
-
-  /* ── Step 1: email + password ── */
-  async function onSubmit(data: LoginFormValues) {
-    await doLogin(data.email, data.password)
-  }
-
-  const handleCaptchaToken = useCallback((token: string) => {
-    setCaptchaToken(token);
-    doLogin(captchaEmail, captchaPassword, token);
-  }, [captchaEmail, captchaPassword])
 
   /* ── Step 2: verify TOTP ── */
   async function onOtpSubmit(data: OtpFormValues) {
@@ -147,7 +131,7 @@ export function LoginForm() {
 
       setAuth(json.user, json.token);
       toast.success('Sesión iniciada correctamente');
-      setTimeout(() => router.replace(roleRedirect(json.user.role)), 1200);
+      setTimeout(() => router.replace('/workspace/home'), 1200);
     } catch (err) {
       setIsLoading(false);
       toast.error(err instanceof Error ? err.message : 'Error al verificar código.');
@@ -249,15 +233,6 @@ export function LoginForm() {
                   </div>
                   {errors.password && <p role="alert" className="text-xs text-destructive">{errors.password.message}</p>}
                 </div>
-
-                {captchaRequired && (
-                  <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-center text-sm text-amber-800">
-                      Verificación de seguridad requerida
-                    </p>
-                    <CaptchaWidget onToken={handleCaptchaToken} />
-                  </div>
-                )}
 
                 <Button type="submit" disabled={isLoading}
                   className="mt-1 h-12 md:h-11 w-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] transition-all">

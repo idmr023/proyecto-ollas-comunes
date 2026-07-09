@@ -17,13 +17,13 @@ export function toOlla(record: OllaRecord): Olla {
     id: record.id,
     code: record.code,
     name: record.name,
-    address: record.address ?? '',
+    address: record.address,
     latitude: record.latitude,
     longitude: record.longitude,
-    contactName: record.contactName ?? '',
-    contactPhone: record.contactPhone ?? '',
-    estimatedDailyCapacity: record.estimatedDailyCapacity ?? 50,
-    status: mapOllaStatus(record.status as OllaDatabaseStatus),
+    contactName: record.contactName,
+    contactPhone: record.contactPhone,
+    estimatedDailyCapacity: record.estimatedDailyCapacity,
+    status: mapOllaStatus(record.status),
     createdAt: record.createdAt ?? null,
   }
 }

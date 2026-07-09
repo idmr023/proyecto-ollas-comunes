@@ -151,42 +151,12 @@ export async function getAdminDashboard(tenantId: string) {
     take: 5
   })
 
-  // 4. Stock distribution for donut chart
-  const allStock = await prisma.inventoryStock.findMany({
-    where: { olla: { tenantId } },
-    select: { quantity: true }
-  })
-  let stockAdequate = 0, stockLow = 0, stockCritical = 0
-  for (const s of allStock) {
-    const q = Number(s.quantity)
-    if (q === 0) stockCritical++
-    else if (q < 5) stockLow++
-    else stockAdequate++
-  }
-
-  // 5. Beneficiary evolution (last 6 months)
-  const evolution: { month: string; count: number }[] = []
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date()
-    d.setMonth(d.getMonth() - i)
-    const start = new Date(d.getFullYear(), d.getMonth(), 1)
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
-    const count = await prisma.beneficiary.count({
-      where: { tenantId, registeredAt: { lte: end } }
-    })
-    evolution.push({ month: start.toLocaleString('es-PE', { month: 'short' }), count })
-  }
-
   return {
     kpis: {
       tenants: tenantsCount,
       ollas: ollasCount,
       beneficiaries: beneficiariesCount,
       supplyItems: supplyItemsCount,
-    },
-    charts: {
-      stockDistribution: { adequate: stockAdequate, low: stockLow, critical: stockCritical },
-      beneficiaryEvolution: evolution,
     },
     activities: alerts.map(a => ({
       id: a.id,
@@ -279,67 +249,6 @@ export async function getTenantAlerts(tenantId: string) {
     detectedAt: a.detectedAt.toISOString(),
     resolvedAt: a.resolvedAt ? a.resolvedAt.toISOString() : null
   }))
-}
-
-export async function getReportsSummary(tenantId: string, from?: string, to?: string, ollaId?: string) {
-  const dateFilter: any = {}
-  if (from || to) {
-    dateFilter.movementDate = {}
-    if (from) dateFilter.movementDate.gte = new Date(from)
-    if (to) dateFilter.movementDate.lte = new Date(to + "T23:59:59.999Z")
-  }
-
-  const ollaFilter: any = { tenantId }
-  if (ollaId) ollaFilter.id = ollaId
-
-  const [inMovements, outMovements, totalIncome, totalOutgoing, ollas, beneficiaries, deliveries] = await Promise.all([
-    prisma.inventoryMovement.count({ where: { ...dateFilter, movementType: "in", olla: { tenantId }, ...(ollaId ? { ollaId } : {}) } }),
-    prisma.inventoryMovement.count({ where: { ...dateFilter, movementType: "out", olla: { tenantId }, ...(ollaId ? { ollaId } : {}) } }),
-    prisma.inventoryMovement.aggregate({ _sum: { quantity: true }, where: { ...dateFilter, movementType: "in", olla: { tenantId }, ...(ollaId ? { ollaId } : {}) } }),
-    prisma.inventoryMovement.aggregate({ _sum: { quantity: true }, where: { ...dateFilter, movementType: "out", olla: { tenantId }, ...(ollaId ? { ollaId } : {}) } }),
-    prisma.ollaComun.findMany({ where: ollaFilter, select: { id: true, name: true } }),
-    prisma.beneficiary.count({ where: { tenantId, status: "active", ...(ollaId ? { ollaId } : {}) } }),
-    prisma.mealDelivery.count({
-      where: {
-        menuPlan: { olla: { tenantId } },
-        ...(ollaId ? { menuPlan: { ollaId } } : {}),
-        ...(from || to ? { deliveredAt: {
-          ...(from ? { gte: new Date(from) } : {}),
-          ...(to ? { lte: new Date(to + "T23:59:59.999Z") } : {}),
-        } } : {}),
-      }
-    }),
-  ])
-
-  const movementList = await prisma.inventoryMovement.findMany({
-    where: { ...dateFilter, olla: { tenantId }, ...(ollaId ? { ollaId } : {}) },
-    include: { olla: { select: { name: true } }, supplyItem: { select: { name: true, unit: true } } },
-    orderBy: { movementDate: "desc" },
-    take: 200,
-  })
-
-  return {
-    summary: {
-      ingresos: inMovements,
-      salidas: outMovements,
-      totalIngresado: Number(totalIncome._sum.quantity ?? 0),
-      totalEgresado: Number(totalOutgoing._sum.quantity ?? 0),
-      ollas: ollas.length,
-      beneficiarios: beneficiaries,
-      entregas: deliveries,
-    },
-    ollas: ollas,
-    movements: movementList.map(m => ({
-      id: m.id,
-      ollaName: m.olla.name,
-      supplyItemName: m.supplyItem.name,
-      unit: m.supplyItem.unit,
-      movementType: m.movementType,
-      quantity: Number(m.quantity),
-      movementDate: m.movementDate.toISOString(),
-      notes: m.notes,
-    })),
-  }
 }
 
 export async function updateTenantAlert(id: string, tenantId: string, status: string) {

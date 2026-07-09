@@ -10,6 +10,7 @@ import {
   supabaseHealthcheckTable,
 } from './lib/supabase'
 import { prisma, isPrismaConfigured } from './lib/prisma'
+import { resolveAllowedOrigins } from './lib/cors'
 import { requireAuth } from './lib/middleware/auth'
 import { authRouter } from './modules/auth/router'
 import { beneficiariesRouter } from './modules/beneficiaries/router'
@@ -35,26 +36,31 @@ const authLimiter = rateLimit({
   message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
 })
 
-// --- CORS ---
+// --- CORS (whitelist explícita, sin comodines) ---
 
-const rawAllowed = process.env.ALLOWED_ORIGINS
-if (rawAllowed) {
-  const allowed = rawAllowed.split(',').map((s) => s.trim()).filter(Boolean)
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true)
-        if (allowed.includes(origin)) return callback(null, true)
-        for (const a of allowed) {
-          if (a && origin.endsWith(a)) return callback(null, true)
-        }
-        callback(new Error('Not allowed by CORS'))
-      },
-    }),
+const NODE_ENV = process.env.NODE_ENV ?? 'development'
+const isProd = NODE_ENV === 'production'
+
+const allowedOrigins = resolveAllowedOrigins(isProd)
+
+if (isProd && allowedOrigins.length === 0) {
+  throw new Error(
+    'CORS misconfigured: ALLOWED_ORIGINS must be set in production. Refusing to start.'
   )
-} else {
-  app.use(cors())
 }
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (curl, server-to-server, healthchecks)
+      if (!origin) return callback(null, true)
+      if (allowedOrigins.includes(origin)) return callback(null, true)
+      callback(new Error(`Origin ${origin} not allowed by CORS`))
+    },
+    credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  })
+)
 
 app.use(express.json())
 

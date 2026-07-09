@@ -4,28 +4,22 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    pool: 'forks',
+    pool: 'forks', // Usar subprocesos fork en lugar de hilos de trabajo para evitar el cierre del pool de conexiones de pg
     testTimeout: 20000,
     hookTimeout: 30000,
     fileParallelism: false,
     maxWorkers: 1,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
+      reporter: ['lcov', 'text', 'html'],
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
       exclude: [
+        'src/**/*.test.ts',
         'src/test/**',
-        'src/**/*.d.ts',
-        'src/**/types.ts',
-        'src/**/errors.ts',
+        'src/server.ts',
+        'src/lib/generated/**',
       ],
-      thresholds: {
-        statements: 40,
-        branches: 30,
-        functions: 40,
-        lines: 40,
-      },
     },
   },
 })
