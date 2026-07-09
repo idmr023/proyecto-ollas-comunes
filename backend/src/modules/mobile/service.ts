@@ -1,403 +1,256 @@
-import { mobileRepository } from './repository'
-import { prisma } from '../../lib/prisma'
+import fs from "node:fs"
+import path from "node:path"
+import { prisma } from "../../lib/prisma"
+import { supabase } from "../../lib/supabase"
+import { mobileRepository } from "./repository"
 
-const db = prisma
-
-export async function getMobileDashboard(tenantId: string, ollaId: string) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const [olla, stock, todayPlan, deliveries, beneficiaryCount, activeAlerts] =
-    await Promise.all([
-      mobileRepository.getDashboardOlla(tenantId, ollaId),
-      mobileRepository.getStock(ollaId),
-      mobileRepository.getTodayMenuPlan(ollaId, today),
-      mobileRepository.getTodayDeliveries(ollaId, today),
-      mobileRepository.getBeneficiaryCount(tenantId, ollaId),
-      mobileRepository.getActiveAlerts(tenantId, ollaId),
-    ])
-
-  if (!olla) return null
-
-  const totalDelivered = deliveries.reduce((sum: number, d: any) => sum + d.totalRations, 0)
-  const totalStock = stock.reduce((sum: number, s: any) => sum + Number(s.quantity), 0)
-
-  const lowStockAlerts = stock
-    .filter((s: any) => Number(s.quantity) < 5)
-    .map((s: any) => ({
-      supplyItemName: s.supplyItem.name,
-      quantity: Number(s.quantity),
-      unit: s.supplyItem.unit,
-      categoryName: s.supplyItem.category?.name || 'General',
-    }))
-
-  return {
-    olla: { id: olla.id, name: olla.name },
-    summary: {
-      beneficiarios: beneficiaryCount,
-      stockTotal: totalStock,
-      menu: todayPlan
-        ? {
-            id: todayPlan.id,
-            dishName: todayPlan.dishName,
-            recipeName: todayPlan.recipe?.name || null,
-            status: todayPlan.status,
-            plannedServings: todayPlan.plannedServings,
-            maxServingsRemaining: Math.max(0, todayPlan.plannedServings - totalDelivered),
-          }
-        : null,
-      racionesEntregadas: totalDelivered,
-    },
-    stock: stock.map((s: any) => ({
-      supplyItemId: s.supplyItemId,
-      name: s.supplyItem.name,
-      quantity: Number(s.quantity),
-      unit: s.supplyItem.unit,
-      categoryName: s.supplyItem.category?.name || 'General',
-      updatedAt: s.updatedAt.toISOString(),
-    })),
-    lowStockAlerts,
-    alerts: activeAlerts.map((a: any) => ({
-      id: a.id,
-      alertType: a.alertType,
-      severity: a.severity,
-      message: a.message,
-      status: a.status,
-      detectedAt: a.detectedAt.toISOString(),
-    })),
-  }
-}
-
-export async function registerInventoryMovement(
-  tenantId: string,
-  ollaId: string,
-  payload: {
-    supplyItemId: string
-    movementType: string
-    quantity: number
-    sourceId?: string
-    notes?: string
-    createdBy?: string
-  },
-) {
-  if (!['in', 'out', 'adjustment', 'waste'].includes(payload.movementType)) {
-    throw new MobileServiceError(400, 'Tipo de movimiento inválido.')
-  }
-  if (!payload.quantity || payload.quantity <= 0) {
-    throw new MobileServiceError(400, 'La cantidad debe ser mayor a 0.')
-  }
-
-  const supplyItem = await db.supplyItem.findUnique({
-    where: { id: payload.supplyItemId },
-  })
-  if (!supplyItem) {
-    throw new MobileServiceError(404, 'Insumo no encontrado.')
-  }
-
-  const movement = await (prisma as any).inventoryMovement.create({
-    data: {
-      tenantId,
-      ollaId,
-      supplyItemId: payload.supplyItemId,
-      sourceId: payload.sourceId || undefined,
-      movementType: payload.movementType,
-      quantity: payload.quantity,
-      notes: payload.notes || undefined,
-      createdBy: payload.createdBy || undefined,
-      movementDate: new Date(),
-    },
-  })
-
-  await updateInventoryStock(ollaId, payload.supplyItemId, payload.movementType, payload.quantity)
-
-  return {
-    id: movement.id,
-    supplyItemId: movement.supplyItemId,
-    movementType: movement.movementType,
-    quantity: Number(movement.quantity),
-    movementDate: movement.movementDate.toISOString(),
-    notes: movement.notes,
-    supplyItemName: supplyItem.name,
-    unit: supplyItem.unit,
-  }
-}
-
-async function updateInventoryStock(
-  ollaId: string,
-  supplyItemId: string,
-  movementType: string,
-  quantity: number,
-) {
-  const existing = await db.inventoryStock.findUnique({
-    where: { ollaId_supplyItemId: { ollaId, supplyItemId } },
-  })
-
-  const currentQty = existing ? Number(existing.quantity) : 0
-
-  let newQty: number
-  if (movementType === 'in' || movementType === 'adjustment') {
-    newQty = currentQty + quantity
-  } else {
-    newQty = Math.max(0, currentQty - quantity)
-  }
-
-  await db.inventoryStock.upsert({
-    where: { ollaId_supplyItemId: { ollaId, supplyItemId } },
-    create: { ollaId, supplyItemId, quantity: newQty },
-    update: { quantity: newQty, updatedAt: new Date() },
-  })
-}
-
-export async function registerMealDelivery(
-  ollaId: string,
-  payload: {
-    beneficiaryIds: string[]
-    totalRations?: number
-    dishName?: string
-    createdBy?: string
-  },
-) {
-  if (!payload.beneficiaryIds || payload.beneficiaryIds.length === 0) {
-    throw new MobileServiceError(400, 'Debe seleccionar al menos un beneficiario para la entrega.')
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const menuPlan = await db.menuPlan.findFirst({
-    where: { ollaId, operationDate: today },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  const planId = menuPlan?.id
-
-  const totalRations = payload.totalRations || payload.beneficiaryIds.length
-
-  const delivery = await db.mealDelivery.create({
-    data: {
-      menuPlanId: planId!,
-      totalRations,
-      createdBy: payload.createdBy ?? null,
-      deliveredAt: new Date(),
-      details: {
-        create: payload.beneficiaryIds.map((beneficiaryId: string) => ({
-          beneficiaryId,
-          rationType: 'regular',
-        })),
-      },
-    },
-  })
-
-  const detailRecords = await db.mealDeliveryDetail.findMany({
-    where: { deliveryId: delivery.id },
-    select: { beneficiaryId: true },
-  })
-
-  return {
-    id: delivery.id,
-    deliveredAt: delivery.deliveredAt.toISOString(),
-    totalRations: delivery.totalRations,
-    beneficiaryCount: detailRecords.length,
-    dishName: payload.dishName || menuPlan?.dishName || 'Menú del día',
-    beneficiaries: detailRecords.map((d: any) => d.beneficiaryId),
-  }
-}
-
-export async function executeMenuPlan(
-  tenantId: string,
-  ollaId: string,
-  payload: {
-    dishName: string
-    servings: number
-    recipeId?: string
-    createdBy?: string
-  },
-) {
-  if (!payload.dishName || payload.dishName.trim().length === 0) {
-    throw new MobileServiceError(400, 'El nombre del plato es obligatorio.')
-  }
-  if (!payload.servings || payload.servings <= 0) {
-    throw new MobileServiceError(400, 'La cantidad de raciones debe ser mayor a 0.')
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const existing = await db.menuPlan.findFirst({
-    where: { ollaId, operationDate: today },
-  })
-
-  if (existing) {
-    const updated = await db.menuPlan.update({
-      where: { id: existing.id },
-      data: {
-        dishName: payload.dishName,
-        plannedServings: payload.servings,
-        recipeId: payload.recipeId || null,
-        status: 'approved',
-        suggestedByType: 'ia',
-      },
-    })
+export async function getDashboard(tenantId: string) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) {
     return {
-      id: updated.id,
-      dishName: updated.dishName,
-      plannedServings: updated.plannedServings,
-      status: updated.status,
-      operationDate: updated.operationDate.toISOString().split('T')[0],
+      olla: null,
+      summary: { planificadas: 0, entregadas: 0 },
+      expiring: [],
     }
   }
 
-  const plan = await db.menuPlan.create({
-    data: {
-      ollaId,
-      dishName: payload.dishName,
-      plannedServings: payload.servings,
-      recipeId: payload.recipeId || null,
-      suggestedByType: 'ia',
-      createdBy: payload.createdBy || null,
-      status: 'approved',
-      operationDate: today,
-    },
-  })
+  const [summary, expiring] = await Promise.all([
+    mobileRepository.getDailySummary(olla.id),
+    mobileRepository.getExpiringItems(olla.id),
+  ])
 
-  return {
-    id: plan.id,
-    dishName: plan.dishName,
-    plannedServings: plan.plannedServings,
-    status: plan.status,
-    operationDate: plan.operationDate.toISOString().split('T')[0],
-  }
+  return { olla, summary, expiring }
 }
 
-export async function getMobileSuggestions(tenantId: string, ollaId: string) {
-  const recommendations = await db.recommendation.findMany({
-    where: { tenantId, ollaId, status: 'pending' },
-    include: {
-      relatedRecipe: { select: { name: true, estimatedServings: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 10,
+export async function getInventory(tenantId: string) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) return { items: [], categories: [] }
+
+  const [items, categories] = await Promise.all([
+    mobileRepository.getInventory(olla.id),
+    mobileRepository.getSupplyCategories(),
+  ])
+
+  return { items, categories }
+}
+
+export async function createMovement(tenantId: string, userId: string, payload: unknown) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) {
+    throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
+  }
+
+  const data = payload as Record<string, unknown>
+  if (!data.supplyItemId || !data.movementType || !data.quantity) {
+    throw Object.assign(new Error("Faltan campos obligatorios: supplyItemId, movementType, quantity."), {
+      statusCode: 400,
+    })
+  }
+
+  const quantity = Number(data.quantity)
+  if (Number.isNaN(quantity) || quantity <= 0) {
+    throw Object.assign(new Error("La cantidad debe ser un número positivo."), { statusCode: 400 })
+  }
+
+  const validTypes = ["in", "out", "adjustment", "waste"]
+  if (!validTypes.includes(data.movementType as string)) {
+    throw Object.assign(new Error("Tipo de movimiento inválido."), { statusCode: 400 })
+  }
+
+  const movement = await mobileRepository.createMovement({
+    tenantId,
+    ollaId: olla.id,
+    supplyItemId: data.supplyItemId as string,
+    movementType: data.movementType as string,
+    quantity,
+    notes: (data.notes as string) ?? undefined,
+    createdBy: userId,
   })
 
-  const expiringStock = await db.inventoryStock.findMany({
-    where: { ollaId, quantity: { lt: 5, gt: 0 } },
-    include: {
-      supplyItem: { select: { name: true, unit: true, isPerishable: true } },
-    },
-  })
+  return movement
+}
 
+export async function getAlerts(tenantId: string) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) return { items: [] }
+
+  const alerts = await mobileRepository.getAlerts(olla.id)
   return {
-    recommendations: recommendations.map((r: any) => ({
-      id: r.id,
-      type: r.recommendationType,
-      title: r.title,
-      description: r.description,
-      recipeName: r.relatedRecipe?.name || null,
-      servings: r.relatedRecipe?.estimatedServings || null,
-      status: r.status,
-      createdAt: r.createdAt.toISOString(),
+    items: alerts.map((a) => ({
+      id: a.id,
+      tipo: mapAlertType(a.alertType),
+      titulo: a.message.split("—")[0]?.trim() ?? a.message,
+      descripcion: a.message,
+      fecha: formatRelativeDate(a.detectedAt),
     })),
-    expiringStock: expiringStock.map((s: any) => ({
-      supplyItemId: s.supplyItemId,
-      name: s.supplyItem.name,
-      quantity: Number(s.quantity),
-      unit: s.supplyItem.unit,
-      isPerishable: s.supplyItem.isPerishable,
+  }
+}
+
+export async function getSuggestions(tenantId: string) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) return { items: [] }
+
+  const suggestions = await mobileRepository.getSuggestions(tenantId, olla.id)
+  return {
+    items: suggestions.map((s, i) => ({
+      id: String(i + 1),
+      nombre: s.nombre,
+      puntaje: s.puntaje,
+      ingredientes: s.ingredientes,
+      recipeIngredients: s.recipeIngredients,
     })),
   }
 }
 
-export async function getMobileAlerts(tenantId: string, ollaId: string) {
-  const alerts = await db.alert.findMany({
-    where: { tenantId, ollaId },
-    orderBy: { detectedAt: 'desc' },
-    take: 20,
-  })
-
-  return alerts.map((a: any) => ({
-    id: a.id,
-    alertType: a.alertType,
-    severity: a.severity,
-    message: a.message,
-    status: a.status,
-    detectedAt: a.detectedAt.toISOString(),
-    resolvedAt: a.resolvedAt ? a.resolvedAt.toISOString() : null,
-  }))
+function mapAlertType(type: string): string {
+  const map: Record<string, string> = {
+    low_stock: "bajo_stock",
+    unusual_consumption: "general",
+    missing_daily_report: "sincronizacion",
+    high_priority_beneficiary: "general",
+  }
+  return map[type] ?? "general"
 }
 
-export async function resolveMobileAlert(alertId: string, ollaId: string) {
-  const alert = await db.alert.findFirst({
-    where: { id: alertId, ollaId },
-  })
-
-  if (!alert) {
-    throw new MobileServiceError(404, 'Alerta no encontrada.')
-  }
-
-  const updated = await db.alert.update({
-    where: { id: alertId },
-    data: { status: 'resolved', resolvedAt: new Date() },
-  })
-
-  return {
-    id: updated.id,
-    alertType: updated.alertType,
-    severity: updated.severity,
-    message: updated.message,
-    status: updated.status,
-    detectedAt: updated.detectedAt.toISOString(),
-    resolvedAt: updated.resolvedAt ? updated.resolvedAt.toISOString() : null,
-  }
+function formatRelativeDate(date: Date): string {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  if (hours < 1) return "Ahora"
+  if (hours < 24) return `Hace ${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "Ayer"
+  if (days < 7) return `Hace ${days} días`
+  return date.toLocaleDateString("es-PE", { day: "numeric", month: "short" })
 }
 
-export async function uploadMobileDocument(
-  tenantId: string,
-  ollaId: string,
-  payload: {
+export async function registerMealDelivery(tenantId: string, userId: string, payload: unknown) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) {
+    throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
+  }
+
+  const data = payload as Record<string, unknown>
+  const beneficiaryIds = Array.isArray(data.beneficiaryIds) ? (data.beneficiaryIds as string[]) : []
+  const totalRations = Number(data.totalRations) || beneficiaryIds.length
+  const dishName = (data.dishName as string) ?? undefined
+
+  if (totalRations <= 0) {
+    throw Object.assign(new Error("La cantidad de raciones debe ser mayor a 0."), { statusCode: 400 })
+  }
+
+  const delivery = await mobileRepository.createMealDelivery({
+    tenantId,
+    ollaId: olla.id,
+    userId,
+    beneficiaryIds,
+    totalRations,
+    dishName,
+  })
+
+  return delivery
+}
+
+export async function runMenuPlanExecution(tenantId: string, userId: string, payload: unknown) {
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  if (!olla) {
+    throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
+  }
+
+  const data = payload as Record<string, unknown>
+  if (!data.dishName) {
+    throw Object.assign(new Error("El nombre del plato es obligatorio."), { statusCode: 400 })
+  }
+
+  const servings = Number(data.servings)
+  if (Number.isNaN(servings) || servings <= 0) {
+    throw Object.assign(new Error("La cantidad de raciones debe ser un número positivo."), { statusCode: 400 })
+  }
+
+  const recipeId = (data.recipeId as string) ?? undefined
+  const recipeIngredients = (data.recipeIngredients as { supplyItemId: string; quantity: number }[]) ?? undefined
+
+  const plan = await mobileRepository.executeMenuPlan({
+    tenantId,
+    ollaId: olla.id,
+    userId,
+    recipeId,
+    dishName: data.dishName as string,
+    servings,
+    recipeIngredients,
+  })
+
+  return plan
+}
+
+export async function uploadDocument(tenantId: string, userId: string, payload: unknown) {
+  const data = payload as {
+    fileName: string
+    fileType: string
     documentType: string
     title: string
-    fileUrl: string
     description?: string
-    uploadedBy?: string
-  },
-) {
-  if (!payload.title || !payload.fileUrl) {
-    throw new MobileServiceError(400, 'Título y URL del archivo son obligatorios.')
+    base64Data: string
   }
 
-  const validDocTypes = ['evidence', 'report', 'acta', 'photo', 'other']
-  if (payload.documentType && !validDocTypes.includes(payload.documentType)) {
-    throw new MobileServiceError(400, 'Tipo de documento inválido.')
+  if (!data.fileName || !data.base64Data || !data.documentType || !data.title) {
+    throw Object.assign(new Error("Faltan campos obligatorios: fileName, base64Data, documentType, title."), {
+      statusCode: 400,
+    })
   }
 
-  const doc = await db.document.create({
+  const olla = await mobileRepository.getUserOlla(tenantId)
+  const ollaId = olla?.id || null
+
+  const base64Clean = data.base64Data.replace(/^data:image\/\w+;base64,/, "")
+  const fileBuffer = Buffer.from(base64Clean, "base64")
+
+  const uniqueFileName = `${Date.now()}-${data.fileName}`
+  let fileUrl = ""
+
+  if (supabase) {
+    try {
+      const { data: uploadData, error } = await supabase.storage
+        .from("evidences")
+        .upload(`${tenantId}/${uniqueFileName}`, fileBuffer, {
+          contentType: data.fileType || "image/jpeg",
+          upsert: true,
+        })
+
+      if (!error && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from("evidences")
+          .getPublicUrl(`${tenantId}/${uniqueFileName}`)
+        
+        fileUrl = urlData?.publicUrl || ""
+      }
+    } catch (e) {
+      console.warn("[supabase storage] Failed upload, falling back to local files:", e)
+    }
+  }
+
+  if (!fileUrl) {
+    const uploadDir = path.join(__dirname, "../../../../../frontend/public/uploads")
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+    }
+
+    const localFilePath = path.join(uploadDir, uniqueFileName)
+    fs.writeFileSync(localFilePath, fileBuffer)
+    fileUrl = `http://localhost:3000/uploads/${uniqueFileName}`
+  }
+
+  const doc = await prisma.document.create({
     data: {
       tenantId,
       ollaId,
-      documentType: (payload.documentType as any) || 'evidence',
-      title: payload.title,
-      fileUrl: payload.fileUrl,
-      description: payload.description || null,
-      uploadedBy: payload.uploadedBy || null,
+      uploadedBy: userId,
+      documentType: data.documentType,
+      title: data.title,
+      fileUrl,
+      description: data.description || null,
     },
   })
 
-  return {
-    id: doc.id,
-    title: doc.title,
-    documentType: doc.documentType,
-    fileUrl: doc.fileUrl,
-    description: doc.description,
-    uploadedAt: doc.uploadedAt.toISOString(),
-  }
-}
-
-export class MobileServiceError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string,
-  ) {
-    super(message)
-    this.name = 'MobileServiceError'
-  }
+  return doc
 }

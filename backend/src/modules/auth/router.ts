@@ -1,7 +1,7 @@
 import { Router, Response } from 'express'
 import { requireAuth } from '../../lib/middleware/auth'
 import { AuthError } from './errors'
-import { login, register, getMe, verifyOtp, updateProfile } from './service'
+import { login, register, getMe, verifyOtp, updateProfile, setupTotp } from './service'
 import { ZodError } from 'zod'
 
 const authRouter = Router()
@@ -33,6 +33,17 @@ function handleError(error: unknown, response: Response) {
 authRouter.post('/login', async (request, response) => {
   try {
     const result = await login(request.body)
+    response.json({ ok: true, ...result })
+  } catch (error) {
+    handleError(error, response)
+  }
+})
+
+// POST /api/auth/totp/setup — recibe el tempToken del paso 1 y genera/persiste
+// el TOTP secret en BD, devolviendo el QR. Es idempotente.
+authRouter.post('/totp/setup', async (request, response) => {
+  try {
+    const result = await setupTotp(request.body)
     response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)

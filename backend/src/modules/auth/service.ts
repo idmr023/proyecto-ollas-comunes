@@ -5,24 +5,25 @@ import { AuthError } from './errors'
 import {
   loginSchema,
   registerSchema,
+  totpSetupSchema,
   verifyOtpSchema,
 } from './validators'
-import { generateTotpSecret, getExistingTotpSecret, saveTotpSecret, verifyTotpCode } from './totp-service'
-import { verifyCaptcha } from './captcha-service'
+import { getOrCreateTotpSecret, verifyTotpCode } from './totp-service'
 import {
   AuthResponse,
   AuthUser,
-  CaptchaRequiredResponse,
   LoginInput,
   MfaPendingResponse,
   RegisterInput,
+  TotpSetupInput,
   TotpSetupRequiredResponse,
+  TotpSetupResponse,
   VerifyOtpInput,
 } from './types'
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback-secret'
 const JWT_EXPIRES_IN = '24h'
-const TEMP_TOKEN_EXPIRES_IN = '5m'
+const TEMP_TOKEN_EXPIRES_IN = '2m'
 const BCRYPT_ROUNDS = 10
 
 /* ── Utilities ───────────────────────────────────── */
@@ -35,15 +36,15 @@ function generateToken(user: AuthUser): string {
   )
 }
 
-function generateTempToken(userId: string, email: string, secret?: string): string {
-  return jwt.sign({ userId, email, secret, purpose: 'mfa' }, JWT_SECRET, { expiresIn: TEMP_TOKEN_EXPIRES_IN })
+function generateTempToken(userId: string, email: string): string {
+  return jwt.sign({ userId, email, purpose: 'mfa' }, JWT_SECRET, { expiresIn: TEMP_TOKEN_EXPIRES_IN })
 }
 
-function verifyTempToken(token: string): { userId: string; email: string; secret?: string } {
+function verifyTempToken(token: string): { userId: string; email: string } {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; secret?: string; purpose: string }
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; purpose: string }
     if (payload.purpose !== 'mfa') throw new AuthError(400, 'Token temporal invalido.')
-    return { userId: payload.userId, email: payload.email, secret: payload.secret }
+    return { userId: payload.userId, email: payload.email }
   } catch (err) {
     if (err instanceof AuthError) throw err
     throw new AuthError(400, 'Token temporal invalido o expirado.')
@@ -62,11 +63,11 @@ async function buildAuthUser(user: { id: string; email: string; fullName: string
   }
 }
 
-/* ── Step 1: email + password (+ captcha) ────────── */
+/* ── Step 1: email + password ────────────────────── */
 
-export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse | CaptchaRequiredResponse> {
+export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse> {
   const parsed = loginSchema.parse(input)
-  const { email, password, captchaToken } = parsed
+  const { email, password } = parsed
 
   const user = await prisma.appUser.findUnique({ where: { email } })
   if (!user) throw new AuthError(401, 'Credenciales invalidas.')
@@ -75,43 +76,30 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
 
-  if (user.role === 'lideresa_olla') {
-    if (!captchaToken) {
-      return { status: 'CAPTCHA_REQUIRED', email: user.email }
-    }
-    const captchaResult = await verifyCaptcha(captchaToken)
-    if (!captchaResult.success) {
-      throw new AuthError(400, 'Captcha invalido. Por favor, intenta de nuevo.')
-    }
-    const authUser = await buildAuthUser(user)
-    const token = generateToken(authUser)
-    return { user: authUser, token }
-  }
-
-  let totpSecret: string
-  let qrCodeUri: string
-  let isNewSetup: boolean
-
   if (!user.totpSecret) {
-    const result = await generateTotpSecret(user.email)
-    totpSecret = result.secret
-    qrCodeUri = result.qrCodeUri
-    isNewSetup = true
-  } else {
-    const existing = await getExistingTotpSecret(user.id, user.email)
-    if (!existing) throw new AuthError(500, 'Error al recuperar configuracion TOTP.')
-    totpSecret = existing.secret
-    qrCodeUri = existing.qrCodeUri
-    isNewSetup = false
+    // Sin side-effect: NO creamos/guardamos el secret aqui. Eso sucede en /api/auth/totp/setup,
+    // que el frontend llama solo cuando ya esta listo para mostrar el QR al usuario.
+    const tempToken = generateTempToken(user.id, user.email)
+    return { status: 'TOTP_SETUP_REQUIRED', tempToken, email: user.email }
   }
 
-  const tempToken = generateTempToken(user.id, user.email, totpSecret)
-
-  if (isNewSetup) {
-    return { status: 'TOTP_SETUP_REQUIRED', tempToken, secret: totpSecret, qrCodeUri, email: user.email }
-  }
-
+  const tempToken = generateTempToken(user.id, user.email)
   return { status: 'MFA_PENDING', tempToken, email: user.email }
+}
+
+/* ── Step 1b: setup TOTP (crea/persiste el secret) ── */
+
+export async function setupTotp(input: TotpSetupInput): Promise<TotpSetupResponse> {
+  const parsed = totpSetupSchema.parse(input)
+  const { userId, email } = verifyTempToken(parsed.tempToken)
+
+  const user = await prisma.appUser.findUnique({ where: { id: userId } })
+  if (!user || user.status === 'inactive') throw new AuthError(403, 'Cuenta no disponible.')
+
+  // getOrCreateTotpSecret es idempotente: si el usuario ya tiene secret, devuelve ese mismo.
+  // La persistencia ocurre aqui, no en /login.
+  const { secret, qrCodeUri } = await getOrCreateTotpSecret(user.id, user.email)
+  return { secret, qrCodeUri, email }
 }
 
 /* ── Step 2: TOTP code → JWT ────────────────────── */
@@ -120,17 +108,12 @@ export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const parsed = verifyOtpSchema.parse(input)
   const { email, tempToken, code } = parsed
 
-  const { userId, secret } = verifyTempToken(tempToken)
-  if (!secret) throw new AuthError(400, 'Configuracion TOTP no encontrada. Vuelve a iniciar sesion.')
+  const { userId } = verifyTempToken(tempToken)
 
-  await verifyTotpCode(secret, code)
+  await verifyTotpCode(userId, code)
 
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user || user.status === 'inactive') throw new AuthError(403, 'Cuenta no disponible.')
-
-  if (!user.totpSecret) {
-    await saveTotpSecret(userId, secret)
-  }
 
   const authUser = await buildAuthUser(user)
   const token = generateToken(authUser)

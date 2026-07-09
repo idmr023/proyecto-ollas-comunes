@@ -8,7 +8,7 @@ async function test() {
     process.exit(1)
   }
 
-  const masked = url.replace(/:\/\/.*?:.*?@/, '://user:****@')
+  const masked = url.replace(/:\/\/[^/\s:@]+:[^/\s:@]+@/, '://user:****@')
   console.log('Probando conexion a:', masked)
 
   const adapter = new PrismaPg({ connectionString: url, ssl: true })

@@ -9,7 +9,6 @@ import {
   Users,
   Package,
   BarChart3,
-  FileText,
   UserCog,
   Bell,
   Settings,
@@ -61,7 +60,6 @@ const navMain = [
   {
     label: "Gestión",
     items: [
-      { title: "Reportes", href: "/workspace/reportes", icon: FileText },
       { title: "Alertas", href: "/workspace/alertas", icon: Bell },
       { title: "Configuración", href: "/workspace/configuracion", icon: Settings },
     ],

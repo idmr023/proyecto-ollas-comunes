@@ -4,6 +4,7 @@ export type OllaStatus = 'Activa' | 'Inactiva'
 
 export interface OllaRecord {
   id: string
+  tenantId: string
   code: string
   name: string
   address: string | null
@@ -12,20 +13,30 @@ export interface OllaRecord {
   contactName: string | null
   contactPhone: string | null
   estimatedDailyCapacity: number | null
-  status: string
-  createdAt: Date | null
+  status: OllaDatabaseStatus
+  createdAt: string
 }
 
 export interface Olla {
   id: string
   code: string
   name: string
-  address: string
+  address: string | null
   latitude: number | null
   longitude: number | null
-  contactName: string
-  contactPhone: string
-  estimatedDailyCapacity: number
+  contactName: string | null
+  contactPhone: string | null
+  estimatedDailyCapacity: number | null
   status: OllaStatus
-  createdAt: Date | null
+  createdAt: string | null
+}
+
+export interface OllaPayload {
+  name: string
+  address?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  contactName?: string | null
+  contactPhone?: string | null
+  estimatedDailyCapacity?: number | null
 }
