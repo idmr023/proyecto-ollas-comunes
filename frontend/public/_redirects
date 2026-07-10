@@ -1,0 +1,8 @@
+/    /login    302
+/workspace    /workspace/home    302
+/mobile    /mobile/inicio    302
+
+# Wildcards para rutas dinámicas [slug] con static export:
+# Next.js solo pre-renderiza el placeholder `_`; Cloudflare sirve ese HTML
+# para cualquier slug y el router del cliente lee el slug real de la URL.
+/workspace/organizaciones/*    /workspace/organizaciones/_    200
