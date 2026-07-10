@@ -518,7 +518,70 @@ Tres archivos usaban `<label>` raw sin `htmlFor`, y los `<input>` adyacentes car
 
 ---
 
-## 8. Recomendaciones / Trabajo Futuro
+## 8. Mejora de Cobertura del Backend (2026-07-10)
+
+Tras la segunda tanda, la métrica de SonarQube seguía mostrando **0.2%** de cobertura en el proyecto. La causa raíz: solo `cors.test.ts` se ejecuta sin DB; `functional.test.ts` y `integration.test.ts` cargan los módulos pero su setup falla sin Supabase, así que ningún `LH` se incrementa. La solución: añadir tests unitarios con `vi.mock` sobre `lib/prisma.ts` que ejercen los módulos sin tocar la BD.
+
+**Resultado:**
+
+| Métrica | Antes | Después |
+|---|---|---|
+| Cobertura global (`sonar.javascript.lcov.reportPaths`) | 0.2% (6/2488) | **40.72%** (465/1142) |
+| Líneas cubiertas | 6 | 465 |
+| Tests pasando en backend | 5 (solo `cors.test.ts`) | 163 (`cors.test.ts` + 158 nuevos) |
+| Módulos al 100% | 1 (`lib/cors.ts`) | 14 |
+
+### 8.1 Estrategia de mocks
+
+Un único `vi.mock('../lib/prisma', factory)` al inicio de cada test crea `vi.fn()` para los modelos de Prisma. `vi.resetAllMocks()` en `beforeEach` deja la pizarra limpia entre tests. Para `mobile/service.ts` (que consume `mobileRepository`), se mockea el repositorio directamente — evita doble mock y deja la service testeable como caja blanca.
+
+Para `auth/service.ts` (que captura `JWT_SECRET` en una constante al cargar el módulo), se usa `vi.hoisted(() => { process.env.JWT_SECRET = 'unit-test-secret' })` para fijar la variable **antes** de la importación, evitando el mismatch entre el secret firmado y el verificado.
+
+### 8.2 Módulos al 100% tras la mejora
+
+`lib/cors.ts`, `lib/date-utils.ts`, `lib/supabase.ts`, `lib/middleware/auth.ts`, `modules/auth/errors.ts`, `modules/auth/validators.ts`, `modules/auth/totp-service.ts`, `modules/beneficiaries/errors.ts`, `modules/notifications/router.ts`, `modules/notifications/service.ts`, `modules/ollas-comunes/utils.ts`, `modules/organizations/errors.ts`, `modules/organizations/repository.ts`, `modules/organizations/utils.ts`.
+
+### 8.3 Módulos al >89%
+
+| Módulo | % | Notas |
+|---|---|---|
+| `modules/auth/service.ts` | 96.55% | faltan líneas 50, 173 (branches de error de Zod/bcrypt) |
+| `modules/organizations/service.ts` | 95.08% | faltan 3 branches poco frecuentes |
+| `modules/beneficiaries/repository.ts` | 94.59% | 2 líneas del bloque condicional `healthConditionIds` |
+| `modules/beneficiaries/service.ts` | 89.77% | branches de validación de género/status |
+
+### 8.4 Módulos aún sin cobertura (deliberado)
+
+- `src/app.ts`, `lib/prisma.ts`, `lib/email.ts`, `lib/repository.ts` (124 líneas, lógica de bootstrap no unit-testeable; ya excluidos en `sonar.coverage.exclusions` o validados por integration tests).
+- `modules/*/router.ts` (auth, beneficiaries, organizations, mobile/handleError parcial) — routers Express que requieren supertest con DB; se cubre con `functional.test.ts` y `integration.test.ts` cuando hay DB disponible.
+- `modules/mobile/repository.ts` (757 líneas) — orquestador de queries Prisma para dashboard/inventory/menu-plan; pendiente de mock más profundo o DB de testing.
+- `modules/ollas-comunes/*` (excepto `utils.ts`) — pendiente.
+
+### 8.5 Archivos creados (sin tocar los existentes)
+
+| Archivo | Tests | Cobertura añadida |
+|---|---|---|
+| `backend/src/test/unit-pure.test.ts` | 39 | utils, errors, validators, middleware (sin mocks) |
+| `backend/src/test/auth-unit.test.ts` | 30 | `auth/service` + `auth/totp-service` |
+| `backend/src/test/organizations-unit.test.ts` | 31 | `organizations/repository` + `service` |
+| `backend/src/test/beneficiaries-unit.test.ts` | 31 | `beneficiaries/repository` + `service` |
+| `backend/src/test/notifications-unit.test.ts` | 8 | `notifications/service` + `router` |
+| `backend/src/test/mobile-unit.test.ts` | 19 | `mobile/service` + `router.handleError` |
+
+### 8.6 Comandos de verificación
+
+```bash
+cd backend
+npx vitest run --coverage                                    # texto
+npx vitest run src/test/{unit-pure,auth-unit,...}-unit.test.ts \
+  src/test/cors.test.ts --coverage                            # subset
+```
+
+El lcov regenerado está en `backend/coverage/lcov.info` (gitignored). El escaneo `sonar-scanner` posterior a este commit debería reflejar el salto de 0.2% → 40.7% en el panel del proyecto.
+
+---
+
+## 9. Recomendaciones / Trabajo Futuro
 
 1. **Tests de integración para `app.ts`:** añadir un test E2E con `supertest` que arranque la app en memoria y verifique el comportamiento del middleware `cors()` (orígenes permitidos vs. rechazados, preflight OPTIONS). Hoy se valida solo por el test manual I-07 de la suite de integración.
 
