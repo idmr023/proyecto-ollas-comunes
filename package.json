@@ -1,5 +1,8 @@
 {
   "scripts": {
+    "build:cloudflare": "cd frontend && npm install && npm run build",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:backend": "cd backend && npm install && npm run build",
     "security:scan": "node security-scan.cjs",
     "security:scan:zap": "node security-scan.cjs --zap",
     "test:report": "node test-reporter.cjs",
