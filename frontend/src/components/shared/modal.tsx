@@ -18,11 +18,25 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
     return () => { document.body.style.overflow = "" }
   }, [isOpen])
 
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Cerrar modal"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose() } }}
+        className="absolute inset-0 bg-black/50 cursor-pointer"
+      />
       <div className={`relative z-10 w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">{title}</h2>

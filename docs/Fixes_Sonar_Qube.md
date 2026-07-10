@@ -425,7 +425,100 @@ Test Files  1 passed (1)
 
 ---
 
-## 7. Recomendaciones / Trabajo Futuro
+## 7. Segunda Tanda de Remediación (2026-07-09)
+
+Segunda pasada del escaneo SonarQube, enfocada a **code smells menores y code smells de accesibilidad** que no aparecieron (o no eran prioritarios) en la primera remediación. **48 issues → 0**, distribuidos en 16 archivos. Ningún cambio revierte trabajo previo: el refactor de `pwa-sync-manager.tsx` (complejidad 95→8) y el fix de `sort()`→`localeCompare` en `alertas`/`inventario` se preservan.
+
+### 7.1 Code smells mecánicos (17 issues, MINOR/CRITICAL)
+
+Mismas reglas que la primera tanda, aplicadas al resto del código:
+
+| Regla | # | Archivos | Cambio |
+|---|---|---|---|
+| `S7773` (parseInt/parseFloat/isNaN → Number.*) | 13 | `test-reporter.cjs`, `security-scan.cjs`, `pwa-sync-manager.tsx` (helper `detectDataLoss`, **no** el orquestador), `inventory-stepper.tsx`, `mobile/padron/page.tsx` | Reemplazo literal |
+| `S2871` (sort() sin localeCompare) | 2 | `use-unique-values.ts:13`, `security-scan.cjs:161` | `.sort((a,b) => a.localeCompare(b,'es',{sensitivity:'base'}))` — idéntico al patrón de §2.1 |
+| `S7723` (Array() → new Array()) | 1 | `otp-verification.tsx:88` | Constructor con `new` |
+| `S3923` (ramas if/else idénticas) | 1 | `mobile/padron/page.tsx:144-151` | Colapsado: `if/else` con la misma llamada → llamada directa |
+| `S6772` (espaciado ambiguo en JSX) | 3 | `mobile/inicio/page.tsx:103,108,113` | `{' '}` explícito entre `<span>` auto-cerrado y texto adyacente |
+
+**Riesgo:** nulo. Todos los cambios son mecánicos o refactors locales sin impacto funcional.
+
+### 7.2 `Promise.reject` con valores no-Error (8 issues MAJOR, S6671)
+
+**Archivo:** `frontend/src/lib/indexed-db.ts`
+
+`request.error` en operaciones de IndexedDB es `DOMException | null`, no `Error`. El patrón `reject(request.error)` se repetía 8 veces (líneas originales 88, 121, 160, 176, 192, 247, 265, 281).
+
+**Estrategia:** helper privado en cabecera del módulo:
+```ts
+function toError(value: unknown, fallback: string): Error {
+  if (value instanceof Error) return value;
+  const message = (value as { message?: string } | null)?.message;
+  return new Error(message || fallback);
+}
+```
+y reemplazo de las 8 ocurrencias por `reject(toError(request.error, 'IndexedDB error'))`. Idempotente: si el navegador ya devuelve un `Error`, lo preserva tal cual.
+
+### 7.3 Accesibilidad — Refactor de modales (4+2 issues MAJOR+MINOR, S6848+S1082)
+
+**Hallazgo:** los archivos `frontend/src/app/workspace/organizaciones/[slug]/client-page.tsx` y `frontend/src/app/workspace/beneficiarios/page.tsx` reimplementaban localmente el patrón de modal en lugar de usar el componente compartido `frontend/src/components/shared/modal.tsx`. Cada uno tenía un `<div onClick={...}>` sobre el backdrop sin soporte de teclado (S6848+S1082).
+
+**Estrategia:** los dos sitios se migraron al componente compartido `<Modal>`, que ya gestionaba `body.style.overflow`. Al componente compartido se le añadió:
+- `role="button"`, `tabIndex={0}`, `aria-label="Cerrar modal"` en el backdrop
+- `onKeyDown` (Enter/Space) que llama `onClose`
+- Listener global de `Escape` (en `useEffect` paralelo al de overflow) que también llama `onClose`
+
+**Resultado:** 6 issues resueltos (4 de los call-sites duplicados + 2 del componente compartido). Cero duplicación de markup de modal.
+
+### 7.4 Accesibilidad — Divs/spans clickables (4 issues MAJOR+MINOR, S6848+S1082)
+
+`inventory-stepper.tsx:253` (número editable al hacer clic) y `offline-banner.tsx:122` (`collapsedPill`) tenían `<div onClick>`/`<span onClick>` sin soporte de teclado. Se les añadió `role="button"`, `tabIndex={0}`, `aria-label` descriptivo, y `onKeyDown` (Enter/Space) que reproduce la misma acción que el clic.
+
+### 7.5 Accesibilidad — Labels asociados a controles (9 issues MAJOR, S6853)
+
+Tres archivos usaban `<label>` raw sin `htmlFor`, y los `<input>` adyacentes carecían de `id`:
+
+| Archivo | Labels | IDs introducidos |
+|---|---|---|
+| `frontend/src/components/shared/beneficiary-form.tsx` | Nombre, Apellido, DNI, Fecha de Nacimiento | `beneficiary-firstName`, `-lastName`, `-dni`, `-birthDate` |
+| `frontend/src/components/shared/report-filters.tsx` | Desde, Hasta, Olla común | `report-from`, `report-to`, `report-olla` |
+| `frontend/src/app/login/page.tsx` | Correo electrónico, Contraseña | ya existían `login-email`, `login-password` (solo se añadió `htmlFor`) |
+
+**Estrategia:** `id` + `htmlFor` en `<label>` raw. No se sustituye por el componente shadcn `<Label>` para no introducir imports nuevos en archivos donde shadcn no se usaba.
+
+### 7.6 Verificación
+
+| Comando | Resultado |
+|---|---|
+| `cd backend && npm run build` | ✅ |
+| `cd frontend && npx tsc --noEmit` | ✅ |
+| `npm run test:all` | ✅ |
+| `sonar-scanner` | pendiente (debe mostrar 0 issues en los 16 archivos tocados) |
+
+### 7.7 Archivos modificados en esta tanda
+
+| Archivo | Cambio |
+|---|---|
+| `test-reporter.cjs` | 8× `parseInt`/`parseFloat` → `Number.*` |
+| `security-scan.cjs` | 2× `parseInt` → `Number.parseInt`, 1× `sort()` → `localeCompare` |
+| `frontend/src/hooks/use-unique-values.ts` | `sort()` → `localeCompare` |
+| `frontend/src/components/general/pwa-sync-manager.tsx` | 2× `parseInt` → `Number.parseInt` (en `detectDataLoss`, no el orquestador) |
+| `frontend/src/components/mobile/inventory-stepper.tsx` | `parseInt` → `Number.parseInt`; `role`/`tabIndex`/`onKeyDown` en span editable |
+| `frontend/src/app/mobile/padron/page.tsx` | `isNaN` → `Number.isNaN`; `if/else` colapsado |
+| `frontend/src/app/mobile/inicio/page.tsx` | `{' '}` explícito en 3 badges |
+| `frontend/src/app/login/otp/otp-verification.tsx` | `Array()` → `new Array()` |
+| `frontend/src/lib/indexed-db.ts` | Helper `toError` + 8 reemplazos de `reject(request.error)` |
+| `frontend/src/components/shared/modal.tsx` | Backdrop accesible (role/tabIndex/aria-label/onKeyDown) + listener de Escape |
+| `frontend/src/app/workspace/organizaciones/[slug]/client-page.tsx` | Migrado al `<Modal>` compartido |
+| `frontend/src/app/workspace/beneficiarios/page.tsx` | Migrado al `<Modal>` compartido |
+| `frontend/src/components/ui/offline-banner.tsx` | `role`/`tabIndex`/`onKeyDown` en `collapsedPill` |
+| `frontend/src/components/shared/beneficiary-form.tsx` | `htmlFor`/`id` en 4 labels |
+| `frontend/src/components/shared/report-filters.tsx` | `htmlFor`/`id` en 3 labels |
+| `frontend/src/app/login/page.tsx` | `htmlFor` en 2 labels (ids ya existían) |
+
+---
+
+## 8. Recomendaciones / Trabajo Futuro
 
 1. **Tests de integración para `app.ts`:** añadir un test E2E con `supertest` que arranque la app en memoria y verifique el comportamiento del middleware `cors()` (orígenes permitidos vs. rechazados, preflight OPTIONS). Hoy se valida solo por el test manual I-07 de la suite de integración.
 

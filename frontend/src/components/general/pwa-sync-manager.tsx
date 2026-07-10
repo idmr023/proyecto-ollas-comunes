@@ -35,8 +35,8 @@ function getAuthToken(): string | null {
 
 async function detectDataLoss() {
   if (typeof window === 'undefined') return
-  const prevPending = parseInt(localStorage.getItem(LS_MUTATION_COUNT) || '0', 10)
-  const prevFailed = parseInt(localStorage.getItem(LS_FAILED_COUNT) || '0', 10)
+  const prevPending = Number.parseInt(localStorage.getItem(LS_MUTATION_COUNT) || '0', 10)
+  const prevFailed = Number.parseInt(localStorage.getItem(LS_FAILED_COUNT) || '0', 10)
   if (prevPending === 0 && prevFailed === 0) return
 
   const mutations = await getMutations()

@@ -120,7 +120,11 @@ export default function OfflineBanner() {
   // Componente auxiliar para el botón colapsado flotante
   const collapsedPill = (bgColor: string, icon: React.ReactNode, badgeCount?: number) => (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Expandir banner"
       onClick={() => setIsCollapsed(false)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsCollapsed(false) } }}
       className={`fixed right-4 top-4 z-[9999] flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white shadow-lg shadow-black/20 active:scale-95 transition-all duration-300 hover:scale-105 ${bgColor}`}
     >
       {icon}

@@ -158,7 +158,7 @@ async function scanHeaders() {
     status: response.status,
     server: response.headers["server"] || "no expuesto",
     poweredBy: response.headers["x-powered-by"] || "no expuesto",
-    headers: Object.keys(response.headers).sort(),
+    headers: Object.keys(response.headers).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })),
   }
 
   const checks = [
@@ -219,7 +219,7 @@ async function zapActiveScan() {
       await new Promise((r) => setTimeout(r, 5000))
       const status = await fetchUrl(`${ZAP_URL}/JSON/spider/view/status/?apikey=${ZAP_API_KEY}`)
       const body = JSON.parse(status.body)
-      if (parseInt(body.spider) === 100) {
+      if (Number.parseInt(body.spider) === 100) {
         spiderDone = true
         break
       }
@@ -235,7 +235,7 @@ async function zapActiveScan() {
         await new Promise((r) => setTimeout(r, 10000))
         const status = await fetchUrl(`${ZAP_URL}/JSON/ascan/view/status/?apikey=${ZAP_API_KEY}`)
         const body = JSON.parse(status.body)
-        if (parseInt(body.status) === 100) {
+        if (Number.parseInt(body.status) === 100) {
           scanDone = true
           break
         }

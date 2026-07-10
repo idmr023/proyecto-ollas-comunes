@@ -19,7 +19,7 @@ const beneficiarySchema = z.object({
   lastName: z.string().trim().min(1, "Los apellidos son obligatorios"),
   birthDate: z.string().trim().min(1, "La fecha de nacimiento es obligatoria").refine((val) => {
     const d = new Date(val)
-    return !isNaN(d.getTime()) && d <= new Date()
+    return !Number.isNaN(d.getTime()) && d <= new Date()
   }, { message: "Fecha de nacimiento inválida o futura" }),
   dni: z.string().trim().min(1, "El DNI es obligatorio").max(20, "Máximo 20 caracteres"),
   phone: z.string().trim().max(30, "Máximo 30 caracteres").optional().or(z.literal("")),
@@ -142,13 +142,7 @@ export default function PadronPage() {
   }, [get])
 
   useEffect(() => {
-    if (currentOllaId) {
-      fetchBeneficiaries()
-    } else {
-      // Si aún no tenemos ollaId resolved, podemos intentar cargar inicialmente
-      // pero una vez que cargue fetchActiveMenu se disparará de nuevo con la olla correcta.
-      fetchBeneficiaries()
-    }
+    fetchBeneficiaries()
 
     const handleSync = () => {
       console.log('[Padron Mobile] Sincronización completada. Refrescando beneficiarios...')

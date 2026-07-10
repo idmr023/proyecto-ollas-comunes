@@ -1,6 +1,12 @@
 const DB_NAME = 'ollas-comunes-db';
 const DB_VERSION = 2;
 
+function toError(value: unknown, fallback: string): Error {
+  if (value instanceof Error) return value;
+  const message = (value as { message?: string } | null)?.message;
+  return new Error(message || fallback);
+}
+
 export interface OfflineMutation {
   id?: number;
   path: string;
@@ -85,7 +91,7 @@ export async function setCache<T>(key: string, value: T): Promise<void> {
       const request = store.put(value, key);
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.warn('[IndexedDB Cache] Error al guardar:', err);
@@ -118,7 +124,7 @@ export async function addMutation(
         resolve(request.result as number);
       };
       request.onerror = () => {
-        reject(request.error);
+        reject(toError(request.error, 'IndexedDB error'));
       };
     });
   } catch (err) {
@@ -157,7 +163,7 @@ export async function deleteMutation(id: number): Promise<void> {
       const request = store.delete(id);
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.error('[IndexedDB Mutations] Error al eliminar mutation:', err);
@@ -173,7 +179,7 @@ export async function updateMutation(mutation: OfflineMutation): Promise<void> {
       const request = store.put(mutation);
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.error('[IndexedDB Mutations] Error al actualizar mutation:', err);
@@ -189,7 +195,7 @@ export async function clearCache(): Promise<void> {
       const request = store.clear();
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.warn('[IndexedDB Cache] Error al limpiar:', err);
@@ -244,7 +250,7 @@ export async function addFailedMutation(
         resolve(request.result as number);
       };
       request.onerror = () => {
-        reject(request.error);
+        reject(toError(request.error, 'IndexedDB error'));
       };
     });
   } catch (err) {
@@ -262,7 +268,7 @@ export async function deleteFailedMutation(id: number): Promise<void> {
       const request = store.delete(id);
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.error('[IndexedDB Failed Mutations] Error al eliminar fallo:', err);
@@ -278,7 +284,7 @@ export async function clearFailedMutations(): Promise<void> {
       const request = store.clear();
 
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onerror = () => reject(toError(request.error, 'IndexedDB error'));
     });
   } catch (err) {
     console.warn('[IndexedDB Failed Mutations] Error al limpiar:', err);

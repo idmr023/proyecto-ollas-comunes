@@ -54,7 +54,7 @@ function parseCoverageReport() {
   const content = fs.readFileSync(lcovPath, "utf-8")
   const m = content.match(/All files\s*<\/a>\s*<\/td>\s*<td\s+class="[^"]*">\s*([\d.]+)\s*<\/td>\s*<td\s+class="[^"]*">\s*([\d.]+)\s*<\/td>\s*<td\s+class="[^"]*">\s*([\d.]+)\s*<\/td>\s*<td\s+class="[^"]*">\s*([\d.]+)\s*<\/td>/i)
   if (m) {
-    return { statements: parseFloat(m[1]), branches: parseFloat(m[2]), functions: parseFloat(m[3]), lines: parseFloat(m[4]) }
+    return { statements: Number.parseFloat(m[1]), branches: Number.parseFloat(m[2]), functions: Number.parseFloat(m[3]), lines: Number.parseFloat(m[4]) }
   }
   return null
 }
@@ -77,8 +77,8 @@ function parseVitestOutput(output) {
     if (line.includes("tests") && line.includes("passed")) {
       const m = line.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/)
       if (m) {
-        result.passed = parseInt(m[2])
-        result.total = parseInt(m[1])
+        result.passed = Number.parseInt(m[2])
+        result.total = Number.parseInt(m[1])
         result.failed = result.total - result.passed
       }
       const durMatch = line.match(/in\s+([\d.]+m?s)/)
@@ -535,8 +535,8 @@ Usabilidad General: 15/15 criterios cumplidos`,
     const totalMatch = content.match(/(\d+)\s+total/i)
     const passedMatch = content.match(/(\d+)\s+passed/i)
     const playwrightData = {
-      total: totalMatch ? parseInt(totalMatch[1]) : 0,
-      passed: passedMatch ? parseInt(passedMatch[1]) : 0,
+      total: totalMatch ? Number.parseInt(totalMatch[1]) : 0,
+      passed: passedMatch ? Number.parseInt(passedMatch[1]) : 0,
       failed: 0,
     }
     playwrightData.failed = playwrightData.total - playwrightData.passed

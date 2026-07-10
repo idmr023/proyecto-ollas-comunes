@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Modal } from '@/components/shared/modal';
 import { getOrganization } from '@/lib/organizations-api';
 import { formatOrganizationDate, Organization } from '@/types/organization';
 import { Olla, OllaFormValues } from '@/types/olla';
@@ -293,92 +294,90 @@ export default function OrganizationClientPage() {
       </section>
 
       {/* Create Olla Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-10 pb-10">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
-          <div className="relative z-50 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-950">
-            <h2 className="mb-4 text-lg font-semibold">Crear Olla Comun</h2>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Crear Olla Comun"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="olla-name">Nombre *</Label>
+            <Input
+              id="olla-name"
+              value={form.name}
+              onChange={(e) => updateFormField('name', e.target.value)}
+              placeholder="Ej: Olla Comun Villa Maria"
+            />
+          </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="olla-name">Nombre *</Label>
-                <Input
-                  id="olla-name"
-                  value={form.name}
-                  onChange={(e) => updateFormField('name', e.target.value)}
-                  placeholder="Ej: Olla Comun Villa Maria"
-                />
-              </div>
+          <div>
+            <Label htmlFor="olla-address">Direccion</Label>
+            <Input
+              id="olla-address"
+              value={form.address ?? ''}
+              onChange={(e) => updateFormField('address', e.target.value)}
+              placeholder="Ej: Av. Principal 123"
+            />
+          </div>
 
-              <div>
-                <Label htmlFor="olla-address">Direccion</Label>
-                <Input
-                  id="olla-address"
-                  value={form.address ?? ''}
-                  onChange={(e) => updateFormField('address', e.target.value)}
-                  placeholder="Ej: Av. Principal 123"
-                />
-              </div>
+          <div>
+            <Label>Ubicacion en el mapa</Label>
+            <LocationAutocomplete
+              onSelect={(v) =>
+                setForm((prev) => ({
+                  ...prev,
+                  address: v.address || prev.address,
+                  latitude: v.lat ?? null,
+                  longitude: v.lng ?? null,
+                }))
+              }
+            />
+          </div>
 
-              <div>
-                <Label>Ubicacion en el mapa</Label>
-                <LocationAutocomplete
-                  onSelect={(v) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      address: v.address || prev.address,
-                      latitude: v.lat ?? null,
-                      longitude: v.lng ?? null,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="olla-contact">Nombre de Contacto</Label>
-                  <Input
-                    id="olla-contact"
-                    value={form.contactName ?? ''}
-                    onChange={(e) => updateFormField('contactName', e.target.value)}
-                    placeholder="Ej: Maria Lopez"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="olla-phone">Telefono de Contacto</Label>
-                  <Input
-                    id="olla-phone"
-                    value={form.contactPhone ?? ''}
-                    onChange={(e) => updateFormField('contactPhone', e.target.value)}
-                    placeholder="Ej: 999888777"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="olla-capacity">Capacidad Diaria Estimada (raciones)</Label>
-                <Input
-                  id="olla-capacity"
-                  type="number"
-                  min={0}
-                  value={form.estimatedDailyCapacity ?? ''}
-                  onChange={(e) => updateFormField('estimatedDailyCapacity', e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="Ej: 150"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? 'Creando...' : 'Crear Olla Comun'}
-                </Button>
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="olla-contact">Nombre de Contacto</Label>
+              <Input
+                id="olla-contact"
+                value={form.contactName ?? ''}
+                onChange={(e) => updateFormField('contactName', e.target.value)}
+                placeholder="Ej: Maria Lopez"
+              />
+            </div>
+            <div>
+              <Label htmlFor="olla-phone">Telefono de Contacto</Label>
+              <Input
+                id="olla-phone"
+                value={form.contactPhone ?? ''}
+                onChange={(e) => updateFormField('contactPhone', e.target.value)}
+                placeholder="Ej: 999888777"
+              />
             </div>
           </div>
+
+          <div>
+            <Label htmlFor="olla-capacity">Capacidad Diaria Estimada (raciones)</Label>
+            <Input
+              id="olla-capacity"
+              type="number"
+              min={0}
+              value={form.estimatedDailyCapacity ?? ''}
+              onChange={(e) => updateFormField('estimatedDailyCapacity', e.target.value ? Number(e.target.value) : undefined)}
+              placeholder="Ej: 150"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Creando...' : 'Crear Olla Comun'}
+            </Button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

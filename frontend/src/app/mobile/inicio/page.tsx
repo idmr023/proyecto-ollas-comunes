@@ -101,17 +101,17 @@ export default function InicioPage() {
             {data?.summary?.menu?.status === "executed" ? (
               <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Ejecutado (Entregas en curso)
+                {' '}Ejecutado (Entregas en curso)
               </span>
             ) : data?.summary?.menu?.status === "approved" ? (
               <span className="inline-flex items-center gap-1 rounded bg-emerald-600/10 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                Menú Activo (Aprobado)
+                {' '}Menú Activo (Aprobado)
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Pendiente
+                {' '}Pendiente
               </span>
             )}
           </div>

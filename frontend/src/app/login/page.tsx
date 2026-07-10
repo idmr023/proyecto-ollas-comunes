@@ -131,7 +131,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
+              <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
@@ -148,7 +148,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
+              <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Modal } from '@/components/shared/modal'
 import { PageShell } from '@/components/workspace/page-shell'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Beneficiary, BeneficiaryFormValues, HealthCondition } from '@/types/beneficiary'
@@ -438,152 +439,148 @@ export default function BeneficiariosPage() {
       )}
 
       {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-10 pb-10">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
-          <div className="relative z-50 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-950">
-            <h2 className="mb-4 text-lg font-semibold">
-              {editingId ? 'Editar Beneficiario' : 'Registrar Beneficiario'}
-            </h2>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="firstName">Nombres *</Label>
-                  <Input
-                    id="firstName"
-                    value={form.firstName}
-                    onChange={(e) => updateFormField('firstName', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Apellidos *</Label>
-                  <Input
-                    id="lastName"
-                    value={form.lastName}
-                    onChange={(e) => updateFormField('lastName', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="dni">DNI *</Label>
-                  <Input
-                    id="dni"
-                    maxLength={20}
-                    value={form.dni ?? ''}
-                    onChange={(e) => updateFormField('dni', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="birthDate">Fecha de Nacimiento *</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={form.birthDate}
-                    onChange={(e) => updateFormField('birthDate', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="gender">Género</Label>
-                  <select
-                    id="gender"
-                    className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    value={form.gender}
-                    onChange={(e) => updateFormField('gender', e.target.value)}
-                  >
-                    {GENDER_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="priorityLevel">Prioridad</Label>
-                  <select
-                    id="priorityLevel"
-                    className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    value={form.priorityLevel}
-                    onChange={(e) => updateFormField('priorityLevel', e.target.value)}
-                  >
-                    <option value="low">Bajo</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">Alto</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input
-                  id="phone"
-                  value={form.phone ?? ''}
-                  onChange={(e) => updateFormField('phone', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  value={form.address ?? ''}
-                  onChange={(e) => updateFormField('address', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="ollaId">Olla Común *</Label>
-                <select
-                  id="ollaId"
-                  className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  value={form.ollaId ?? ''}
-                  onChange={(e) => updateFormField('ollaId', e.target.value)}
-                >
-                  <option value="">-- Seleccionar olla --</option>
-                  {ollas.map((olla) => (
-                    <option key={olla.id} value={olla.id}>{olla.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label>Condiciones de Salud</Label>
-                <div className="mt-1 grid grid-cols-2 gap-2 rounded-lg border p-3">
-                  {healthConditions.length === 0 && (
-                    <p className="col-span-2 text-xs text-muted-foreground">No hay condiciones disponibles.</p>
-                  )}
-                  {healthConditions.map((hc) => {
-                    const checked = (form.healthConditionIds ?? []).includes(hc.id)
-                    return (
-                      <label key={hc.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={checked}
-                          onChange={() => toggleHealthCondition(hc.id)}
-                        />
-                        {hc.name}
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Registrar'}
-                </Button>
-              </div>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingId ? 'Editar Beneficiario' : 'Registrar Beneficiario'}
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="firstName">Nombres *</Label>
+              <Input
+                id="firstName"
+                value={form.firstName}
+                onChange={(e) => updateFormField('firstName', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Apellidos *</Label>
+              <Input
+                id="lastName"
+                value={form.lastName}
+                onChange={(e) => updateFormField('lastName', e.target.value)}
+              />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="dni">DNI *</Label>
+              <Input
+                id="dni"
+                maxLength={20}
+                value={form.dni ?? ''}
+                onChange={(e) => updateFormField('dni', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="birthDate">Fecha de Nacimiento *</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                value={form.birthDate}
+                onChange={(e) => updateFormField('birthDate', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="gender">Género</Label>
+              <select
+                id="gender"
+                className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                value={form.gender}
+                onChange={(e) => updateFormField('gender', e.target.value)}
+              >
+                {GENDER_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="priorityLevel">Prioridad</Label>
+              <select
+                id="priorityLevel"
+                className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                value={form.priorityLevel}
+                onChange={(e) => updateFormField('priorityLevel', e.target.value)}
+              >
+                <option value="low">Bajo</option>
+                <option value="normal">Normal</option>
+                <option value="high">Alto</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Teléfono</Label>
+            <Input
+              id="phone"
+              value={form.phone ?? ''}
+              onChange={(e) => updateFormField('phone', e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address">Dirección</Label>
+            <Input
+              id="address"
+              value={form.address ?? ''}
+              onChange={(e) => updateFormField('address', e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="ollaId">Olla Común *</Label>
+            <select
+              id="ollaId"
+              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              value={form.ollaId ?? ''}
+              onChange={(e) => updateFormField('ollaId', e.target.value)}
+            >
+              <option value="">-- Seleccionar olla --</option>
+              {ollas.map((olla) => (
+                <option key={olla.id} value={olla.id}>{olla.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <Label>Condiciones de Salud</Label>
+            <div className="mt-1 grid grid-cols-2 gap-2 rounded-lg border p-3">
+              {healthConditions.length === 0 && (
+                <p className="col-span-2 text-xs text-muted-foreground">No hay condiciones disponibles.</p>
+              )}
+              {healthConditions.map((hc) => {
+                const checked = (form.healthConditionIds ?? []).includes(hc.id)
+                return (
+                  <label key={hc.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={checked}
+                      onChange={() => toggleHealthCondition(hc.id)}
+                    />
+                    {hc.name}
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Registrar'}
+            </Button>
+          </div>
         </div>
-      )}
+      </Modal>
     </PageShell>
   )
 }

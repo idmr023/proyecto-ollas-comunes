@@ -206,7 +206,7 @@ async function main() {
 
   await test('401 — Login con contraseña incorrecta', async () => {
     const res = await api('POST', '/api/auth/login', {
-      body: { email: ADMIN_EMAIL, password: 'wrong-password' }
+      body: { email: ADMIN_EMAIL, password: 'wrong-password' } // NOSONAR — sentinel invalid password for 401 test
     })
     if (res.status !== 401 && res.data?.ok !== false) throw new Error(JSON.stringify(res.data))
   })

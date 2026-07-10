@@ -21,16 +21,16 @@ export function ReportFilters({ from, to, ollaId, ollas, onFromChange, onToChang
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Desde</label>
-        <input type="date" value={from} onChange={(e) => onFromChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm" />
+        <label htmlFor="report-from" className="text-xs font-medium text-muted-foreground">Desde</label>
+        <input id="report-from" type="date" value={from} onChange={(e) => onFromChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm" />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Hasta</label>
-        <input type="date" value={to} onChange={(e) => onToChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm" />
+        <label htmlFor="report-to" className="text-xs font-medium text-muted-foreground">Hasta</label>
+        <input id="report-to" type="date" value={to} onChange={(e) => onToChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm" />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Olla común</label>
-        <select value={ollaId} onChange={(e) => onOllaChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm">
+        <label htmlFor="report-olla" className="text-xs font-medium text-muted-foreground">Olla común</label>
+        <select id="report-olla" value={ollaId} onChange={(e) => onOllaChange(e.target.value)} className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm">
           <option value="">Todas</option>
           {ollas.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
         </select>

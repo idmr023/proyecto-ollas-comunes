@@ -10,6 +10,6 @@ export function useUniqueValues<T, K extends keyof T>(items: T[], key: K, filter
         if (!filterFn || filterFn(val)) set.add(str)
       }
     })
-    return Array.from(set).sort()
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
   }, [items, key, filterFn])
 }
