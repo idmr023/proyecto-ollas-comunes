@@ -63,16 +63,11 @@ function parseVitestOutput(output) {
   const result = { total: 0, passed: 0, failed: 0, duration: "", coverage: null, testCases: [] }
   const lines = output.split("\n")
 
-  // Extract individual test results
-  let captureTest = false
   let currentSuite = ""
   for (const line of lines) {
-    if (line.includes("✓") || line.includes("×") || line.includes("FAIL") || line.includes("PASS")) {
-      if (line.includes("›") && !line.includes("Suite")) {
-        const suiteMatch = line.match(/›\s*(.+)/)
-        if (suiteMatch) currentSuite = suiteMatch[1].trim()
-        continue
-      }
+    if (line.includes("›") && !line.includes("Suite")) {
+      const suiteMatch = line.match(/›\s*(.+)/)
+      if (suiteMatch) currentSuite = suiteMatch[1].trim()
     }
     if (line.includes("tests") && line.includes("passed")) {
       const m = line.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/)
@@ -86,11 +81,29 @@ function parseVitestOutput(output) {
     }
   }
 
-  // Parse coverage from coverage/lcov-report if available
   const coverage = parseCoverageReport()
   if (coverage) result.coverage = coverage
 
   return result
+}
+
+function extractSuiteFromLine(line) {
+  if (!line.startsWith("›")) return null
+  return line.replace("›", "").trim()
+}
+
+function parseTestLine(line, prefix, index) {
+  if (!(line.startsWith("✓") || line.startsWith("×") || line.startsWith("✗") || line.startsWith("FAIL") || line.startsWith("PASS"))) {
+    return null
+  }
+  const passed = line.startsWith("✓") || line.startsWith("PASS")
+  const name = line.replace(/^[✓×✗]\s*/, "").replace(/\([\d.]+ms\)/, "").trim()
+  if (!name || name.includes("Suite") || name.includes("src/")) return null
+  return {
+    id: `${prefix}-${String(index + 1).padStart(2, "0")}`,
+    name,
+    passed,
+  }
 }
 
 function parseTestCases(output, prefix, count) {
@@ -99,14 +112,14 @@ function parseTestCases(output, prefix, count) {
   let currentSuite = ""
   for (let i = 0; i < lines.length && cases.length < count; i++) {
     const line = lines[i].trim()
-    if (line.startsWith("✓") || line.startsWith("×") || line.startsWith("✗") || line.startsWith("FAIL") || line.startsWith("PASS")) {
-      const passed = line.startsWith("✓") || line.startsWith("PASS")
-      const name = line.replace(/^[✓×✗]\s*/, "").replace(/\([\d.]+ms\)/, "").trim()
-      if (name && !name.includes("Suite") && !name.includes("src/")) {
-        cases.push({ id: `${prefix}-${String(cases.length + 1).padStart(2, "0")}`, name, passed, suite: currentSuite })
-      }
-    } else if (line.startsWith("›")) {
-      currentSuite = line.replace("›", "").trim()
+    const suite = extractSuiteFromLine(line)
+    if (suite) {
+      currentSuite = suite
+      continue
+    }
+    const testCase = parseTestLine(line, prefix, cases.length)
+    if (testCase) {
+      cases.push({ ...testCase, suite: currentSuite })
     }
   }
   return cases.length > 0 ? cases : null
@@ -160,49 +173,131 @@ function colorForRate(rate) {
   return "#ef4444"
 }
 
-function generateReport(title, suiteName, data, sections, screenshotFile) {
-  const passRate = data.total > 0 ? Math.round((data.passed / data.total) * 100) : 100
-  const grade = passRate >= 90 ? "A" : passRate >= 75 ? "B" : passRate >= 60 ? "C" : passRate >= 40 ? "D" : "F"
-  const color = colorForRate(passRate)
+function calculatePassRate(data) {
+  return data.total > 0 ? Math.round((data.passed / data.total) * 100) : 100
+}
 
-  let coverageHtml = ""
-  if (data.coverage) {
-    const c = data.coverage
-    coverageHtml = `
+function getGrade(passRate) {
+  if (passRate >= 90) return "A"
+  if (passRate >= 75) return "B"
+  if (passRate >= 60) return "C"
+  if (passRate >= 40) return "D"
+  return "F"
+}
+
+function getQualitativeLabel(passRate) {
+  if (passRate >= 90) return "Excelente"
+  if (passRate >= 75) return "Bueno"
+  if (passRate >= 60) return "Aceptable"
+  return "Requiere mejora"
+}
+
+function getComplianceBadge(passRate) {
+  if (passRate >= 90) return '<span class="badge pass">✅ Cumple estándar</span>'
+  if (passRate >= 75) return '<span class="badge warn">⚠️ En proceso</span>'
+  return '<span class="badge fail">❌ No cumple</span>'
+}
+
+function renderCoverageRow(label, value) {
+  const c = colorForRate(value)
+  return `<tr><td>${label}</td><td style="color:${c}">${value}%</td><td><div class="minibar"><div class="minibar-fill" style="width:${value}%;background:${c}"></div></div></td></tr>`
+}
+
+function renderCoverageSection(coverage) {
+  if (!coverage) return ""
+  const c = coverage
+  return `
     <h2>📊 Reporte de Cobertura (4)</h2>
     <table>
       <thead><tr><th>Métrica</th><th>Porcentaje</th><th>Barra</th></tr></thead>
       <tbody>
-        <tr><td>Statements</td><td style="color:${colorForRate(c.statements)}">${c.statements}%</td><td><div class="minibar"><div class="minibar-fill" style="width:${c.statements}%;background:${colorForRate(c.statements)}"></div></div></td></tr>
-        <tr><td>Branches</td><td style="color:${colorForRate(c.branches)}">${c.branches}%</td><td><div class="minibar"><div class="minibar-fill" style="width:${c.branches}%;background:${colorForRate(c.branches)}"></div></div></td></tr>
-        <tr><td>Functions</td><td style="color:${colorForRate(c.functions)}">${c.functions}%</td><td><div class="minibar"><div class="minibar-fill" style="width:${c.functions}%;background:${colorForRate(c.functions)}"></div></div></td></tr>
-        <tr><td>Lines</td><td style="color:${colorForRate(c.lines)}">${c.lines}%</td><td><div class="minibar"><div class="minibar-fill" style="width:${c.lines}%;background:${colorForRate(c.lines)}"></div></div></td></tr>
+        ${renderCoverageRow("Statements", c.statements)}
+        ${renderCoverageRow("Branches", c.branches)}
+        ${renderCoverageRow("Functions", c.functions)}
+        ${renderCoverageRow("Lines", c.lines)}
       </tbody>
     </table>
     <p class="meta">Reporte completo: <a href="../backend/coverage/lcov-report/index.html" target="_blank" style="color:#60a5fa">backend/coverage/lcov-report/index.html</a></p>`
-  }
+}
 
-  let screenshotHtml = ""
-  if (screenshotFile) {
-    screenshotHtml = `
+function renderScreenshotSection(screenshotFile) {
+  if (!screenshotFile) return ""
+  return `
     <h2>📸 Capturas de Ejecución (3)</h2>
     <div class="screenshot-container">
       <iframe src="screenshots/${screenshotFile}" width="100%" height="400" style="border:1px solid #333;border-radius:8px;background:#1e1e1e"></iframe>
       <p class="meta">Captura generada automáticamente — <a href="screenshots/${screenshotFile}" target="_blank" style="color:#60a5fa">Abrir en nueva ventana</a></p>
     </div>`
-  }
+}
 
-  let sectionsHtml = ""
-  for (const section of sections) {
-    sectionsHtml += `
+function renderSection(section) {
+  return `
     <div class="section">
       <h3>${section.title}</h3>
       ${section.description ? `<p>${section.description}</p>` : ""}
       ${section.content ? `<pre>${section.content}</pre>` : ""}
     </div>`
+}
+
+function renderSections(sections) {
+  return sections.map(renderSection).join("")
+}
+
+function renderObservations(data) {
+  const failed = data.failed > 0
+    ? `<p><strong>⚠️ Casos fallidos:</strong> ${data.failed} caso(s) no superaron la prueba. Revisar la salida de ejecución para detalles.</p>
+         <p><strong>Recomendación:</strong> Revisar los casos fallidos, corregir errores y volver a ejecutar la suite.</p>`
+    : `<p><strong>✅ Todos los casos aprobados.</strong> El sistema cumple con los criterios establecidos para esta suite.</p>`
+
+  let coverage
+  if (data.coverage && data.coverage.statements < 50) {
+    coverage = `<p><strong>⚠️ Cobertura baja:</strong> Statements al ${data.coverage.statements}%. Se recomienda aumentar la cobertura de pruebas.</p>`
+  } else if (data.coverage) {
+    coverage = `<p><strong>✅ Cobertura aceptable:</strong> Statements al ${data.coverage.statements}%.</p>`
+  } else {
+    coverage = ""
   }
 
-  const html = `<!DOCTYPE html>
+  const docs = `<p><strong>Documentos generados:</strong> Este reporte incluye frameworks, listado de casos, capturas de ejecución, cobertura y métricas según la rúbrica.</p>`
+
+  return `<div class="observations">${failed}${coverage}${docs}</div>`
+}
+
+function renderStatsCards(data, passRate) {
+  return `<div class="stats">
+    <div class="stat-card"><div class="stat-value">${data.total}</div><div class="stat-label">Total Casos</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:#4ade80">${data.passed}</div><div class="stat-label">Aprobados</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:${data.failed > 0 ? '#ef4444' : '#4ade80'}">${data.failed}</div><div class="stat-label">Fallidos</div></div>
+    <div class="stat-card"><div class="stat-value">${passRate}%</div><div class="stat-label">Tasa de Éxito</div></div>
+    ${data.duration ? `<div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#60a5fa">${data.duration}</div><div class="stat-label">Duración</div></div>` : ""}
+  </div>`
+}
+
+function renderComplianceTable(data, passRate, grade, color, screenshotFile) {
+  return `<table class="compliance-table">
+    <tr><td>Tasa de éxito</td><td style="color:${color}"><strong>${passRate}%</strong></td></tr>
+    <tr><td>Calificación</td><td><strong>${grade}</strong> (${getQualitativeLabel(passRate)})</td></tr>
+    <tr><td>Estándar esperado</td><td>≥ 90% de casos aprobados</td></tr>
+    <tr><td>Estado</td><td>${getComplianceBadge(passRate)}</td></tr>
+    <tr><td>Artefactos incluidos</td><td>
+      <span class="badge pass">Framework</span>
+      <span class="badge pass">Casos de prueba</span>
+      <span class="badge ${screenshotFile ? 'pass' : 'fail'}">${screenshotFile ? 'Capturas' : 'Sin capturas'}</span>
+      <span class="badge ${data.coverage ? 'pass' : 'warn'}">${data.coverage ? 'Cobertura' : 'Sin cobertura'}</span>
+      <span class="badge pass">Métricas</span>
+    </td></tr>
+  </table>`
+}
+
+function generateReport(title, suiteName, data, sections, screenshotFile) {
+  const passRate = calculatePassRate(data)
+  const grade = getGrade(passRate)
+  const color = colorForRate(passRate)
+  const coverageHtml = renderCoverageSection(data.coverage)
+  const screenshotHtml = renderScreenshotSection(screenshotFile)
+  const sectionsHtml = renderSections(sections)
+
+  return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -249,76 +344,40 @@ function generateReport(title, suiteName, data, sections, screenshotFile) {
   <div style="text-align:center;margin:1rem 0"><div class="grade-circle">${grade}</div></div>
 
   <h2>📈 Métricas de Ejecución (5)</h2>
-  <div class="stats">
-    <div class="stat-card"><div class="stat-value">${data.total}</div><div class="stat-label">Total Casos</div></div>
-    <div class="stat-card"><div class="stat-value" style="color:#4ade80">${data.passed}</div><div class="stat-label">Aprobados</div></div>
-    <div class="stat-card"><div class="stat-value" style="color:${data.failed > 0 ? '#ef4444' : '#4ade80'}">${data.failed}</div><div class="stat-label">Fallidos</div></div>
-    <div class="stat-card"><div class="stat-value">${passRate}%</div><div class="stat-label">Tasa de Éxito</div></div>
-    ${data.duration ? `<div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#60a5fa">${data.duration}</div><div class="stat-label">Duración</div></div>` : ""}
-  </div>
+  ${renderStatsCards(data, passRate)}
 
   <div class="progress-bar"><div class="progress-fill" style="width:${passRate}%"></div></div>
 
   <h2>✅ Nivel de Cumplimiento</h2>
-  <table class="compliance-table">
-    <tr><td>Tasa de éxito</td><td style="color:${color}"><strong>${passRate}%</strong></td></tr>
-    <tr><td>Calificación</td><td><strong>${grade}</strong> (${passRate >= 90 ? "Excelente" : passRate >= 75 ? "Bueno" : passRate >= 60 ? "Aceptable" : "Requiere mejora"})</td></tr>
-    <tr><td>Estándar esperado</td><td>≥ 90% de casos aprobados</td></tr>
-    <tr><td>Estado</td><td>${passRate >= 90 ? '<span class="badge pass">✅ Cumple estándar</span>' : passRate >= 75 ? '<span class="badge warn">⚠️ En proceso</span>' : '<span class="badge fail">❌ No cumple</span>'}</td></tr>
-    <tr><td>Artefactos incluidos</td><td>
-      <span class="badge pass">Framework</span>
-      <span class="badge pass">Casos de prueba</span>
-      <span class="badge ${screenshotFile ? 'pass' : 'fail'}">${screenshotFile ? 'Capturas' : 'Sin capturas'}</span>
-      <span class="badge ${data.coverage ? 'pass' : 'warn'}">${data.coverage ? 'Cobertura' : 'Sin cobertura'}</span>
-      <span class="badge pass">Métricas</span>
-    </td></tr>
-  </table>
+  ${renderComplianceTable(data, passRate, grade, color, screenshotFile)}
 
   ${coverageHtml}
   ${screenshotHtml}
   ${sectionsHtml}
 
   <h2>🔍 Observaciones Técnicas</h2>
-  <div class="observations">
-    ${data.failed > 0
-      ? `<p><strong>⚠️ Casos fallidos:</strong> ${data.failed} caso(s) no superaron la prueba. Revisar la salida de ejecución para detalles.</p>
-         <p><strong>Recomendación:</strong> Revisar los casos fallidos, corregir errores y volver a ejecutar la suite.</p>`
-      : `<p><strong>✅ Todos los casos aprobados.</strong> El sistema cumple con los criterios establecidos para esta suite.</p>`}
-    ${data.coverage && data.coverage.statements < 50
-      ? `<p><strong>⚠️ Cobertura baja:</strong> Statements al ${data.coverage.statements}%. Se recomienda aumentar la cobertura de pruebas.</p>`
-      : data.coverage ? `<p><strong>✅ Cobertura aceptable:</strong> Statements al ${data.coverage.statements}%.</p>` : ""}
-    <p><strong>Documentos generados:</strong> Este reporte incluye frameworks, listado de casos, capturas de ejecución, cobertura y métricas según la rúbrica.</p>
-  </div>
+  ${renderObservations(data)}
 
   <p class="meta" style="margin-top:2rem">Reporte generado automáticamente por test-reporter.cjs | SIGO-Ollas v2</p>
 </body>
 </html>`
-  return html
 }
 
-async function main() {
-  log("=== SIGO-OLLAS — Generador de Reportes de Prueba ===")
-  ensureDirs()
-
-  // 1. Pruebas Funcionales
+async function generateFunctionalReport() {
   log("--- Suite: Pruebas Funcionales ---")
   const functionalPath = path.join(DOCS_DIR, "reporte_pruebas_funcionales.html")
   const functionalTestPath = path.join(BACKEND_DIR, "src", "test", "functional.test.ts")
 
-  let funcOutput = ""
-  if (fs.existsSync(functionalTestPath)) {
-    const cmdResult = runCommand("npx vitest run src/test/functional.test.ts --reporter=verbose", BACKEND_DIR, "Pruebas Funcionales")
-    funcOutput = cmdResult.output
-  } else {
-    funcOutput = "Archivo de pruebas funcionales no encontrado."
-  }
+  const funcOutput = fs.existsSync(functionalTestPath)
+    ? runCommand("npx vitest run src/test/functional.test.ts --reporter=verbose", BACKEND_DIR, "Pruebas Funcionales").output
+    : "Archivo de pruebas funcionales no encontrado."
 
   const funcData = parseVitestOutput(funcOutput || "")
   const funcCases = parseTestCases(funcOutput, "F", 45)
   const funcScreenshot = saveScreenshot(
     "Pruebas Funcionales - ISO 25010",
     funcCases || funcData.testCases || [],
-    "funcionales/ejecucion.html"
+    "funcionales/ejecucion.html",
   )
 
   const funcReport = generateReport("Reporte de Pruebas Funcionales", "ISO 25010 — Funcionalidad", funcData, [
@@ -350,33 +409,31 @@ async function main() {
     },
     {
       title: "📈 5) Métricas, Nivel de Cumplimiento y Observaciones",
-      description: `<strong>Métricas:</strong> Total: ${funcData.total} | Aprobados: ${funcData.passed} | Fallidos: ${funcData.failed} | Tasa: ${funcData.total > 0 ? Math.round((funcData.passed / funcData.total) * 100) : 100}%<br>
+      description: `<strong>Métricas:</strong> Total: ${funcData.total} | Aprobados: ${funcData.passed} | Fallidos: ${funcData.failed} | Tasa: ${calculatePassRate(funcData)}%<br>
         <strong>Nivel de cumplimiento:</strong> ${funcData.failed === 0 ? "✅ Cumple" : "⚠️ Parcial"}<br>
         <strong>Observaciones:</strong> ${funcData.failed > 0 ? `⚠️ ${funcData.failed} casos fallidos requieren revisión.` : "✅ Todos los criterios funcionales validados correctamente según ISO 25010."}`,
     },
   ], funcScreenshot)
   fs.writeFileSync(functionalPath, funcReport)
-  log(`✓ Reporte funcional generado`)
+  log("✓ Reporte funcional generado")
+  return funcData
+}
 
-  // 2. Pruebas de Integración
+async function generateIntegrationReport() {
   log("--- Suite: Pruebas de Integración ---")
   const integrationPath = path.join(DOCS_DIR, "reporte_pruebas_integracion.html")
   const integrationTestPath = path.join(BACKEND_DIR, "src", "test", "integration.test.ts")
 
-  let intOutput = ""
-  if (fs.existsSync(integrationTestPath)) {
-    const cmdResult = runCommand("npx vitest run src/test/integration.test.ts --reporter=verbose", BACKEND_DIR, "Pruebas Integración")
-    intOutput = cmdResult.output
-  } else {
-    intOutput = "Archivo de pruebas de integración no encontrado."
-  }
+  const intOutput = fs.existsSync(integrationTestPath)
+    ? runCommand("npx vitest run src/test/integration.test.ts --reporter=verbose", BACKEND_DIR, "Pruebas Integración").output
+    : "Archivo de pruebas de integración no encontrado."
 
   const intData = parseVitestOutput(intOutput || "")
   const intCases = parseTestCases(intOutput, "I", 25)
   const intScreenshot = saveScreenshot(
     "Pruebas de Integración - Interoperabilidad",
     intCases || intData.testCases || [],
-    "integracion/ejecucion.html"
+    "integracion/ejecucion.html",
   )
 
   const intReport = generateReport("Reporte de Pruebas de Integración", "Interoperabilidad — ISO 25010", intData, [
@@ -427,26 +484,21 @@ async function main() {
     },
   ], intScreenshot)
   fs.writeFileSync(integrationPath, intReport)
-  log(`✓ Reporte integración generado`)
+  log("✓ Reporte integración generado")
+  return intData
+}
 
-  // 3. Pruebas de Usabilidad
+async function generateUsabilityReport() {
   log("--- Suite: Pruebas de Usabilidad ---")
   const usabilityPath = path.join(DOCS_DIR, "reporte_pruebas_usabilidad.html")
   const usabilityScript = path.resolve(__dirname, "run-usability-tests.mjs")
 
-  let usabilityOutput = ""
   let usabilityData = { total: 15, passed: 15, failed: 0, duration: "", coverage: null }
 
   if (fs.existsSync(usabilityScript)) {
     const cmdResult = runCommand(`node "${usabilityScript}"`, __dirname, "Pruebas Usabilidad")
-    usabilityOutput = cmdResult.output
     const parsed = parseVitestOutput(cmdResult.output)
     if (parsed.total > 0) usabilityData = parsed
-  } else {
-    const lighthousePath = path.join(DOCS_DIR, "reporte_usabilidad_lighthouse.html")
-    usabilityOutput = fs.existsSync(lighthousePath)
-      ? "Reporte Lighthouse existente en: docs/reporte_usabilidad_lighthouse.html"
-      : "Ejecuta: node run-usability-tests.mjs para generar métricas de usabilidad."
   }
 
   const usScreenshot = saveScreenshot(
@@ -468,7 +520,7 @@ async function main() {
       { id: "U-14", name: "Prevención doble click", passed: true },
       { id: "U-15", name: "Modo oscuro", passed: true },
     ],
-    "usabilidad/ejecucion.html"
+    "usabilidad/ejecucion.html",
   )
 
   const usReport = generateReport("Reporte de Pruebas de Usabilidad", "ISO/IEC 25010 — Usabilidad", usabilityData, [
@@ -523,58 +575,74 @@ Usabilidad General: 15/15 criterios cumplidos`,
     },
   ], usScreenshot)
   fs.writeFileSync(usabilityPath, usReport)
-  log(`✓ Reporte usabilidad generado`)
+  log("✓ Reporte usabilidad generado")
+  return usabilityData
+}
 
-  // 4. E2E (Playwright)
+async function generateE2eReport() {
   log("--- Suite: Pruebas E2E ---")
   const e2ePath = path.join(DOCS_DIR, "reporte_pruebas_e2e.html")
   const playwrightReportPath = path.join(FRONTEND_DIR, "playwright-report", "index.html")
 
-  if (fs.existsSync(playwrightReportPath)) {
-    const content = fs.readFileSync(playwrightReportPath, "utf-8")
-    const totalMatch = content.match(/(\d+)\s+total/i)
-    const passedMatch = content.match(/(\d+)\s+passed/i)
-    const playwrightData = {
-      total: totalMatch ? Number.parseInt(totalMatch[1]) : 0,
-      passed: passedMatch ? Number.parseInt(passedMatch[1]) : 0,
-      failed: 0,
-    }
-    playwrightData.failed = playwrightData.total - playwrightData.passed
-    const pwScreenshot = saveScreenshot("Pruebas E2E - Playwright", [
-      { id: "W-01..15", name: "Workspace (admin)", passed: true },
-      { id: "M-01..15", name: "Mobile (lideresa)", passed: true },
-      { id: "O-01..04", name: "Offline PWA", passed: true },
-    ], "e2e/ejecucion.html")
-    const e2eReport = generateReport("Reporte de Pruebas E2E", "Playwright — End-to-End", playwrightData, [
-      { title: "Framework", content: "Playwright v1.49.0 — Chromium, Firefox, WebKit" },
-      { title: "Escenarios", content: "34 casos: workspace (15), mobile (15), offline PWA (4)" },
-      { title: "Observaciones", content: playwrightData.failed > 0 ? `⚠️ ${playwrightData.failed} casos fallidos.` : "✅ Todos los escenarios E2E ejecutados correctamente." },
-    ], pwScreenshot)
-    fs.writeFileSync(e2ePath, e2eReport)
-    log(`✓ Reporte E2E generado`)
-  }
+  if (!fs.existsSync(playwrightReportPath)) return
 
-  // 5. Cobertura consolidada
-  log("--- Cobertura ---")
+  const content = fs.readFileSync(playwrightReportPath, "utf-8")
+  const totalMatch = content.match(/(\d+)\s+total/i)
+  const passedMatch = content.match(/(\d+)\s+passed/i)
+  const playwrightData = {
+    total: totalMatch ? Number.parseInt(totalMatch[1]) : 0,
+    passed: passedMatch ? Number.parseInt(passedMatch[1]) : 0,
+    failed: 0,
+  }
+  playwrightData.failed = playwrightData.total - playwrightData.passed
+  const pwScreenshot = saveScreenshot("Pruebas E2E - Playwright", [
+    { id: "W-01..15", name: "Workspace (admin)", passed: true },
+    { id: "M-01..15", name: "Mobile (lideresa)", passed: true },
+    { id: "O-01..04", name: "Offline PWA", passed: true },
+  ], "e2e/ejecucion.html")
+  const e2eReport = generateReport("Reporte de Pruebas E2E", "Playwright — End-to-End", playwrightData, [
+    { title: "Framework", content: "Playwright v1.49.0 — Chromium, Firefox, WebKit" },
+    { title: "Escenarios", content: "34 casos: workspace (15), mobile (15), offline PWA (4)" },
+    { title: "Observaciones", content: playwrightData.failed > 0 ? `⚠️ ${playwrightData.failed} casos fallidos.` : "✅ Todos los escenarios E2E ejecutados correctamente." },
+  ], pwScreenshot)
+  fs.writeFileSync(e2ePath, e2eReport)
+  log("✓ Reporte E2E generado")
+}
+
+function ensureCoverage() {
   const coverageDir = path.join(BACKEND_DIR, "coverage")
-  if (!fs.existsSync(coverageDir)) {
-    log("Generando cobertura...")
-    runCommand("npx vitest run --coverage", BACKEND_DIR, "Coverage")
-  }
+  if (fs.existsSync(coverageDir)) return
+  log("Generando cobertura...")
+  runCommand("npx vitest run --coverage", BACKEND_DIR, "Coverage")
+}
 
-  // 6. Resumen
+function printSummary(reports) {
   log("\n=== RESUMEN ===")
-  const allReports = [
-    { name: "Pruebas Funcionales", data: funcData, path: "docs/reporte_pruebas_funcionales.html" },
-    { name: "Pruebas de Integración", data: intData, path: "docs/reporte_pruebas_integracion.html" },
-    { name: "Pruebas de Usabilidad", data: usabilityData, path: "docs/reporte_pruebas_usabilidad.html" },
-  ]
-  for (const r of allReports) {
-    const rate = r.data.total > 0 ? Math.round((r.data.passed / r.data.total) * 100) : 100
+  for (const r of reports) {
+    const rate = calculatePassRate(r.data)
     log(`  ${r.name}: ${r.data.passed}/${r.data.total} (${rate}%) — ${r.path}`)
   }
   log(`\nReportes HTML generados en docs/`)
   log(`Capturas de ejecución en docs/screenshots/`)
+}
+
+async function main() {
+  log("=== SIGO-OLLAS — Generador de Reportes de Prueba ===")
+  ensureDirs()
+
+  const funcData = await generateFunctionalReport()
+  const intData = await generateIntegrationReport()
+  const usabilityData = await generateUsabilityReport()
+  await generateE2eReport()
+
+  log("--- Cobertura ---")
+  ensureCoverage()
+
+  printSummary([
+    { name: "Pruebas Funcionales", data: funcData, path: "docs/reporte_pruebas_funcionales.html" },
+    { name: "Pruebas de Integración", data: intData, path: "docs/reporte_pruebas_integracion.html" },
+    { name: "Pruebas de Usabilidad", data: usabilityData, path: "docs/reporte_pruebas_usabilidad.html" },
+  ])
 }
 
 main().catch((err) => {
