@@ -1,4 +1,4 @@
-import http from 'http';
+import http from 'node:http';
 
 function request(method, path) {
   return new Promise((resolve) => {

@@ -13,11 +13,11 @@
  *   Luego ejecutar: node security-scan.mjs --zap
  */
 
-const fs = require("fs")
-const path = require("path")
-const https = require("https")
-const http = require("http")
-const { execSync } = require("child_process")
+const fs = require("node:fs")
+const path = require("node:path")
+const https = require("node:https")
+const http = require("node:http")
+const { execSync } = require("node:child_process")
 
 const TARGET_URL = process.env.SECURITY_TARGET_URL || process.env.PUBLIC_URL || "https://proyecto-ollas-comunes.vercel.app"
 const PROJECT_DIR = path.resolve(__dirname)

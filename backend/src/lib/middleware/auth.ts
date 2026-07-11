@@ -22,7 +22,7 @@ declare global {
 export function requireAuth(request: Request, response: Response, next: NextFunction) {
   const header = request.headers.authorization
 
-  if (!header || !header.startsWith('Bearer ')) {
+  if (!header?.startsWith('Bearer ')) {
     response.status(401).json({ ok: false, message: 'Token no proporcionado.' })
     return
   }
@@ -41,7 +41,7 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
 export function optionalAuth(request: Request, _response: Response, next: NextFunction) {
   const header = request.headers.authorization
 
-  if (header && header.startsWith('Bearer ')) {
+  if (header?.startsWith('Bearer ')) {
     const token = header.slice(7)
     try {
       request.user = jwt.verify(token, JWT_SECRET) as AuthPayload

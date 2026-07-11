@@ -81,8 +81,8 @@ export default function InventarioPage() {
       const matchesSearch =
         m.supplyItemName.toLowerCase().includes(search.toLowerCase()) ||
         m.ollaName.toLowerCase().includes(search.toLowerCase()) ||
-        (m.notes && m.notes.toLowerCase().includes(search.toLowerCase())) ||
-        (m.sourceName && m.sourceName.toLowerCase().includes(search.toLowerCase()));
+        m.notes?.toLowerCase().includes(search.toLowerCase()) ||
+        m.sourceName?.toLowerCase().includes(search.toLowerCase());
       const matchesOlla = !filterOlla || m.ollaName === filterOlla;
       const matchesType = !filterMovementType || m.movementType === filterMovementType;
       return matchesSearch && matchesOlla && matchesType;

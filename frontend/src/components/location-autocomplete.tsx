@@ -9,7 +9,7 @@ type Props = {
 function loadGoogleMaps(apiKey: string) {
   return new Promise<void>((resolve, reject) => {
     if (typeof window === 'undefined') return reject(new Error('No window'))
-    if ((window as any).google && (window as any).google.maps) {
+    if ((window as any).google?.maps) {
       resolve()
       return
     }
@@ -40,7 +40,7 @@ type ReverseGeocodeDeps = {
 
 function reverseGeocodeAndSelect(latLng: any, deps: ReverseGeocodeDeps) {
   deps.geocoderRef.current?.geocode({ location: latLng }, (results: any, status: any) => {
-    if (status === 'OK' && results && results[0]) {
+    if (status === 'OK' && results?.[0]) {
       const address = results[0].formatted_address
       if (deps.inputRef.current) deps.inputRef.current.value = address
       deps.onSelect({ address, lat: latLng.lat(), lng: latLng.lng() })

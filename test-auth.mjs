@@ -1,4 +1,4 @@
-import http from 'http';
+import http from 'node:http';
 
 const body = JSON.stringify({ email: 'admin@ollascomunes.pe', password: 'admin123' });
 const req = http.request({

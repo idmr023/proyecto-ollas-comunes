@@ -17,9 +17,9 @@
  *  - reporte_cobertura.html
  */
 
-const fs = require("fs")
-const path = require("path")
-const { execSync } = require("child_process")
+const fs = require("node:fs")
+const path = require("node:path")
+const { execSync } = require("node:child_process")
 
 const DOCS_DIR = path.resolve(__dirname, "docs")
 const SCREENSHOTS_DIR = path.join(DOCS_DIR, "screenshots")
