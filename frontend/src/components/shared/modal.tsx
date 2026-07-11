@@ -29,12 +29,10 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         aria-label="Cerrar modal"
         onClick={onClose}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose() } }}
         className="absolute inset-0 bg-black/50 cursor-pointer"
       />
       <div className={`relative z-10 w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl`}>
