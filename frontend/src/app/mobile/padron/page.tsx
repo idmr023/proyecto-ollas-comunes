@@ -167,6 +167,25 @@ export default function PadronPage() {
     }
   }, [fetchActiveMenu])
 
+  const handleBeneficiaryClick = (b: Beneficiary) => {
+    if (!modoEntrega) {
+      toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
+      return
+    }
+    if (b.hasEatenToday) {
+      toast.info(`${b.nombre} ya recibió su ración hoy.`)
+      return
+    }
+    const isSelectedAlready = seleccionados.includes(b.id)
+    if (!isSelectedAlready && seleccionados.length >= maxServingsRemaining) {
+      toast.warning(`⚠️ Solo queda stock para ${maxServingsRemaining} ración(es) más.`)
+      return
+    }
+    setSeleccionados((prev) =>
+      prev.includes(b.id) ? prev.filter((id) => id !== b.id) : [...prev, b.id],
+    )
+  }
+
   useEffect(() => {
     if (modalAbierto) {
       Promise.all([
@@ -322,26 +341,7 @@ export default function PadronPage() {
               key={b.id}
               beneficiary={b}
               isSelected={seleccionados.includes(b.id)}
-              onClick={() => {
-                if (modoEntrega) {
-                  if (b.hasEatenToday) {
-                    toast.info(`${b.nombre} ya recibió su ración hoy.`)
-                    return
-                  }
-                  const isSelectedAlready = seleccionados.includes(b.id)
-                  if (!isSelectedAlready && seleccionados.length >= maxServingsRemaining) {
-                    toast.warning(`⚠️ Solo queda stock para ${maxServingsRemaining} ración(es) más.`)
-                    return
-                  }
-                  setSeleccionados((prev) =>
-                      prev.includes(b.id)
-                          ? prev.filter((id) => id !== b.id)
-                          : [...prev, b.id],
-                  )
-                } else {
-                  toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
-                }
-              }}
+              onClick={() => handleBeneficiaryClick(b)}
             />
           ))}
         </div>
