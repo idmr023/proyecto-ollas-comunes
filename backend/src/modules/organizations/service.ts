@@ -3,7 +3,6 @@ import { Organization, OrganizationPayload } from './types'
 import { organizationRepository } from './repository'
 import { prisma } from '../../lib/prisma'
 import {
-  buildOrganizationSlug,
   buildUniqueOrganizationCode,
   mapDatabaseStatus,
   sanitizeOrganizationText,

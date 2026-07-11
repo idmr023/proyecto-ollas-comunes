@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils"
 import { LucideIcon, AlertTriangle } from "lucide-react"
 
 interface EmptyStateProps {

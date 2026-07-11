@@ -17,10 +17,8 @@ import {
   Boxes,
   History,
   Search,
-  Filter,
   ArrowUpRight,
   ArrowDownLeft,
-  Info,
   RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';

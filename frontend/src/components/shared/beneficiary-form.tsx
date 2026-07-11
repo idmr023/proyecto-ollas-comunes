@@ -1,9 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { UserPlus } from "lucide-react"
 import { SelectField } from "@/components/shared/select-field"
-import { Badge } from "@/components/shared/badge"
 
 interface OllaOption { id: string; name: string }
 interface HealthCondition { id: number; name: string }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react"
+import { Search, Minus, Plus, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"

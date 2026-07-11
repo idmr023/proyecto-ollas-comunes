@@ -11,7 +11,6 @@ import {
   Download,
   Calendar,
   AlertTriangle,
-  CheckCircle2,
   UserPlus,
   Clock,
 } from "lucide-react"

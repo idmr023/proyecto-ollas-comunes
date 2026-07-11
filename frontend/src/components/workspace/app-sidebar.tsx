@@ -5,11 +5,8 @@ import { usePathname } from "next/navigation"
 import {
   Home,
   Building2,
-  CookingPot,
   Users,
   Package,
-  BarChart3,
-  UserCog,
   Bell,
   Settings,
   LogOut,
