@@ -199,69 +199,81 @@ async function scanHeaders() {
   }
 }
 
+async function isZapAvailable() {
+  const zapResp = await fetchUrl(`${ZAP_URL}/JSON/core/view/version/?apikey=${ZAP_API_KEY}`)
+  return zapResp.status === 200
+}
+
+async function pollUntilDone(statusEndpoint, jsonKey, maxAttempts, intervalMs) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise((r) => setTimeout(r, intervalMs))
+    const status = await fetchUrl(statusEndpoint)
+    const body = JSON.parse(status.body)
+    if (Number.parseInt(body[jsonKey]) === 100) return true
+  }
+  return false
+}
+
+async function runZapSpider() {
+  await fetchUrl(`${ZAP_URL}/JSON/spider/action/scan/?url=${encodeURIComponent(TARGET_URL)}&maxChildren=10&apikey=${ZAP_API_KEY}`)
+  return await pollUntilDone(
+    `${ZAP_URL}/JSON/spider/view/status/?apikey=${ZAP_API_KEY}`,
+    "spider",
+    30,
+    5000,
+  )
+}
+
+async function runZapActiveScan() {
+  await fetchUrl(`${ZAP_URL}/JSON/ascan/action/scan/?url=${encodeURIComponent(TARGET_URL)}&recurse=true&apikey=${ZAP_API_KEY}`)
+  return await pollUntilDone(
+    `${ZAP_URL}/JSON/ascan/view/status/?apikey=${ZAP_API_KEY}`,
+    "status",
+    60,
+    10000,
+  )
+}
+
+async function saveZapReport() {
+  const alertsResp = await fetchUrl(`${ZAP_URL}/JSON/core/view/alerts/?apikey=${ZAP_API_KEY}`)
+  const alertData = JSON.parse(alertsResp.body)
+  const htmlReport = await fetchUrl(`${ZAP_URL}/OTHER/core/other/htmlreport/?apikey=${ZAP_API_KEY}`)
+  const reportPath = path.join(DOCS_DIR, "reporte_zap_seguridad.html")
+  fs.writeFileSync(reportPath, htmlReport.body)
+  log(`Reporte ZAP guardado en: ${reportPath}`)
+  return {
+    status: "completado",
+    alerts: alertData.alerts ? alertData.alerts.length : 0,
+    reportPath: "docs/reporte_zap_seguridad.html",
+  }
+}
+
 async function zapActiveScan() {
   log("Iniciando escaneo activo con OWASP ZAP...")
 
   try {
-    // Verificar que ZAP está disponible
-    const zapResp = await fetchUrl(`${ZAP_URL}/JSON/core/view/version/?apikey=${ZAP_API_KEY}`)
-    if (zapResp.status !== 200) {
+    if (!(await isZapAvailable())) {
       results.zapScan = { error: "ZAP no accesible. ¿Está corriendo el contenedor Docker?" }
       return
     }
 
     log("ZAP detectado. Iniciando spider...")
-    await fetchUrl(`${ZAP_URL}/JSON/spider/action/scan/?url=${encodeURIComponent(TARGET_URL)}&maxChildren=10&apikey=${ZAP_API_KEY}`)
+    const spiderDone = await runZapSpider()
 
-    // Esperar a que termine el spider
-    let spiderDone = false
-    for (let i = 0; i < 30; i++) {
-      await new Promise((r) => setTimeout(r, 5000))
-      const status = await fetchUrl(`${ZAP_URL}/JSON/spider/view/status/?apikey=${ZAP_API_KEY}`)
-      const body = JSON.parse(status.body)
-      if (Number.parseInt(body.spider) === 100) {
-        spiderDone = true
-        break
-      }
-    }
-
-    if (spiderDone) {
-      log("Spider completado. Iniciando escaneo activo...")
-      await fetchUrl(`${ZAP_URL}/JSON/ascan/action/scan/?url=${encodeURIComponent(TARGET_URL)}&recurse=true&apikey=${ZAP_API_KEY}`)
-
-      // Esperar a que termine el active scan
-      let scanDone = false
-      for (let i = 0; i < 60; i++) {
-        await new Promise((r) => setTimeout(r, 10000))
-        const status = await fetchUrl(`${ZAP_URL}/JSON/ascan/view/status/?apikey=${ZAP_API_KEY}`)
-        const body = JSON.parse(status.body)
-        if (Number.parseInt(body.status) === 100) {
-          scanDone = true
-          break
-        }
-      }
-
-      if (scanDone) {
-        const alertsResp = await fetchUrl(`${ZAP_URL}/JSON/core/view/alerts/?apikey=${ZAP_API_KEY}`)
-        const alertData = JSON.parse(alertsResp.body)
-
-        // Obtener reporte HTML
-        const htmlReport = await fetchUrl(`${ZAP_URL}/OTHER/core/other/htmlreport/?apikey=${ZAP_API_KEY}`)
-        const reportPath = path.join(DOCS_DIR, "reporte_zap_seguridad.html")
-        fs.writeFileSync(reportPath, htmlReport.body)
-        log(`Reporte ZAP guardado en: ${reportPath}`)
-
-        results.zapScan = {
-          status: "completado",
-          alerts: alertData.alerts ? alertData.alerts.length : 0,
-          reportPath: "docs/reporte_zap_seguridad.html",
-        }
-      } else {
-        results.zapScan = { status: "timeout_active_scan" }
-      }
-    } else {
+    if (!spiderDone) {
       results.zapScan = { status: "timeout_spider" }
+      return
     }
+
+    log("Spider completado. Iniciando escaneo activo...")
+    const scanDone = await runZapActiveScan()
+
+    if (!scanDone) {
+      results.zapScan = { status: "timeout_active_scan" }
+      return
+    }
+
+    results.zapScan = await saveZapReport()
   } catch (err) {
     results.zapScan = { error: err.message }
   }
