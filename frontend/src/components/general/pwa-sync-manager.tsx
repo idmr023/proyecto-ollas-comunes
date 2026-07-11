@@ -219,6 +219,56 @@ async function handleFailedMutation(
   return { retryable: false, progressed: true }
 }
 
+async function executeMutationRequest(mutation: OfflineMutation): Promise<Response | null> {
+  const url = `${apiBaseUrl}${mutation.path}`
+  try {
+    return await fetch(url, {
+      method: mutation.method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: mutation.body ? JSON.stringify(mutation.body) : undefined,
+    })
+  } catch (err) {
+    console.error('[PWA Sync] Error de conexión durante sincronización:', err)
+    return null
+  }
+}
+
+async function extractRealId(res: Response): Promise<string | null> {
+  const data = await res.json().catch(() => ({}))
+  return data.item?.id || data.delivery?.id || data.movement?.id || null
+}
+
+async function processSuccess(
+  mutation: OfflineMutation,
+  res: Response,
+  mutations: OfflineMutation[],
+  currentIndex: number,
+): Promise<boolean> {
+  console.log('[PWA Sync] Sincronizado con éxito:', mutation.method, mutation.path)
+  const realId = await extractRealId(res)
+
+  if (realId && mutation.tempId) {
+    console.log(`[PWA Sync] Reescritura de IDs: Reemplazando ${mutation.tempId} por ${realId}`)
+    await rewriteDependentMutations(mutations, currentIndex + 1, mutation.tempId, realId)
+  }
+
+  await deleteMutation(mutation.id!)
+  return true
+}
+
+async function processFailure(
+  mutation: OfflineMutation,
+  res: Response,
+  mutations: OfflineMutation[],
+  currentIndex: number,
+): Promise<{ retryable: boolean; progressed: boolean }> {
+  console.warn('[PWA Sync] Error del servidor en mutación:', mutation.id, res.status)
+  return await handleFailedMutation(mutation, res, mutations, currentIndex)
+}
+
 export default function PwaSyncManager() {
   const syncOfflineMutations = async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return
@@ -232,40 +282,15 @@ export default function PwaSyncManager() {
 
     for (let i = 0; i < mutations.length; i++) {
       const mutation = mutations[i]
-      const url = `${apiBaseUrl}${mutation.path}`
-      let res: Response
-
-      try {
-        res = await fetch(url, {
-          method: mutation.method,
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders(),
-          },
-          body: mutation.body ? JSON.stringify(mutation.body) : undefined,
-        })
-      } catch (err) {
-        console.error('[PWA Sync] Error de conexión durante sincronización:', err)
-        break
-      }
+      const res = await executeMutationRequest(mutation)
+      if (res === null) break
 
       if (res.ok) {
-        console.log('[PWA Sync] Sincronizado con éxito:', mutation.method, mutation.path)
-        const responseData = await res.json().catch(() => ({}))
-        const realId = responseData.item?.id || responseData.delivery?.id || responseData.movement?.id
-
-        if (realId && mutation.tempId) {
-          console.log(`[PWA Sync] Reescritura de IDs: Reemplazando ${mutation.tempId} por ${realId}`)
-          await rewriteDependentMutations(mutations, i + 1, mutation.tempId, realId)
-        }
-
-        await deleteMutation(mutation.id!)
-        syncCompletedAny = true
+        syncCompletedAny = await processSuccess(mutation, res, mutations, i)
         continue
       }
 
-      console.warn('[PWA Sync] Error del servidor en mutación:', mutation.id, res.status)
-      const { retryable, progressed } = await handleFailedMutation(mutation, res, mutations, i)
+      const { retryable, progressed } = await processFailure(mutation, res, mutations, i)
       if (retryable) break
       if (progressed) syncCompletedAny = true
     }
@@ -280,13 +305,8 @@ export default function PwaSyncManager() {
   }
 
   useEffect(() => {
-    // Detectar pérdida de datos en el almacenamiento local
     detectDataLoss()
-
-    // Sincronizar inmediatamente si estamos online al montar el componente
     syncOfflineMutations()
-
-    // Escuchar el evento online del navegador
     window.addEventListener('online', syncOfflineMutations)
 
     return () => {
