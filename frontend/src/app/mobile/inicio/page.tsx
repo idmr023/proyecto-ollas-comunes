@@ -30,6 +30,19 @@ interface DashboardData {
   expiring: { nombre: string; cantidad: string; venceEn: string }[]
 }
 
+function usePwaSyncListener(onSync: () => void) {
+  useEffect(() => {
+    const handleSync = () => {
+      console.log('[Inicio Mobile] Sincronización completada. Refrescando dashboard...')
+      onSync()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
+  }, [onSync])
+}
+
 export default function InicioPage() {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
@@ -50,16 +63,9 @@ export default function InicioPage() {
 
   useEffect(() => {
     fetchDashboard()
-
-    const handleSync = () => {
-      console.log('[Inicio Mobile] Sincronización completada. Refrescando dashboard...')
-      fetchDashboard()
-    }
-    window.addEventListener('pwa-sync-completed', handleSync)
-    return () => {
-      window.removeEventListener('pwa-sync-completed', handleSync)
-    }
   }, [fetchDashboard])
+
+  usePwaSyncListener(fetchDashboard)
 
   const nombreOlla = data?.olla?.name ?? "Olla común"
   const expiringCount = data?.expiring?.length ?? 0
