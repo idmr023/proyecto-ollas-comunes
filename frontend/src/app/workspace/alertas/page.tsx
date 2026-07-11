@@ -24,6 +24,22 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const STATUS_LABEL: Record<string, string> = {
+  open: 'abiertas',
+  resolved: 'resueltas',
+  closed: 'descartadas',
+}
+
+function alertSeverityClass(status: string, severity: string): string {
+  if (status === 'open' && severity === 'critical') return 'border-l-4 border-l-red-500'
+  if (status === 'open' && severity === 'high') return 'border-l-4 border-l-orange-500'
+  return ''
+}
+
+function nextStatusLabel(nextStatus: string): string {
+  return nextStatus === 'resolved' ? 'resuelta' : 'descartada'
+}
+
 export default function AlertasPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -58,7 +74,7 @@ export default function AlertasPage() {
       const updated = await updateTenantAlert(id, nextStatus);
       if (updated) {
         setAlerts((prev) => prev.map((a) => (a.id === id ? updated : a)));
-        toast.success(`Alerta ${nextStatus === 'resolved' ? 'resuelta' : 'descartada'} con éxito`);
+        toast.success(`Alerta ${nextStatusLabel(nextStatus)} con éxito`);
       }
     } catch (error) {
       toast.error('No se pudo actualizar el estado de la alerta');
@@ -244,7 +260,7 @@ export default function AlertasPage() {
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Bell className="h-10 w-10 text-muted-foreground/30 mb-3" />
                 <p className="text-sm font-semibold text-muted-foreground">
-                  No hay alertas {filterStatus === 'open' ? 'abiertas' : filterStatus === 'resolved' ? 'resueltas' : 'descartadas'}.
+                  No hay alertas {STATUS_LABEL[filterStatus] ?? 'descartadas'}.
                 </p>
                 <p className="text-xs text-muted-foreground/85">
                   Todo está al día o puedes cambiar los filtros de búsqueda.
@@ -272,13 +288,7 @@ export default function AlertasPage() {
               return (
                 <Card
                   key={a.id}
-                  className={`border border-primary/5 transition-all shadow-sm rounded-2xl hover:shadow-md ${
-                    a.status === 'open' && a.severity === 'critical'
-                      ? 'border-l-4 border-l-red-500'
-                      : a.status === 'open' && a.severity === 'high'
-                      ? 'border-l-4 border-l-orange-500'
-                      : ''
-                  }`}
+                  className={`border border-primary/5 transition-all shadow-sm rounded-2xl hover:shadow-md ${alertSeverityClass(a.status, a.severity)}`}
                 >
                   <CardHeader className="pb-2 flex flex-row items-start justify-between gap-4 space-y-0">
                     <div className="space-y-1">

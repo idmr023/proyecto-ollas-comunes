@@ -264,16 +264,24 @@ function renderObservations(data) {
 }
 
 function renderStatsCards(data, passRate) {
+  const failedColor = data.failed > 0 ? "#ef4444" : "#4ade80"
+  const durationCard = data.duration
+    ? `<div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#60a5fa">${data.duration}</div><div class="stat-label">Duración</div></div>`
+    : ""
   return `<div class="stats">
     <div class="stat-card"><div class="stat-value">${data.total}</div><div class="stat-label">Total Casos</div></div>
     <div class="stat-card"><div class="stat-value" style="color:#4ade80">${data.passed}</div><div class="stat-label">Aprobados</div></div>
-    <div class="stat-card"><div class="stat-value" style="color:${data.failed > 0 ? '#ef4444' : '#4ade80'}">${data.failed}</div><div class="stat-label">Fallidos</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:${failedColor}">${data.failed}</div><div class="stat-label">Fallidos</div></div>
     <div class="stat-card"><div class="stat-value">${passRate}%</div><div class="stat-label">Tasa de Éxito</div></div>
-    ${data.duration ? `<div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#60a5fa">${data.duration}</div><div class="stat-label">Duración</div></div>` : ""}
+    ${durationCard}
   </div>`
 }
 
 function renderComplianceTable(data, passRate, grade, color, screenshotFile) {
+  const screenshotClass = screenshotFile ? "pass" : "fail"
+  const screenshotLabel = screenshotFile ? "Capturas" : "Sin capturas"
+  const coverageClass = data.coverage ? "pass" : "warn"
+  const coverageLabel = data.coverage ? "Cobertura" : "Sin cobertura"
   return `<table class="compliance-table">
     <tr><td>Tasa de éxito</td><td style="color:${color}"><strong>${passRate}%</strong></td></tr>
     <tr><td>Calificación</td><td><strong>${grade}</strong> (${getQualitativeLabel(passRate)})</td></tr>
@@ -282,8 +290,8 @@ function renderComplianceTable(data, passRate, grade, color, screenshotFile) {
     <tr><td>Artefactos incluidos</td><td>
       <span class="badge pass">Framework</span>
       <span class="badge pass">Casos de prueba</span>
-      <span class="badge ${screenshotFile ? 'pass' : 'fail'}">${screenshotFile ? 'Capturas' : 'Sin capturas'}</span>
-      <span class="badge ${data.coverage ? 'pass' : 'warn'}">${data.coverage ? 'Cobertura' : 'Sin cobertura'}</span>
+      <span class="badge ${screenshotClass}">${screenshotLabel}</span>
+      <span class="badge ${coverageClass}">${coverageLabel}</span>
       <span class="badge pass">Métricas</span>
     </td></tr>
   </table>`
