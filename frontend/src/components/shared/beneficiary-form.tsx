@@ -91,6 +91,20 @@ export function BeneficiaryForm({ mode, initialData, ollas, healthConditions, on
         </div>
       </div>
 
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold text-foreground">Contacto</h4>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="beneficiary-phone" className="text-xs font-medium text-muted-foreground">Teléfono</label>
+            <input id="beneficiary-phone" value={phone} onChange={e => setPhone(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="987654321" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="beneficiary-address" className="text-xs font-medium text-muted-foreground">Dirección</label>
+            <input id="beneficiary-address" value={address} onChange={e => setAddress(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="Av. Ejemplo 123" />
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <h4 className="text-sm font-semibold text-foreground">Condiciones de Salud</h4>
         <div className="flex flex-wrap gap-2">
