@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks', // Usar subprocesos fork en lugar de hilos de trabajo para evitar el cierre del pool de conexiones de pg
+    setupFiles: ['./test/setup.ts'],
     testTimeout: 20000,
     hookTimeout: 30000,
     fileParallelism: false,
