@@ -68,7 +68,6 @@ export default function InicioPage() {
   usePwaSyncListener(fetchDashboard)
 
   const nombreOlla = data?.olla?.name ?? "Olla común"
-  const expiringCount = data?.expiring?.length ?? 0
   const planificadas = data?.summary?.planificadas ?? 0
   const entregadas = data?.summary?.entregadas ?? 0
   const pendientes = Math.max(0, planificadas - entregadas)

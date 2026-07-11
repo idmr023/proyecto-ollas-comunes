@@ -68,7 +68,6 @@ export default function PadronPage() {
   const [seleccionados, setSeleccionados] = useState<string[]>([])
   const [delivering, setDelivering] = useState(false)
   const [activeDishName, setActiveDishName] = useState<string | null>(null)
-  const [isMenuExecuted, setIsMenuExecuted] = useState(false)
   const [maxServingsRemaining, setMaxServingsRemaining] = useState<number>(0)
   const [currentOllaId, setCurrentOllaId] = useState<string | null>(null)
 
@@ -128,11 +127,9 @@ export default function PadronPage() {
       }
       if (data.ok && data.summary?.menu) {
         setActiveDishName(data.summary.menu.dishName)
-        setIsMenuExecuted(data.summary.menu.status === "executed")
         setMaxServingsRemaining(data.summary.menu.maxServingsRemaining ?? 0)
       } else {
         setActiveDishName(null)
-        setIsMenuExecuted(false)
         setMaxServingsRemaining(0)
       }
     } catch (err) {

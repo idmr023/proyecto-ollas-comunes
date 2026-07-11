@@ -7,7 +7,7 @@ import { getMeRequest } from '@/lib/auth-api'
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated, isInitialized, token, setAuth, clearAuth, setInitialized } =
+  const { isAuthenticated, isInitialized, setAuth, clearAuth, setInitialized } =
     useAuthStore()
 
   useEffect(() => {

@@ -11,7 +11,6 @@ interface AiMenuCardProps {
 }
 
 export function AiMenuCard({ nombre, puntaje, ingredientes, onUsar }: AiMenuCardProps) {
-  const scoreColor = puntaje >= 80 ? "text-status-active" : puntaje >= 50 ? "text-status-pending" : "text-destructive"
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-3 bg-primary p-4 text-primary-foreground">

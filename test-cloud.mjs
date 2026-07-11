@@ -265,7 +265,4 @@ async function main() {
   process.exit(failedTests > 0 ? 1 : 0)
 }
 
-main().catch((err) => {
-  console.error(`${RED}Error fatal:${RESET}`, err)
-  process.exit(1)
-})
+try { await main() } catch (err) { console.error(`${RED}Error fatal:${RESET}`, err); process.exit(1) }

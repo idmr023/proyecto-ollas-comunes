@@ -27,4 +27,4 @@ async function test() {
   }
 }
 
-test()
+await test()

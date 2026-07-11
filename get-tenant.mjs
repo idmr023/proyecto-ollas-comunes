@@ -4,4 +4,4 @@ async function main() {
   const login = await l.json();
   console.log('Tenant ID:', login.user?.tenantId);
 }
-main().catch(console.error);
+try { await main() } catch (e) { console.error(e) }

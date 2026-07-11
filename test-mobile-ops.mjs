@@ -206,4 +206,4 @@ async function run() {
   console.log('====================================================');
 }
 
-run().catch(console.error);
+try { await run() } catch (e) { console.error(e) }

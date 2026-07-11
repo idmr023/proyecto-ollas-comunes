@@ -106,7 +106,7 @@ export async function setupTotp(input: TotpSetupInput): Promise<TotpSetupRespons
 
 export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const parsed = verifyOtpSchema.parse(input)
-  const { email, tempToken, code } = parsed
+  const { tempToken, code } = parsed
 
   const { userId } = verifyTempToken(tempToken)
 
