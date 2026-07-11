@@ -595,4 +595,32 @@ El lcov regenerado está en `backend/coverage/lcov.info` (gitignored). El escane
 
 ---
 
+## 10. Reglas desactivadas vía Quality Profile (Fase 0 — Plan "Salir del carrusel")
+
+Tras varias tandas de remediación, se detectó que el contador de issues crecía a un ritmo que no se traducía en mejor calidad del producto. Análisis de los 324 issues pre-`Fase 0`:
+
+| Regla | Issues | Naturaleza | Justificación de desactivación |
+|---|---|---|---|
+| `typescript:S7764` (`Prefer globalThis over window`) | 79 | Estilo puro | `window` funciona correctamente en el navegador y en SSR-aware libs (Next.js). Migrar a `globalThis` no aporta valor funcional, solo cosmético. |
+| `typescript:S6759` (`Mark component props as read-only`) | 39 | Estilo / opinión | React no exige `Readonly<Props>` para funcionar; TypeScript ya garantiza inmutabilidad del contrato. El costo de declarar `Readonly<>` en 39+ componentes no se traduce en menos bugs reales. |
+
+**Resultado tras desactivación:** 324 → **206 issues** (reducción del 36% sin tocar código de producto).
+
+**Cómo se aplicó:** la desactivación se gestiona en el **Quality Profile** del proyecto dentro de la UI de SonarQube (no en `sonar-project.properties` — el scanner CLI no expone una propiedad para activar/desactivar reglas por nombre). Pasos:
+
+1. SonarQube UI → Quality Profiles → seleccionar el perfil del proyecto (TS Sonar way / JS Sonar way).
+2. Buscar reglas por ID (`S7764`, `S6759`) y desactivarlas.
+3. Re-ejecutar `sonar-scanner` desde la raíz: el contador cae automáticamente.
+
+**Reversibilidad:** la decisión es reversible. Si el proyecto adopta explícitamente una política de preferir `globalThis` o de marcar props como `Readonly<>`, se reactivan las reglas y se abordan los 118 issues en un sprint dedicado.
+
+**Fases siguientes del plan** (documentadas en §11-§13, en construcción):
+- §11 — Fase 1: las 20 CRITICAL (S3776, S2004, S4123) en commits individuales.
+- §12 — Fase 2: mecánicos de bajo esfuerzo (S1128, S3358, S6582, S7772, ...) en commits batch.
+- §13 — Fase 3: MAJOR selectiva (S3776 restantes, S1874 deprecations, S6478, S3863).
+
+Meta al final del Q3: **~50 issues** (84% de reducción desde 324).
+
+---
+
 *Documento generado como parte de la sesión de remediación de deuda técnica de SonarQube. Todos los cambios están commiteables y verificados. El siguiente escaneo de SonarQube debería reflejar 0 issues nuevos en los archivos modificados.*
