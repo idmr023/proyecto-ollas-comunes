@@ -8,6 +8,7 @@ part 'estado_menu_ia.freezed.dart';
 class EstadoMenuIa with _$EstadoMenuIa {
   const factory EstadoMenuIa.inicial() = MenuIaInicial;
   const factory EstadoMenuIa.cargando() = MenuIaCargando;
-  const factory EstadoMenuIa.exito(List<SugerenciaMenu> sugerencias) = MenuIaExito;
+  const factory EstadoMenuIa.exito(List<SugerenciaMenu> sugerencias) =
+      MenuIaExito;
   const factory EstadoMenuIa.error(String mensaje) = MenuIaError;
 }

@@ -25,7 +25,9 @@ class _PaginaDashboardState extends ConsumerState<PaginaDashboard> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() => ref.read(controllerDashboardProvider.notifier).cargar());
+    Future<void>.microtask(
+      () => ref.read(controllerDashboardProvider.notifier).cargar(),
+    );
   }
 
   @override
@@ -34,20 +36,36 @@ class _PaginaDashboardState extends ConsumerState<PaginaDashboard> {
     return Scaffold(
       backgroundColor: ColoresApp.fondo,
       body: switch (estado) {
-        DashboardExito(:final Usuario usuario, :final ResumenDashboard resumen) =>
-          _Contenido(usuario: usuario, resumen: resumen, onIrInventario: widget.onIrInventario, onIrPadron: widget.onIrPadron),
-        DashboardError(:final String mensaje) => VistaError(
-            mensaje: mensaje,
-            onReintentar: () => ref.read(controllerDashboardProvider.notifier).cargar(),
+        DashboardExito(
+          :final Usuario usuario,
+          :final ResumenDashboard resumen,
+        ) =>
+          _Contenido(
+            usuario: usuario,
+            resumen: resumen,
+            onIrInventario: widget.onIrInventario,
+            onIrPadron: widget.onIrPadron,
           ),
-        _ => const Center(child: CircularProgressIndicator(color: ColoresApp.primario)),
+        DashboardError(:final String mensaje) => VistaError(
+          mensaje: mensaje,
+          onReintentar: () =>
+              ref.read(controllerDashboardProvider.notifier).cargar(),
+        ),
+        _ => const Center(
+          child: CircularProgressIndicator(color: ColoresApp.primario),
+        ),
       },
     );
   }
 }
 
 class _Contenido extends StatelessWidget {
-  const _Contenido({required this.usuario, required this.resumen, this.onIrInventario, this.onIrPadron});
+  const _Contenido({
+    required this.usuario,
+    required this.resumen,
+    this.onIrInventario,
+    this.onIrPadron,
+  });
 
   final Usuario usuario;
   final ResumenDashboard resumen;
@@ -72,10 +90,17 @@ class _Contenido extends StatelessWidget {
               const SizedBox(height: 18),
               const Text(
                 'Accesos rápidos',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ColoresApp.textoSecundario),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: ColoresApp.textoSecundario,
+                ),
               ),
               const SizedBox(height: 12),
-              AccesosRapidos(onIrInventario: onIrInventario, onIrPadron: onIrPadron),
+              AccesosRapidos(
+                onIrInventario: onIrInventario,
+                onIrPadron: onIrPadron,
+              ),
             ],
           ),
         ),
@@ -113,12 +138,21 @@ class _Cabecera extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  gradient: const LinearGradient(colors: <Color>[ColoresApp.primarioClaro, ColoresApp.primario]),
+                  gradient: const LinearGradient(
+                    colors: <Color>[
+                      ColoresApp.primarioClaro,
+                      ColoresApp.primario,
+                    ],
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   usuario.iniciales,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
                 ),
               ),
               const SizedBox(width: 13),
@@ -128,12 +162,20 @@ class _Cabecera extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Hola, ${usuario.nombreCompleto.split(' ').first}',
-                      style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       nombreOlla,
-                      style: const TextStyle(color: ColoresApp.verdeClaro, fontSize: 13, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: ColoresApp.verdeClaro,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),

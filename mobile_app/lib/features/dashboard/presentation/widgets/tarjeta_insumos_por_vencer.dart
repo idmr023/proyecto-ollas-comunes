@@ -23,13 +23,21 @@ class TarjetaInsumosPorVencer extends StatelessWidget {
         children: <Widget>[
           const Text(
             'Insumos por vencer',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: ColoresApp.textoPrincipal,
+            ),
           ),
           const SizedBox(height: 12),
           if (insumos.isEmpty)
             const Text(
               'No hay insumos próximos a vencer. ¡Todo en orden!',
-              style: TextStyle(fontSize: 13.5, color: ColoresApp.textoTenue, height: 1.5),
+              style: TextStyle(
+                fontSize: 13.5,
+                color: ColoresApp.textoTenue,
+                height: 1.5,
+              ),
             )
           else
             ...insumos.map(_FilaInsumo.new),
@@ -53,11 +61,17 @@ class _FilaInsumo extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: ColoresApp.superficieAlterna, borderRadius: BorderRadius.circular(11)),
+            decoration: BoxDecoration(
+              color: ColoresApp.superficieAlterna,
+              borderRadius: BorderRadius.circular(11),
+            ),
             alignment: Alignment.center,
             child: Text(
               insumo.nombre.isNotEmpty ? insumo.nombre[0].toUpperCase() : '?',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: ColoresApp.verdeMedio),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: ColoresApp.verdeMedio,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -65,12 +79,32 @@ class _FilaInsumo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(insumo.nombre, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ColoresApp.textoPrincipal)),
-                Text(insumo.cantidad, style: const TextStyle(fontSize: 12.5, color: ColoresApp.textoTenue)),
+                Text(
+                  insumo.nombre,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: ColoresApp.textoPrincipal,
+                  ),
+                ),
+                Text(
+                  insumo.cantidad,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: ColoresApp.textoTenue,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(insumo.venceEn, style: const TextStyle(fontSize: 12, color: ColoresApp.bajoTexto, fontWeight: FontWeight.w600)),
+          Text(
+            insumo.venceEn,
+            style: const TextStyle(
+              fontSize: 12,
+              color: ColoresApp.bajoTexto,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

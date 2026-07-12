@@ -26,7 +26,8 @@ class ModalExito extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierColor: ColoresApp.verdeProfundo.withValues(alpha: 0.5),
-      builder: (_) => ModalExito(titulo: titulo, mensaje: mensaje, textoBoton: textoBoton),
+      builder: (_) =>
+          ModalExito(titulo: titulo, mensaje: mensaje, textoBoton: textoBoton),
     );
   }
 
@@ -35,7 +36,9 @@ class ModalExito extends StatelessWidget {
     return Dialog(
       backgroundColor: ColoresApp.superficie,
       insetPadding: const EdgeInsets.all(Espaciado.xl),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radios.xl)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radios.xl),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
         child: Column(
@@ -52,7 +55,9 @@ class ModalExito extends StatelessWidget {
             Text(
               mensaje,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ColoresApp.textoTerciario),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: ColoresApp.textoTerciario,
+              ),
             ),
             const SizedBox(height: 22),
             FilledButton(
@@ -67,7 +72,11 @@ class ModalExito extends StatelessWidget {
 }
 
 class _IconoCircular extends StatelessWidget {
-  const _IconoCircular({required this.fondo, required this.icono, required this.color});
+  const _IconoCircular({
+    required this.fondo,
+    required this.icono,
+    required this.color,
+  });
 
   final Color fondo;
   final IconData icono;

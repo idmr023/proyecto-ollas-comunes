@@ -54,7 +54,10 @@ abstract final class TemaApp {
       focusedBorder: borde.copyWith(
         borderSide: const BorderSide(color: ColoresApp.primario, width: 1.8),
       ),
-      hintStyle: const TextStyle(color: ColoresApp.textoPlaceholder, fontSize: 16),
+      hintStyle: const TextStyle(
+        color: ColoresApp.textoPlaceholder,
+        fontSize: 16,
+      ),
     );
   }
 }

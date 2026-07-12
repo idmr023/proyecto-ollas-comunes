@@ -23,7 +23,9 @@ class Insumo {
 
   /// Cantidad formateada sin decimales innecesarios (ej. 4.0 → "4", 0.5 → "0.5").
   String get cantidadFormateada {
-    return cantidad == cantidad.roundToDouble() ? cantidad.toInt().toString() : cantidad.toString();
+    return cantidad == cantidad.roundToDouble()
+        ? cantidad.toInt().toString()
+        : cantidad.toString();
   }
 
   factory Insumo.desdeJson(Map<String, dynamic> json) {

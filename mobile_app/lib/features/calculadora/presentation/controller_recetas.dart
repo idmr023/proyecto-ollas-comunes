@@ -17,13 +17,19 @@ class ControllerRecetas extends Notifier<EstadoRecetas> {
 
   Future<void> cargar() async {
     state = const EstadoRecetas.cargando();
-    final Resultado<List<RecetaResumen>> resultado = await _repositorio.listarRecetas();
+    final Resultado<List<RecetaResumen>> resultado = await _repositorio
+        .listarRecetas();
     state = switch (resultado) {
-      Exito<List<RecetaResumen>>(:final List<RecetaResumen> valor) => EstadoRecetas.exito(valor),
-      Fallo<List<RecetaResumen>>(:final excepcion) => EstadoRecetas.error(excepcion.mensaje),
+      Exito<List<RecetaResumen>>(:final List<RecetaResumen> valor) =>
+        EstadoRecetas.exito(valor),
+      Fallo<List<RecetaResumen>>(:final excepcion) => EstadoRecetas.error(
+        excepcion.mensaje,
+      ),
     };
   }
 }
 
-final NotifierProvider<ControllerRecetas, EstadoRecetas> controllerRecetasProvider =
-    NotifierProvider<ControllerRecetas, EstadoRecetas>(ControllerRecetas.new);
+final NotifierProvider<ControllerRecetas, EstadoRecetas>
+controllerRecetasProvider = NotifierProvider<ControllerRecetas, EstadoRecetas>(
+  ControllerRecetas.new,
+);

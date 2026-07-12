@@ -28,5 +28,8 @@ class ControllerEvidencia extends Notifier<EstadoEvidencia> {
   }
 }
 
-final NotifierProvider<ControllerEvidencia, EstadoEvidencia> controllerEvidenciaProvider =
-    NotifierProvider<ControllerEvidencia, EstadoEvidencia>(ControllerEvidencia.new);
+final NotifierProvider<ControllerEvidencia, EstadoEvidencia>
+controllerEvidenciaProvider =
+    NotifierProvider<ControllerEvidencia, EstadoEvidencia>(
+      ControllerEvidencia.new,
+    );

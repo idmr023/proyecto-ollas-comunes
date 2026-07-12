@@ -29,7 +29,11 @@ class LogoOlla extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(Icons.soup_kitchen_outlined, color: Colors.white, size: tamano * 0.52),
+      child: Icon(
+        Icons.soup_kitchen_outlined,
+        color: Colors.white,
+        size: tamano * 0.52,
+      ),
     );
   }
 }

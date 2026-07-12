@@ -11,13 +11,17 @@ class ListaEsqueleto extends StatefulWidget {
   State<ListaEsqueleto> createState() => _ListaEsqueletoState();
 }
 
-class _ListaEsqueletoState extends State<ListaEsqueleto> with SingleTickerProviderStateMixin {
+class _ListaEsqueletoState extends State<ListaEsqueleto>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controlador;
 
   @override
   void initState() {
     super.initState();
-    _controlador = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat();
+    _controlador = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
   }
 
   @override
@@ -73,8 +77,12 @@ class _TarjetaEsqueleto extends StatelessWidget {
 }
 
 class _Bloque extends AnimatedWidget {
-  const _Bloque({required Animation<double> animacion, required this.ancho, required this.alto, required this.radio})
-      : super(listenable: animacion);
+  const _Bloque({
+    required Animation<double> animacion,
+    required this.ancho,
+    required this.alto,
+    required this.radio,
+  }) : super(listenable: animacion);
 
   final double ancho;
   final double alto;
@@ -91,7 +99,11 @@ class _Bloque extends AnimatedWidget {
         gradient: LinearGradient(
           begin: Alignment(-1 - valor, 0),
           end: Alignment(1 - valor, 0),
-          colors: const <Color>[ColoresApp.borde, Color(0xFFF7F3EC), ColoresApp.borde],
+          colors: const <Color>[
+            ColoresApp.borde,
+            Color(0xFFF7F3EC),
+            ColoresApp.borde,
+          ],
         ),
       ),
     );

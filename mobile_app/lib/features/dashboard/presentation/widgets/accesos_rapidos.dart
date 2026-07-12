@@ -54,7 +54,14 @@ class _BotonAcceso extends StatelessWidget {
             children: <Widget>[
               Icon(icono, color: ColoresApp.primarioClaro, size: 26),
               const SizedBox(height: 12),
-              Text(etiqueta, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+              Text(
+                etiqueta,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ),

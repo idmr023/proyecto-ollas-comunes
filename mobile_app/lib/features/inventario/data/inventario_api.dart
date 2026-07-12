@@ -8,7 +8,9 @@ class InventarioApi {
   final ClienteHttp _cliente;
 
   Future<Map<String, dynamic>> obtenerInventario() async {
-    final Response<dynamic> respuesta = await _cliente.obtener('/mobile/inventory');
+    final Response<dynamic> respuesta = await _cliente.obtener(
+      '/mobile/inventory',
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 

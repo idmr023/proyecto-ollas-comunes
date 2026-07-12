@@ -15,7 +15,9 @@ class DashboardRepositorioImpl implements RepositorioDashboard {
   Future<Resultado<ResumenDashboard>> obtenerResumen() async {
     try {
       final Map<String, dynamic> datos = await _api.obtenerResumen();
-      return Resultado<ResumenDashboard>.exito(ResumenDashboard.desdeJson(datos));
+      return Resultado<ResumenDashboard>.exito(
+        ResumenDashboard.desdeJson(datos),
+      );
     } on DioException catch (err) {
       return Resultado<ResumenDashboard>.fallo(ClienteHttp.traducirError(err));
     }

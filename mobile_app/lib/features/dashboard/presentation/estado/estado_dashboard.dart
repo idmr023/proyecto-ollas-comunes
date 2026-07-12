@@ -9,6 +9,9 @@ part 'estado_dashboard.freezed.dart';
 class EstadoDashboard with _$EstadoDashboard {
   const factory EstadoDashboard.inicial() = DashboardInicial;
   const factory EstadoDashboard.cargando() = DashboardCargando;
-  const factory EstadoDashboard.exito(Usuario usuario, ResumenDashboard resumen) = DashboardExito;
+  const factory EstadoDashboard.exito(
+    Usuario usuario,
+    ResumenDashboard resumen,
+  ) = DashboardExito;
   const factory EstadoDashboard.error(String mensaje) = DashboardError;
 }

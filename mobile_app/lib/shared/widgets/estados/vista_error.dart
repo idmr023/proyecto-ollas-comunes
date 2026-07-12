@@ -26,8 +26,15 @@ class VistaError extends StatelessWidget {
             Container(
               width: 88,
               height: 88,
-              decoration: BoxDecoration(color: ColoresApp.criticoFondo, borderRadius: BorderRadius.circular(26)),
-              child: const Icon(Icons.warning_amber_rounded, color: ColoresApp.criticoPunto, size: 42),
+              decoration: BoxDecoration(
+                color: ColoresApp.criticoFondo,
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: ColoresApp.criticoPunto,
+                size: 42,
+              ),
             ),
             const SizedBox(height: 20),
             Text(titulo, style: Theme.of(context).textTheme.titleLarge),
@@ -35,7 +42,10 @@ class VistaError extends StatelessWidget {
             Text(
               mensaje,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ColoresApp.textoTenue, height: 1.5),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: ColoresApp.textoTenue,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 22),
             FilledButton(

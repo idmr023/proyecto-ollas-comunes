@@ -11,17 +11,27 @@ import 'package:sigo_ollas/features/auth/presentation/paginas/pagina_login.dart'
 /// Doble de prueba del repositorio de autenticación.
 class _RepositorioAuthFalso implements RepositorioAuth {
   @override
-  Future<Resultado<ResultadoLogin>> iniciarSesion({required String email, required String password}) async {
-    return const Resultado<ResultadoLogin>.exito(MfaPendiente(tempToken: 't', email: 'a@b.pe'));
+  Future<Resultado<ResultadoLogin>> iniciarSesion({
+    required String email,
+    required String password,
+  }) async {
+    return const Resultado<ResultadoLogin>.exito(
+      MfaPendiente(tempToken: 't', email: 'a@b.pe'),
+    );
   }
 
   @override
-  Future<Resultado<Usuario>> verificarCodigo({required String email, required String tempToken, required String codigo}) async {
+  Future<Resultado<Usuario>> verificarCodigo({
+    required String email,
+    required String tempToken,
+    required String codigo,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<Resultado<Usuario>> obtenerUsuarioActual() async => throw UnimplementedError();
+  Future<Resultado<Usuario>> obtenerUsuarioActual() async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> haySesionActiva() async => false;
@@ -37,7 +47,9 @@ void main() {
 
   tearDown(() => sl.reset());
 
-  testWidgets('muestra los campos de correo y contraseña y el botón Ingresar', (WidgetTester tester) async {
+  testWidgets('muestra los campos de correo y contraseña y el botón Ingresar', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: PaginaLogin())),
     );
@@ -46,7 +58,9 @@ void main() {
     expect(find.byType(TextFormField), findsNWidgets(2));
   });
 
-  testWidgets('valida que no se envíe el formulario vacío', (WidgetTester tester) async {
+  testWidgets('valida que no se envíe el formulario vacío', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: PaginaLogin())),
     );

@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>SIGO-OLLAS usa la camara para registrar evidencias de la operacion de la olla comun.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SIGO-OLLAS usa la galeria para seleccionar evidencias ya capturadas.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

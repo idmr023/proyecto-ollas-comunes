@@ -17,7 +17,10 @@ void main() {
     });
 
     test('usa el tipo general para códigos desconocidos', () {
-      final Alerta actual = Alerta.desdeJson(<String, dynamic>{'id': 'a2', 'tipo': 'otro'});
+      final Alerta actual = Alerta.desdeJson(<String, dynamic>{
+        'id': 'a2',
+        'tipo': 'otro',
+      });
       expect(actual.tipo, TipoAlerta.general);
     });
   });
@@ -33,6 +36,27 @@ void main() {
       expect(actual.nombre, 'Lentejas con arroz');
       expect(actual.puntaje, 92);
       expect(actual.ingredientes, hasLength(3));
+      expect(actual.ingredientesReceta, isEmpty);
+    });
+
+    test('mapea ingredientes tecnicos para aprobar menu y descontar stock', () {
+      final SugerenciaMenu actual = SugerenciaMenu.desdeJson(<String, dynamic>{
+        'id': '2',
+        'nombre': 'Guiso de pollo',
+        'puntaje': 88,
+        'ingredientes': <dynamic>['Pollo (5 kg)', 'Arroz (8 kg)'],
+        'recipeIngredients': <dynamic>[
+          <String, dynamic>{'supplyItemId': 'pollo-id', 'quantity': 5},
+          <String, dynamic>{'supplyItemId': 'arroz-id', 'quantity': 8.5},
+        ],
+      });
+
+      expect(actual.ingredientesReceta, hasLength(2));
+      expect(actual.ingredientesReceta.first.supplyItemId, 'pollo-id');
+      expect(actual.ingredientesRecetaJson(), <Map<String, dynamic>>[
+        <String, dynamic>{'supplyItemId': 'pollo-id', 'quantity': 5.0},
+        <String, dynamic>{'supplyItemId': 'arroz-id', 'quantity': 8.5},
+      ]);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import '../../core/offline/almacen_offline.dart';
 import '../../core/red/cliente_http.dart';
 import '../../core/sesion/almacen_sesion.dart';
 import '../../features/auth/data/auth_api.dart';
@@ -30,37 +31,70 @@ final GetIt sl = GetIt.instance;
 /// Convención: singleton para servicios y repositorios.
 Future<void> configurarInyeccion() async {
   // Núcleo
-  sl.registerLazySingleton<FlutterSecureStorage>(() => const FlutterSecureStorage());
-  sl.registerLazySingleton<AlmacenSesion>(() => AlmacenSesion(sl<FlutterSecureStorage>()));
-  sl.registerLazySingleton<ClienteHttp>(() => ClienteHttp(almacenSesion: sl<AlmacenSesion>()));
+  sl.registerLazySingleton<FlutterSecureStorage>(
+    () => const FlutterSecureStorage(),
+  );
+  sl.registerLazySingleton<AlmacenSesion>(
+    () => AlmacenSesion(
+      PersistenciaSesionSecureStorage(sl<FlutterSecureStorage>()),
+    ),
+  );
+  sl.registerLazySingleton<AlmacenOffline>(
+    () => AlmacenOffline(PersistenciaSecureStorage(sl<FlutterSecureStorage>())),
+  );
+  sl.registerLazySingleton<ClienteHttp>(
+    () => ClienteHttp(
+      almacenSesion: sl<AlmacenSesion>(),
+      almacenOffline: sl<AlmacenOffline>(),
+    ),
+  );
 
   // Feature: auth
   sl.registerLazySingleton<AuthApi>(() => AuthApi(sl<ClienteHttp>()));
   sl.registerLazySingleton<RepositorioAuth>(
-    () => AuthRepositorioImpl(api: sl<AuthApi>(), almacenSesion: sl<AlmacenSesion>()),
+    () => AuthRepositorioImpl(
+      api: sl<AuthApi>(),
+      almacenSesion: sl<AlmacenSesion>(),
+    ),
   );
 
   // Feature: dashboard
   sl.registerLazySingleton<DashboardApi>(() => DashboardApi(sl<ClienteHttp>()));
-  sl.registerLazySingleton<RepositorioDashboard>(() => DashboardRepositorioImpl(sl<DashboardApi>()));
+  sl.registerLazySingleton<RepositorioDashboard>(
+    () => DashboardRepositorioImpl(sl<DashboardApi>()),
+  );
 
   // Feature: inventario
-  sl.registerLazySingleton<InventarioApi>(() => InventarioApi(sl<ClienteHttp>()));
-  sl.registerLazySingleton<RepositorioInventario>(() => InventarioRepositorioImpl(sl<InventarioApi>()));
+  sl.registerLazySingleton<InventarioApi>(
+    () => InventarioApi(sl<ClienteHttp>()),
+  );
+  sl.registerLazySingleton<RepositorioInventario>(
+    () => InventarioRepositorioImpl(sl<InventarioApi>()),
+  );
 
   // Feature: padrón
   sl.registerLazySingleton<PadronApi>(() => PadronApi(sl<ClienteHttp>()));
-  sl.registerLazySingleton<RepositorioPadron>(() => PadronRepositorioImpl(sl<PadronApi>()));
+  sl.registerLazySingleton<RepositorioPadron>(
+    () => PadronRepositorioImpl(sl<PadronApi>()),
+  );
 
   // Feature: alertas
-  sl.registerLazySingleton<RepositorioAlertas>(() => AlertasRepositorioImpl(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioAlertas>(
+    () => AlertasRepositorioImpl(sl<ClienteHttp>()),
+  );
 
   // Feature: menú-IA
-  sl.registerLazySingleton<RepositorioMenuIa>(() => MenuIaRepositorioImpl(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioMenuIa>(
+    () => MenuIaRepositorioImpl(sl<ClienteHttp>()),
+  );
 
   // Feature: evidencias
-  sl.registerLazySingleton<RepositorioEvidencias>(() => EvidenciasRepositorioImpl(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioEvidencias>(
+    () => EvidenciasRepositorioImpl(sl<ClienteHttp>()),
+  );
 
   // Feature: calculadora de preparación
-  sl.registerLazySingleton<RepositorioCalculadora>(() => CalculadoraRepositorioImpl(sl<ClienteHttp>()));
+  sl.registerLazySingleton<RepositorioCalculadora>(
+    () => CalculadoraRepositorioImpl(sl<ClienteHttp>()),
+  );
 }

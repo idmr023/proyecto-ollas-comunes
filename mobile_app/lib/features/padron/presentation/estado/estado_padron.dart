@@ -8,6 +8,7 @@ part 'estado_padron.freezed.dart';
 class EstadoPadron with _$EstadoPadron {
   const factory EstadoPadron.inicial() = PadronInicial;
   const factory EstadoPadron.cargando() = PadronCargando;
-  const factory EstadoPadron.exito(List<Beneficiario> beneficiarios) = PadronExito;
+  const factory EstadoPadron.exito(List<Beneficiario> beneficiarios) =
+      PadronExito;
   const factory EstadoPadron.error(String mensaje) = PadronError;
 }

@@ -8,7 +8,9 @@ class DashboardApi {
   final ClienteHttp _cliente;
 
   Future<Map<String, dynamic>> obtenerResumen() async {
-    final Response<dynamic> respuesta = await _cliente.obtener('/mobile/dashboard');
+    final Response<dynamic> respuesta = await _cliente.obtener(
+      '/mobile/dashboard',
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 }

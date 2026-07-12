@@ -17,13 +17,20 @@ class ControllerAlertas extends Notifier<EstadoAlertas> {
 
   Future<void> cargar() async {
     state = const EstadoAlertas.cargando();
-    final Resultado<List<Alerta>> resultado = await _repositorio.obtenerAlertas();
+    final Resultado<List<Alerta>> resultado = await _repositorio
+        .obtenerAlertas();
     state = switch (resultado) {
-      Exito<List<Alerta>>(:final List<Alerta> valor) => EstadoAlertas.exito(valor),
-      Fallo<List<Alerta>>(:final excepcion) => EstadoAlertas.error(excepcion.mensaje),
+      Exito<List<Alerta>>(:final List<Alerta> valor) => EstadoAlertas.exito(
+        valor,
+      ),
+      Fallo<List<Alerta>>(:final excepcion) => EstadoAlertas.error(
+        excepcion.mensaje,
+      ),
     };
   }
 }
 
-final NotifierProvider<ControllerAlertas, EstadoAlertas> controllerAlertasProvider =
-    NotifierProvider<ControllerAlertas, EstadoAlertas>(ControllerAlertas.new);
+final NotifierProvider<ControllerAlertas, EstadoAlertas>
+controllerAlertasProvider = NotifierProvider<ControllerAlertas, EstadoAlertas>(
+  ControllerAlertas.new,
+);

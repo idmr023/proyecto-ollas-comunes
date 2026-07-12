@@ -8,6 +8,7 @@ part 'estado_calculo.freezed.dart';
 class EstadoCalculo with _$EstadoCalculo {
   const factory EstadoCalculo.inicial() = CalculoInicial;
   const factory EstadoCalculo.calculando() = CalculoCalculando;
-  const factory EstadoCalculo.exito(ResultadoPreparacion resultado) = CalculoExito;
+  const factory EstadoCalculo.exito(ResultadoPreparacion resultado) =
+      CalculoExito;
   const factory EstadoCalculo.error(String mensaje) = CalculoError;
 }

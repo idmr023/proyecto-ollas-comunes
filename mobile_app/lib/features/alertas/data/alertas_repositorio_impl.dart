@@ -13,11 +13,21 @@ class AlertasRepositorioImpl implements RepositorioAlertas {
   @override
   Future<Resultado<List<Alerta>>> obtenerAlertas() async {
     try {
-      final Response<dynamic> respuesta = await _cliente.obtener('/mobile/alerts');
-      final Map<String, dynamic> datos = Map<String, dynamic>.from(respuesta.data as Map);
-      final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+      final Response<dynamic> respuesta = await _cliente.obtener(
+        '/mobile/alerts',
+      );
+      final Map<String, dynamic> datos = Map<String, dynamic>.from(
+        respuesta.data as Map,
+      );
+      final List<dynamic> items =
+          (datos['items'] as List<dynamic>?) ?? <dynamic>[];
       return Resultado<List<Alerta>>.exito(
-        items.map((dynamic e) => Alerta.desdeJson(Map<String, dynamic>.from(e as Map))).toList(),
+        items
+            .map(
+              (dynamic e) =>
+                  Alerta.desdeJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList(),
       );
     } on DioException catch (err) {
       return Resultado<List<Alerta>>.fallo(ClienteHttp.traducirError(err));

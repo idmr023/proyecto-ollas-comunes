@@ -12,9 +12,11 @@ import 'auth_api.dart';
 /// Traduce las respuestas JSON a entidades de dominio y los errores de red a
 /// [ExcepcionApp], devolviendo siempre un [Resultado] (sin lanzar a la UI).
 class AuthRepositorioImpl implements RepositorioAuth {
-  AuthRepositorioImpl({required AuthApi api, required AlmacenSesion almacenSesion})
-      : _api = api,
-        _almacenSesion = almacenSesion;
+  AuthRepositorioImpl({
+    required AuthApi api,
+    required AlmacenSesion almacenSesion,
+  }) : _api = api,
+       _almacenSesion = almacenSesion;
 
   final AuthApi _api;
   final AlmacenSesion _almacenSesion;
@@ -25,7 +27,10 @@ class AuthRepositorioImpl implements RepositorioAuth {
     required String password,
   }) async {
     try {
-      final Map<String, dynamic> datos = await _api.iniciarSesion(email: email, password: password);
+      final Map<String, dynamic> datos = await _api.iniciarSesion(
+        email: email,
+        password: password,
+      );
       return Resultado<ResultadoLogin>.exito(_mapearResultadoLogin(datos));
     } on DioException catch (err) {
       return Resultado<ResultadoLogin>.fallo(ClienteHttp.traducirError(err));
@@ -46,7 +51,9 @@ class AuthRepositorioImpl implements RepositorioAuth {
       );
       final String token = datos['token'] as String;
       await _almacenSesion.guardarToken(token);
-      return Resultado<Usuario>.exito(Usuario.desdeJson(Map<String, dynamic>.from(datos['user'] as Map)));
+      return Resultado<Usuario>.exito(
+        Usuario.desdeJson(Map<String, dynamic>.from(datos['user'] as Map)),
+      );
     } on DioException catch (err) {
       return Resultado<Usuario>.fallo(ClienteHttp.traducirError(err));
     }
@@ -56,7 +63,9 @@ class AuthRepositorioImpl implements RepositorioAuth {
   Future<Resultado<Usuario>> obtenerUsuarioActual() async {
     try {
       final Map<String, dynamic> datos = await _api.obtenerUsuarioActual();
-      return Resultado<Usuario>.exito(Usuario.desdeJson(Map<String, dynamic>.from(datos['user'] as Map)));
+      return Resultado<Usuario>.exito(
+        Usuario.desdeJson(Map<String, dynamic>.from(datos['user'] as Map)),
+      );
     } on DioException catch (err) {
       return Resultado<Usuario>.fallo(ClienteHttp.traducirError(err));
     }

@@ -16,15 +16,20 @@ class ControllerLogin extends Notifier<EstadoLogin> {
     return const EstadoLogin.inicial();
   }
 
-  Future<void> iniciarSesion({required String email, required String password}) async {
+  Future<void> iniciarSesion({
+    required String email,
+    required String password,
+  }) async {
     state = const EstadoLogin.cargando();
-    final Resultado<ResultadoLogin> resultado = await _repositorio.iniciarSesion(
-      email: email.trim(),
-      password: password,
-    );
+    final Resultado<ResultadoLogin> resultado = await _repositorio
+        .iniciarSesion(email: email.trim(), password: password.trim());
     state = switch (resultado) {
-      Exito<ResultadoLogin>(:final ResultadoLogin valor) => EstadoLogin.exito(valor),
-      Fallo<ResultadoLogin>(:final excepcion) => EstadoLogin.error(excepcion.mensaje),
+      Exito<ResultadoLogin>(:final ResultadoLogin valor) => EstadoLogin.exito(
+        valor,
+      ),
+      Fallo<ResultadoLogin>(:final excepcion) => EstadoLogin.error(
+        excepcion.mensaje,
+      ),
     };
   }
 

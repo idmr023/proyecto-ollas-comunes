@@ -13,14 +13,47 @@ class MenuIaRepositorioImpl implements RepositorioMenuIa {
   @override
   Future<Resultado<List<SugerenciaMenu>>> obtenerSugerencias() async {
     try {
-      final Response<dynamic> respuesta = await _cliente.obtener('/mobile/suggestions');
-      final Map<String, dynamic> datos = Map<String, dynamic>.from(respuesta.data as Map);
-      final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+      final Response<dynamic> respuesta = await _cliente.obtener(
+        '/mobile/suggestions',
+      );
+      final Map<String, dynamic> datos = Map<String, dynamic>.from(
+        respuesta.data as Map,
+      );
+      final List<dynamic> items =
+          (datos['items'] as List<dynamic>?) ?? <dynamic>[];
       return Resultado<List<SugerenciaMenu>>.exito(
-        items.map((dynamic e) => SugerenciaMenu.desdeJson(Map<String, dynamic>.from(e as Map))).toList(),
+        items
+            .map(
+              (dynamic e) =>
+                  SugerenciaMenu.desdeJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList(),
       );
     } on DioException catch (err) {
-      return Resultado<List<SugerenciaMenu>>.fallo(ClienteHttp.traducirError(err));
+      return Resultado<List<SugerenciaMenu>>.fallo(
+        ClienteHttp.traducirError(err),
+      );
+    }
+  }
+
+  @override
+  Future<Resultado<void>> aprobarSugerencia(
+    SugerenciaMenu sugerencia, {
+    int raciones = 100,
+  }) async {
+    try {
+      await _cliente.publicar(
+        '/mobile/menu-plans/execute',
+        cuerpo: <String, dynamic>{
+          'dishName': sugerencia.nombre,
+          'servings': raciones,
+          if (sugerencia.ingredientesReceta.isNotEmpty)
+            'recipeIngredients': sugerencia.ingredientesRecetaJson(),
+        },
+      );
+      return const Resultado<void>.exito(null);
+    } on DioException catch (err) {
+      return Resultado<void>.fallo(ClienteHttp.traducirError(err));
     }
   }
 }

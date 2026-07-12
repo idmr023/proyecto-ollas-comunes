@@ -37,7 +37,9 @@ class BarraNavegacion extends StatelessWidget {
           child: Row(
             children: List<Widget>.generate(items.length, (int i) {
               final bool activo = i == indiceActivo;
-              final Color color = activo ? ColoresApp.primario : ColoresApp.textoPlaceholder;
+              final Color color = activo
+                  ? ColoresApp.primario
+                  : ColoresApp.textoPlaceholder;
               return Expanded(
                 child: InkWell(
                   onTap: () => onCambio(i),
@@ -48,7 +50,11 @@ class BarraNavegacion extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         items[i].etiqueta,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
                       ),
                     ],
                   ),

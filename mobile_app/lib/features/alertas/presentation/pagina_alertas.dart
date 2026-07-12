@@ -22,7 +22,9 @@ class _PaginaAlertasState extends ConsumerState<PaginaAlertas> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() => ref.read(controllerAlertasProvider.notifier).cargar());
+    Future<void>.microtask(
+      () => ref.read(controllerAlertasProvider.notifier).cargar(),
+    );
   }
 
   @override
@@ -34,14 +36,28 @@ class _PaginaAlertasState extends ConsumerState<PaginaAlertas> {
         backgroundColor: ColoresApp.fondo,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
           onPressed: () => context.router.maybePop(),
         ),
-        title: const Text('Alertas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+        title: const Text(
+          'Alertas',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ColoresApp.textoPrincipal,
+          ),
+        ),
         centerTitle: false,
       ),
       body: switch (estado) {
-        AlertasError(:final String mensaje) => VistaError(mensaje: mensaje, onReintentar: () => ref.read(controllerAlertasProvider.notifier).cargar()),
+        AlertasError(:final String mensaje) => VistaError(
+          mensaje: mensaje,
+          onReintentar: () =>
+              ref.read(controllerAlertasProvider.notifier).cargar(),
+        ),
         AlertasExito(:final List<Alerta> alertas) => _lista(alertas),
         _ => const ListaEsqueleto(),
       },
@@ -98,14 +114,34 @@ class _TarjetaAlerta extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(alerta.titulo, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+                Text(
+                  alerta.titulo,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: ColoresApp.textoPrincipal,
+                  ),
+                ),
                 const SizedBox(height: 3),
-                Text(alerta.descripcion, style: const TextStyle(fontSize: 13, color: ColoresApp.textoTenue, height: 1.4)),
+                Text(
+                  alerta.descripcion,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: ColoresApp.textoTenue,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          Text(alerta.fecha, style: const TextStyle(fontSize: 12, color: ColoresApp.textoPlaceholder)),
+          Text(
+            alerta.fecha,
+            style: const TextStyle(
+              fontSize: 12,
+              color: ColoresApp.textoPlaceholder,
+            ),
+          ),
         ],
       ),
     );

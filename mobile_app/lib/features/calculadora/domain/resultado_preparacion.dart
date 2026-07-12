@@ -51,19 +51,28 @@ class ResultadoPreparacion {
   bool get personasDesdePadron => fuentePersonas == 'padron';
 
   factory ResultadoPreparacion.desdeJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> receta = (json['receta'] as Map<String, dynamic>?) ?? <String, dynamic>{};
-    final Map<String, dynamic> resumen = (json['resumen'] as Map<String, dynamic>?) ?? <String, dynamic>{};
-    final List<dynamic> ingredientes = (json['ingredientes'] as List<dynamic>?) ?? <dynamic>[];
+    final Map<String, dynamic> receta =
+        (json['receta'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final Map<String, dynamic> resumen =
+        (json['resumen'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final List<dynamic> ingredientes =
+        (json['ingredientes'] as List<dynamic>?) ?? <dynamic>[];
     return ResultadoPreparacion(
       nombreReceta: receta['nombre'] as String? ?? '',
       personas: (json['personas'] as num?)?.toInt() ?? 0,
       fuentePersonas: json['fuentePersonas'] as String? ?? 'manual',
-      racionesPosiblesConStock: (json['racionesPosiblesConStock'] as num?)?.toInt() ?? 0,
+      racionesPosiblesConStock:
+          (json['racionesPosiblesConStock'] as num?)?.toInt() ?? 0,
       alcanzaParaTodos: json['alcanzaParaTodos'] as bool? ?? false,
       ingredientes: ingredientes
-          .map((dynamic e) => IngredienteCalculado.desdeJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (dynamic e) => IngredienteCalculado.desdeJson(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
           .toList(),
-      ingredientesFaltantes: (resumen['ingredientesFaltantes'] as num?)?.toInt() ?? 0,
+      ingredientesFaltantes:
+          (resumen['ingredientesFaltantes'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -41,11 +41,15 @@ class ModalConfirmacion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color colorConfirmar = esDestructiva ? ColoresApp.criticoPunto : ColoresApp.primario;
+    final Color colorConfirmar = esDestructiva
+        ? ColoresApp.criticoPunto
+        : ColoresApp.primario;
     return Dialog(
       backgroundColor: ColoresApp.superficie,
       insetPadding: const EdgeInsets.all(Espaciado.xl),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radios.xl)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radios.xl),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
         child: Column(
@@ -54,16 +58,29 @@ class ModalConfirmacion extends StatelessWidget {
             Container(
               width: 72,
               height: 72,
-              decoration: const BoxDecoration(color: ColoresApp.bajoFondo, shape: BoxShape.circle),
-              child: const Icon(Icons.warning_amber_rounded, color: ColoresApp.bajoTexto, size: 36),
+              decoration: const BoxDecoration(
+                color: ColoresApp.bajoFondo,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: ColoresApp.bajoTexto,
+                size: 36,
+              ),
             ),
             const SizedBox(height: 18),
-            Text(titulo, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              titulo,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             Text(
               mensaje,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ColoresApp.textoTerciario),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: ColoresApp.textoTerciario,
+              ),
             ),
             const SizedBox(height: 22),
             FilledButton(
@@ -74,7 +91,10 @@ class ModalConfirmacion extends StatelessWidget {
             const SizedBox(height: 6),
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar', style: TextStyle(color: ColoresApp.textoTerciario)),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: ColoresApp.textoTerciario),
+              ),
             ),
           ],
         ),

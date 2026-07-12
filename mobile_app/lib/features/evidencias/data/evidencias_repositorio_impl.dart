@@ -22,7 +22,8 @@ class EvidenciasRepositorioImpl implements RepositorioEvidencias {
           'documentType': _tipoDocumento,
           'title': datos.titulo,
           'base64Data': datos.base64,
-          if (datos.descripcion != null && datos.descripcion!.isNotEmpty) 'description': datos.descripcion,
+          if (datos.descripcion != null && datos.descripcion!.isNotEmpty)
+            'description': datos.descripcion,
         },
       );
       return const Resultado<void>.exito(null);

@@ -23,11 +23,14 @@ class PaginaVerificacion extends ConsumerStatefulWidget {
 class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
   String _codigo = '';
 
-  bool get _requiereConfiguracion => widget.datosLogin is ConfiguracionTotpRequerida;
+  bool get _requiereConfiguracion =>
+      widget.datosLogin is ConfiguracionTotpRequerida;
 
   void _verificar() {
     if (_codigo.length != CampoCodigoOtp.cantidadDigitos) return;
-    ref.read(controllerVerificacionProvider.notifier).verificarCodigo(
+    ref
+        .read(controllerVerificacionProvider.notifier)
+        .verificarCodigo(
           email: widget.datosLogin.email,
           tempToken: widget.datosLogin.tempToken,
           codigo: _codigo,
@@ -49,7 +52,8 @@ class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
       controllerVerificacionProvider,
       (_, EstadoVerificacion estado) => _reaccionarEstado(estado),
     );
-    final bool cargando = ref.watch(controllerVerificacionProvider) is VerificacionCargando;
+    final bool cargando =
+        ref.watch(controllerVerificacionProvider) is VerificacionCargando;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -62,19 +66,35 @@ class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(color: ColoresApp.primarioSuave, borderRadius: BorderRadius.circular(18)),
-                child: const Icon(Icons.verified_user_outlined, color: ColoresApp.primario, size: 32),
+                decoration: BoxDecoration(
+                  color: ColoresApp.primarioSuave,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Icon(
+                  Icons.verified_user_outlined,
+                  color: ColoresApp.primario,
+                  size: 32,
+                ),
               ),
               const SizedBox(height: 22),
-              Text('Verificación', style: Theme.of(context).textTheme.displayMedium),
+              Text(
+                'Verificación',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
               const SizedBox(height: 8),
               Text(
                 _subtitulo(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: ColoresApp.textoTerciario, height: 1.5),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: ColoresApp.textoTerciario,
+                  height: 1.5,
+                ),
               ),
               if (_requiereConfiguracion) ...<Widget>[
                 const SizedBox(height: 16),
-                _BloqueConfiguracionTotp(secret: (widget.datosLogin as ConfiguracionTotpRequerida).secret),
+                _BloqueConfiguracionTotp(
+                  secret:
+                      (widget.datosLogin as ConfiguracionTotpRequerida).secret,
+                ),
               ],
               const SizedBox(height: 30),
               CampoCodigoOtp(
@@ -86,7 +106,10 @@ class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
               const Center(
                 child: Text(
                   'Abre tu app autenticadora para ver el código',
-                  style: TextStyle(color: ColoresApp.textoTerciario, fontSize: 13.5),
+                  style: TextStyle(
+                    color: ColoresApp.textoTerciario,
+                    fontSize: 13.5,
+                  ),
                 ),
               ),
               const Spacer(),
@@ -94,8 +117,12 @@ class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
                 onPressed: cargando ? null : _verificar,
                 child: cargando
                     ? const SizedBox(
-                        width: 22, height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Verificar'),
               ),
@@ -133,7 +160,10 @@ class _BotonAtras extends StatelessWidget {
         child: const SizedBox(
           width: 42,
           height: 42,
-          child: Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          child: Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
         ),
       ),
     );
@@ -160,12 +190,21 @@ class _BloqueConfiguracionTotp extends StatelessWidget {
         children: <Widget>[
           const Text(
             'Clave para tu app autenticadora',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: ColoresApp.bajoTexto),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: ColoresApp.bajoTexto,
+            ),
           ),
           const SizedBox(height: 6),
           SelectableText(
             secret,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal, letterSpacing: 1.2),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: ColoresApp.textoPrincipal,
+              letterSpacing: 1.2,
+            ),
           ),
         ],
       ),

@@ -25,10 +25,12 @@ class PaginaFormularioBeneficiario extends ConsumerStatefulWidget {
   final Beneficiario? beneficiario;
 
   @override
-  ConsumerState<PaginaFormularioBeneficiario> createState() => _PaginaFormularioBeneficiarioState();
+  ConsumerState<PaginaFormularioBeneficiario> createState() =>
+      _PaginaFormularioBeneficiarioState();
 }
 
-class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioBeneficiario> {
+class _PaginaFormularioBeneficiarioState
+    extends ConsumerState<PaginaFormularioBeneficiario> {
   final GlobalKey<FormState> _formulario = GlobalKey<FormState>();
   final TextEditingController _nombres = TextEditingController();
   final TextEditingController _apellidos = TextEditingController();
@@ -50,7 +52,9 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
   void initState() {
     super.initState();
     _precargar();
-    Future<void>.microtask(() => ref.read(controllerFormularioProvider.notifier).cargarOpciones());
+    Future<void>.microtask(
+      () => ref.read(controllerFormularioProvider.notifier).cargarOpciones(),
+    );
   }
 
   void _precargar() {
@@ -72,7 +76,10 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
     super.dispose();
   }
 
-  void _alCargarOpciones(List<CondicionSalud> condiciones, List<OllaReferencia> ollas) {
+  void _alCargarOpciones(
+    List<CondicionSalud> condiciones,
+    List<OllaReferencia> ollas,
+  ) {
     _condiciones = condiciones;
     _ollas = ollas;
     final String? ollaId = widget.beneficiario?.ollaId;
@@ -92,10 +99,18 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
 
   Future<void> _reaccionar(EstadoFormulario estado) async {
     switch (estado) {
-      case FormularioListo(:final List<CondicionSalud> condiciones, :final List<OllaReferencia> ollas):
+      case FormularioListo(
+        :final List<CondicionSalud> condiciones,
+        :final List<OllaReferencia> ollas,
+      ):
         if (!_opcionesListas) _alCargarOpciones(condiciones, ollas);
       case FormularioGuardado():
-        await ModalExito.mostrar(context, mensaje: _esEdicion ? 'Los cambios se guardaron correctamente.' : 'El beneficiario se registró en el padrón.');
+        await ModalExito.mostrar(
+          context,
+          mensaje: _esEdicion
+              ? 'Los cambios se guardaron correctamente.'
+              : 'El beneficiario se registró en el padrón.',
+        );
         if (!mounted) return;
         await ref.read(controllerPadronProvider.notifier).cargar();
         if (!mounted) return;
@@ -127,7 +142,11 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
   void _guardar() {
     if (!_formulario.currentState!.validate()) return;
     if (_fechaNacimiento == null) {
-      ModalError.mostrar(context, titulo: 'Falta un dato', mensaje: 'Selecciona la fecha de nacimiento.');
+      ModalError.mostrar(
+        context,
+        titulo: 'Falta un dato',
+        mensaje: 'Selecciona la fecha de nacimiento.',
+      );
       return;
     }
     final DatosBeneficiario datos = DatosBeneficiario(
@@ -139,25 +158,38 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
       dni: _dni.text.trim(),
       ollaId: _olla?.id,
     );
-    ref.read(controllerFormularioProvider.notifier).guardar(datos, idEdicion: widget.beneficiario?.id);
+    ref
+        .read(controllerFormularioProvider.notifier)
+        .guardar(datos, idEdicion: widget.beneficiario?.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<EstadoFormulario>(controllerFormularioProvider, (_, EstadoFormulario e) => _reaccionar(e));
-    final bool guardando = ref.watch(controllerFormularioProvider) is FormularioGuardando;
+    ref.listen<EstadoFormulario>(
+      controllerFormularioProvider,
+      (_, EstadoFormulario e) => _reaccionar(e),
+    );
+    final bool guardando =
+        ref.watch(controllerFormularioProvider) is FormularioGuardando;
     return Scaffold(
       backgroundColor: ColoresApp.fondo,
       appBar: AppBar(
         backgroundColor: ColoresApp.fondo,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
           onPressed: () => context.router.maybePop(),
         ),
         title: Text(
           _esEdicion ? 'Editar beneficiario' : 'Nuevo beneficiario',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ColoresApp.textoPrincipal,
+          ),
         ),
         centerTitle: false,
       ),
@@ -169,7 +201,14 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
                 child: FilledButton(
                   onPressed: guardando ? null : _guardar,
                   child: guardando
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Guardar beneficiario'),
                 ),
               ),
@@ -182,11 +221,14 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
     if (_errorCarga != null) {
       return VistaError(
         mensaje: _errorCarga!,
-        onReintentar: () => ref.read(controllerFormularioProvider.notifier).cargarOpciones(),
+        onReintentar: () =>
+            ref.read(controllerFormularioProvider.notifier).cargarOpciones(),
       );
     }
     if (!_opcionesListas) {
-      return const Center(child: CircularProgressIndicator(color: ColoresApp.primario));
+      return const Center(
+        child: CircularProgressIndicator(color: ColoresApp.primario),
+      );
     }
     return Form(
       key: _formulario,
@@ -195,28 +237,67 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
         children: <Widget>[
           Row(
             children: <Widget>[
-              Expanded(child: _Campo(etiqueta: 'Nombres', controlador: _nombres, requerido: true)),
+              Expanded(
+                child: _Campo(
+                  etiqueta: 'Nombres',
+                  controlador: _nombres,
+                  requerido: true,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _Campo(etiqueta: 'Apellidos', controlador: _apellidos, requerido: true)),
+              Expanded(
+                child: _Campo(
+                  etiqueta: 'Apellidos',
+                  controlador: _apellidos,
+                  requerido: true,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded(flex: 16, child: _Campo(etiqueta: 'DNI', controlador: _dni, teclado: TextInputType.number)),
+              Expanded(
+                flex: 16,
+                child: _Campo(
+                  etiqueta: 'DNI',
+                  controlador: _dni,
+                  teclado: TextInputType.number,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(flex: 14, child: _SelectorFecha(fecha: _fechaNacimiento, onTap: _elegirFecha)),
+              Expanded(
+                flex: 14,
+                child: _SelectorFecha(
+                  fecha: _fechaNacimiento,
+                  onTap: _elegirFecha,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          _SelectorOlla(ollas: _ollas, seleccionada: _olla, onCambio: (OllaReferencia? o) => setState(() => _olla = o)),
+          _SelectorOlla(
+            ollas: _ollas,
+            seleccionada: _olla,
+            onCambio: (OllaReferencia? o) => setState(() => _olla = o),
+          ),
           const SizedBox(height: 16),
-          _SelectorPrioridad(prioridad: _prioridad, onCambio: (Prioridad p) => setState(() => _prioridad = p)),
+          _SelectorPrioridad(
+            prioridad: _prioridad,
+            onCambio: (Prioridad p) => setState(() => _prioridad = p),
+          ),
           const SizedBox(height: 18),
           const Divider(color: Color(0xFFEAE4D9)),
           const SizedBox(height: 8),
-          const Text('Condiciones de salud', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ColoresApp.textoSecundario)),
+          const Text(
+            'Condiciones de salud',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: ColoresApp.textoSecundario,
+            ),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 9,
@@ -232,27 +313,40 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
     final bool activa = _condicionesSeleccionadas.contains(condicion.id);
     return GestureDetector(
       onTap: () => setState(() {
-        activa ? _condicionesSeleccionadas.remove(condicion.id) : _condicionesSeleccionadas.add(condicion.id);
+        activa
+            ? _condicionesSeleccionadas.remove(condicion.id)
+            : _condicionesSeleccionadas.add(condicion.id);
       }),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: activa ? ColoresApp.primarioSuave : ColoresApp.superficie,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: activa ? ColoresApp.primario : ColoresApp.bordeFuerte, width: 1.5),
+          border: Border.all(
+            color: activa ? ColoresApp.primario : ColoresApp.bordeFuerte,
+            width: 1.5,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Icon(
-              activa ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+              activa
+                  ? Icons.check_box_rounded
+                  : Icons.check_box_outline_blank_rounded,
               size: 18,
               color: activa ? ColoresApp.primario : ColoresApp.textoPlaceholder,
             ),
             const SizedBox(width: 7),
             Text(
               condicion.nombre,
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: activa ? ColoresApp.primarioOscuro : ColoresApp.textoSecundario),
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: activa
+                    ? ColoresApp.primarioOscuro
+                    : ColoresApp.textoSecundario,
+              ),
             ),
           ],
         ),
@@ -262,7 +356,12 @@ class _PaginaFormularioBeneficiarioState extends ConsumerState<PaginaFormularioB
 }
 
 class _Campo extends StatelessWidget {
-  const _Campo({required this.etiqueta, required this.controlador, this.requerido = false, this.teclado});
+  const _Campo({
+    required this.etiqueta,
+    required this.controlador,
+    this.requerido = false,
+    this.teclado,
+  });
 
   final String etiqueta;
   final TextEditingController controlador;
@@ -274,12 +373,22 @@ class _Campo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(etiqueta, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario)),
+        Text(
+          etiqueta,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: ColoresApp.textoSecundario,
+          ),
+        ),
         const SizedBox(height: 7),
         TextFormField(
           controller: controlador,
           keyboardType: teclado,
-          validator: requerido ? (String? v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null : null,
+          validator: requerido
+              ? (String? v) =>
+                    (v == null || v.trim().isEmpty) ? 'Obligatorio' : null
+              : null,
         ),
       ],
     );
@@ -294,11 +403,20 @@ class _SelectorFecha extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String texto = fecha == null ? 'Seleccionar' : DateFormat('dd/MM/yyyy').format(fecha!);
+    final String texto = fecha == null
+        ? 'Seleccionar'
+        : DateFormat('dd/MM/yyyy').format(fecha!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text('Fecha de nacimiento', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario)),
+        const Text(
+          'Fecha de nacimiento',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: ColoresApp.textoSecundario,
+          ),
+        ),
         const SizedBox(height: 7),
         GestureDetector(
           onTap: onTap,
@@ -313,8 +431,23 @@ class _SelectorFecha extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Flexible(child: Text(texto, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, color: fecha == null ? ColoresApp.textoPlaceholder : ColoresApp.textoPrincipal))),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: ColoresApp.textoPlaceholder),
+                Flexible(
+                  child: Text(
+                    texto,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: fecha == null
+                          ? ColoresApp.textoPlaceholder
+                          : ColoresApp.textoPrincipal,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: ColoresApp.textoPlaceholder,
+                ),
               ],
             ),
           ),
@@ -325,7 +458,11 @@ class _SelectorFecha extends StatelessWidget {
 }
 
 class _SelectorOlla extends StatelessWidget {
-  const _SelectorOlla({required this.ollas, required this.seleccionada, required this.onCambio});
+  const _SelectorOlla({
+    required this.ollas,
+    required this.seleccionada,
+    required this.onCambio,
+  });
 
   final List<OllaReferencia> ollas;
   final OllaReferencia? seleccionada;
@@ -336,14 +473,29 @@ class _SelectorOlla extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text('Olla asignada', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario)),
+        const Text(
+          'Olla asignada',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: ColoresApp.textoSecundario,
+          ),
+        ),
         const SizedBox(height: 7),
         DropdownButtonFormField<OllaReferencia>(
           initialValue: seleccionada,
           isExpanded: true,
-          hint: const Text('Seleccionar olla', style: TextStyle(color: ColoresApp.textoPlaceholder, fontSize: 15)),
+          hint: const Text(
+            'Seleccionar olla',
+            style: TextStyle(color: ColoresApp.textoPlaceholder, fontSize: 15),
+          ),
           items: ollas
-              .map((OllaReferencia o) => DropdownMenuItem<OllaReferencia>(value: o, child: Text(o.nombre, overflow: TextOverflow.ellipsis)))
+              .map(
+                (OllaReferencia o) => DropdownMenuItem<OllaReferencia>(
+                  value: o,
+                  child: Text(o.nombre, overflow: TextOverflow.ellipsis),
+                ),
+              )
               .toList(),
           onChanged: onCambio,
         ),
@@ -363,13 +515,32 @@ class _SelectorPrioridad extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text('Prioridad', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario)),
+        const Text(
+          'Prioridad',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: ColoresApp.textoSecundario,
+          ),
+        ),
         const SizedBox(height: 9),
         Row(
           children: <Widget>[
-            Expanded(child: _Opcion(etiqueta: 'Normal', activa: prioridad == Prioridad.normal, onTap: () => onCambio(Prioridad.normal))),
+            Expanded(
+              child: _Opcion(
+                etiqueta: 'Normal',
+                activa: prioridad == Prioridad.normal,
+                onTap: () => onCambio(Prioridad.normal),
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _Opcion(etiqueta: 'Alta', activa: prioridad == Prioridad.alta, onTap: () => onCambio(Prioridad.alta))),
+            Expanded(
+              child: _Opcion(
+                etiqueta: 'Alta',
+                activa: prioridad == Prioridad.alta,
+                onTap: () => onCambio(Prioridad.alta),
+              ),
+            ),
           ],
         ),
       ],
@@ -378,7 +549,11 @@ class _SelectorPrioridad extends StatelessWidget {
 }
 
 class _Opcion extends StatelessWidget {
-  const _Opcion({required this.etiqueta, required this.activa, required this.onTap});
+  const _Opcion({
+    required this.etiqueta,
+    required this.activa,
+    required this.onTap,
+  });
 
   final String etiqueta;
   final bool activa;
@@ -394,11 +569,20 @@ class _Opcion extends StatelessWidget {
         decoration: BoxDecoration(
           color: activa ? ColoresApp.primarioSuave : ColoresApp.superficie,
           borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: activa ? ColoresApp.primario : ColoresApp.bordeFuerte, width: activa ? 2 : 1.5),
+          border: Border.all(
+            color: activa ? ColoresApp.primario : ColoresApp.bordeFuerte,
+            width: activa ? 2 : 1.5,
+          ),
         ),
         child: Text(
           etiqueta,
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: activa ? ColoresApp.primarioOscuro : ColoresApp.textoSecundario),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: activa
+                ? ColoresApp.primarioOscuro
+                : ColoresApp.textoSecundario,
+          ),
         ),
       ),
     );

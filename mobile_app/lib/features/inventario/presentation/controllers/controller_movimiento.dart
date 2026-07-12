@@ -30,7 +30,9 @@ class ControllerMovimiento extends Notifier<EstadoMovimiento> {
     );
     state = switch (resultado) {
       Exito<void>() => const EstadoMovimiento.exito(),
-      Fallo<void>(:final excepcion) => EstadoMovimiento.error(excepcion.mensaje),
+      Fallo<void>(:final excepcion) => EstadoMovimiento.error(
+        excepcion.mensaje,
+      ),
     };
   }
 
@@ -39,5 +41,8 @@ class ControllerMovimiento extends Notifier<EstadoMovimiento> {
   }
 }
 
-final NotifierProvider<ControllerMovimiento, EstadoMovimiento> controllerMovimientoProvider =
-    NotifierProvider<ControllerMovimiento, EstadoMovimiento>(ControllerMovimiento.new);
+final NotifierProvider<ControllerMovimiento, EstadoMovimiento>
+controllerMovimientoProvider =
+    NotifierProvider<ControllerMovimiento, EstadoMovimiento>(
+      ControllerMovimiento.new,
+    );

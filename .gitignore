@@ -9,6 +9,7 @@ backend/.env
 backend/.env.local
 backend/.env.*.local
 backend/backend-dev*.log
+mobile_app/android/key.properties
 .env
 .env.local
 node_modules

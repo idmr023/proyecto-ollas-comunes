@@ -26,7 +26,11 @@ class AuthApi {
   }) async {
     final Response<dynamic> respuesta = await _cliente.publicar(
       '/auth/verify-otp',
-      cuerpo: <String, dynamic>{'email': email, 'tempToken': tempToken, 'code': codigo},
+      cuerpo: <String, dynamic>{
+        'email': email,
+        'tempToken': tempToken,
+        'code': codigo,
+      },
     );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }

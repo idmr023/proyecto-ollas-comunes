@@ -242,6 +242,56 @@ paths:
         "201": { description: Evidencia subida }
         "400": { description: Faltan campos obligatorios }
 
+  /mobile/menu-plans/execute:
+    post:
+      tags: [MenÃº-IA]
+      summary: Aprueba una sugerencia y la ejecuta como menÃº del dÃ­a
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dishName, servings]
+              properties:
+                dishName: { type: string }
+                servings: { type: integer, minimum: 1 }
+                recipeIngredients:
+                  type: array
+                  items:
+                    type: object
+                    required: [supplyItemId, quantity]
+                    properties:
+                      supplyItemId: { type: string }
+                      quantity: { type: number }
+                      unit: { type: string }
+      responses:
+        "201": { description: MenÃº aprobado y movimientos generados }
+        "400": { description: Datos invÃ¡lidos o stock insuficiente }
+
+  /mobile/deliveries:
+    post:
+      tags: [PadrÃ³n]
+      summary: Registra entrega de raciones a beneficiarios
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [beneficiaryIds]
+              properties:
+                beneficiaryIds:
+                  type: array
+                  minItems: 1
+                  items: { type: string }
+                dishName: { type: string }
+      responses:
+        "201": { description: Entregas registradas }
+        "400": { description: Lista vacÃ­a o beneficiario no vÃ¡lido }
+
   /beneficiaries:
     get:
       tags: [Padrón]

@@ -21,12 +21,15 @@ class ControllerDashboard extends Notifier<EstadoDashboard> {
 
   Future<void> cargar() async {
     state = const EstadoDashboard.cargando();
-    final List<dynamic> resultados = await Future.wait<dynamic>(<Future<dynamic>>[
-      _repositorioAuth.obtenerUsuarioActual(),
-      _repositorioDashboard.obtenerResumen(),
-    ]);
-    final Resultado<Usuario> resultadoUsuario = resultados[0] as Resultado<Usuario>;
-    final Resultado<ResumenDashboard> resultadoResumen = resultados[1] as Resultado<ResumenDashboard>;
+    final List<dynamic> resultados =
+        await Future.wait<dynamic>(<Future<dynamic>>[
+          _repositorioAuth.obtenerUsuarioActual(),
+          _repositorioDashboard.obtenerResumen(),
+        ]);
+    final Resultado<Usuario> resultadoUsuario =
+        resultados[0] as Resultado<Usuario>;
+    final Resultado<ResumenDashboard> resultadoResumen =
+        resultados[1] as Resultado<ResumenDashboard>;
     if (resultadoUsuario is Fallo<Usuario>) {
       state = EstadoDashboard.error(resultadoUsuario.excepcion.mensaje);
       return;
@@ -42,5 +45,8 @@ class ControllerDashboard extends Notifier<EstadoDashboard> {
   }
 }
 
-final NotifierProvider<ControllerDashboard, EstadoDashboard> controllerDashboardProvider =
-    NotifierProvider<ControllerDashboard, EstadoDashboard>(ControllerDashboard.new);
+final NotifierProvider<ControllerDashboard, EstadoDashboard>
+controllerDashboardProvider =
+    NotifierProvider<ControllerDashboard, EstadoDashboard>(
+      ControllerDashboard.new,
+    );

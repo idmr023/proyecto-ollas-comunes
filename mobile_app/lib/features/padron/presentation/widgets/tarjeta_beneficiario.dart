@@ -7,10 +7,18 @@ import 'chip_prioridad.dart';
 /// Tarjeta de la lista del padrón: avatar, nombre, DNI/edad, prioridad y
 /// condiciones de salud.
 class TarjetaBeneficiario extends StatelessWidget {
-  const TarjetaBeneficiario({super.key, required this.beneficiario, required this.onTap});
+  const TarjetaBeneficiario({
+    super.key,
+    required this.beneficiario,
+    required this.onTap,
+    this.modoEntrega = false,
+    this.seleccionado = false,
+  });
 
   final Beneficiario beneficiario;
   final VoidCallback onTap;
+  final bool modoEntrega;
+  final bool seleccionado;
 
   static const List<List<Color>> _paleta = <List<Color>>[
     <Color>[ColoresApp.primarioSuave, Color(0xFFC75F22)],
@@ -21,7 +29,8 @@ class TarjetaBeneficiario extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Color> colores = _paleta[beneficiario.id.hashCode.abs() % _paleta.length];
+    final List<Color> colores =
+        _paleta[beneficiario.id.hashCode.abs() % _paleta.length];
     final int? edad = beneficiario.edad;
     return Material(
       color: ColoresApp.superficie,
@@ -33,7 +42,13 @@ class TarjetaBeneficiario extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: ColoresApp.borde),
+            border: Border.all(
+              color: seleccionado ? ColoresApp.primario : ColoresApp.borde,
+              width: seleccionado ? 2 : 1,
+            ),
+            color: beneficiario.recibioRacionHoy
+                ? ColoresApp.superficieAlterna
+                : ColoresApp.superficie,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,11 +58,18 @@ class TarjetaBeneficiario extends StatelessWidget {
                   Container(
                     width: 46,
                     height: 46,
-                    decoration: BoxDecoration(color: colores[0], shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: colores[0],
+                      shape: BoxShape.circle,
+                    ),
                     alignment: Alignment.center,
                     child: Text(
                       beneficiario.iniciales,
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: colores[1]),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: colores[1],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 13),
@@ -57,19 +79,52 @@ class TarjetaBeneficiario extends StatelessWidget {
                       children: <Widget>[
                         Text(
                           beneficiario.nombreCompleto,
-                          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal),
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: ColoresApp.textoPrincipal,
+                          ),
                         ),
                         const SizedBox(height: 1),
                         Text(
                           'DNI ${beneficiario.dni ?? 'sin registrar'}${edad != null ? ' · $edad años' : ''}',
-                          style: const TextStyle(fontSize: 12.5, color: ColoresApp.textoTenue),
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: ColoresApp.textoTenue,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  ChipPrioridad(prioridad: beneficiario.prioridad),
+                  if (modoEntrega)
+                    Icon(
+                      beneficiario.recibioRacionHoy
+                          ? Icons.check_circle_rounded
+                          : seleccionado
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_unchecked_rounded,
+                      color: beneficiario.recibioRacionHoy
+                          ? ColoresApp.okPunto
+                          : seleccionado
+                          ? ColoresApp.primario
+                          : ColoresApp.textoPlaceholder,
+                    )
+                  else
+                    ChipPrioridad(prioridad: beneficiario.prioridad),
                 ],
               ),
+              if (beneficiario.recibioRacionHoy)
+                const Padding(
+                  padding: EdgeInsets.only(left: 59, top: 8),
+                  child: Text(
+                    'Racion entregada hoy',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: ColoresApp.okTexto,
+                    ),
+                  ),
+                ),
               if (beneficiario.tieneCondiciones)
                 Padding(
                   padding: const EdgeInsets.only(left: 59, top: 11),

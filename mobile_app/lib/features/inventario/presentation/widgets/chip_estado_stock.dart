@@ -13,13 +13,27 @@ class ChipEstadoStock extends StatelessWidget {
     final (Color fondo, Color texto, Color punto) = _colores(estado);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-      decoration: BoxDecoration(color: fondo, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: fondo,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Container(width: 7, height: 7, decoration: BoxDecoration(color: punto, shape: BoxShape.circle)),
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: punto, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 6),
-          Text(estado.etiqueta, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: texto)),
+          Text(
+            estado.etiqueta,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: texto,
+            ),
+          ),
         ],
       ),
     );
@@ -27,9 +41,21 @@ class ChipEstadoStock extends StatelessWidget {
 
   (Color, Color, Color) _colores(EstadoStock estado) {
     return switch (estado) {
-      EstadoStock.ok => (ColoresApp.okFondo, ColoresApp.okTexto, ColoresApp.okPunto),
-      EstadoStock.bajo => (ColoresApp.bajoFondo, ColoresApp.bajoTexto, ColoresApp.bajoPunto),
-      EstadoStock.critico => (ColoresApp.criticoFondo, ColoresApp.criticoTexto, ColoresApp.criticoPunto),
+      EstadoStock.ok => (
+        ColoresApp.okFondo,
+        ColoresApp.okTexto,
+        ColoresApp.okPunto,
+      ),
+      EstadoStock.bajo => (
+        ColoresApp.bajoFondo,
+        ColoresApp.bajoTexto,
+        ColoresApp.bajoPunto,
+      ),
+      EstadoStock.critico => (
+        ColoresApp.criticoFondo,
+        ColoresApp.criticoTexto,
+        ColoresApp.criticoPunto,
+      ),
     };
   }
 }

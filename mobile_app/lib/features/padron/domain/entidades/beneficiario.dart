@@ -15,6 +15,7 @@ class Beneficiario {
     required this.nombreOlla,
     required this.prioridad,
     required this.condiciones,
+    required this.recibioRacionHoy,
   });
 
   final String id;
@@ -28,6 +29,7 @@ class Beneficiario {
   final String? nombreOlla;
   final Prioridad prioridad;
   final List<CondicionSalud> condiciones;
+  final bool recibioRacionHoy;
 
   String get nombreCompleto => '$nombres $apellidos'.trim();
 
@@ -38,7 +40,8 @@ class Beneficiario {
     if (fechaNacimiento == null) return null;
     final DateTime hoy = DateTime.now();
     int anios = hoy.year - fechaNacimiento!.year;
-    final bool aunNoCumple = hoy.month < fechaNacimiento!.month ||
+    final bool aunNoCumple =
+        hoy.month < fechaNacimiento!.month ||
         (hoy.month == fechaNacimiento!.month && hoy.day < fechaNacimiento!.day);
     if (aunNoCumple) anios--;
     return anios;
@@ -54,7 +57,8 @@ class Beneficiario {
 
   factory Beneficiario.desdeJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? olla = json['olla'] as Map<String, dynamic>?;
-    final List<dynamic> condiciones = (json['healthConditions'] as List<dynamic>?) ?? <dynamic>[];
+    final List<dynamic> condiciones =
+        (json['healthConditions'] as List<dynamic>?) ?? <dynamic>[];
     return Beneficiario(
       id: json['id'] as String? ?? '',
       dni: json['dni'] as String?,
@@ -67,8 +71,12 @@ class Beneficiario {
       nombreOlla: olla?['name'] as String?,
       prioridad: Prioridad.desdeCodigo(json['priorityLevel'] as String?),
       condiciones: condiciones
-          .map((dynamic e) => CondicionSalud.desdeJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (dynamic e) =>
+                CondicionSalud.desdeJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList(),
+      recibioRacionHoy: json['hasEatenToday'] as bool? ?? false,
     );
   }
 }

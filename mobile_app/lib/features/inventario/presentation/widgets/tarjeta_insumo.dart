@@ -29,11 +29,18 @@ class TarjetaInsumo extends StatelessWidget {
               Container(
                 width: 46,
                 height: 46,
-                decoration: BoxDecoration(color: ColoresApp.superficieAlterna, borderRadius: BorderRadius.circular(13)),
+                decoration: BoxDecoration(
+                  color: ColoresApp.superficieAlterna,
+                  borderRadius: BorderRadius.circular(13),
+                ),
                 alignment: Alignment.center,
                 child: Text(
                   insumo.inicial,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: ColoresApp.verdeMedio),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    color: ColoresApp.verdeMedio,
+                  ),
                 ),
               ),
               const SizedBox(width: 13),
@@ -43,12 +50,19 @@ class TarjetaInsumo extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       insumo.nombre,
-                      style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal),
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        color: ColoresApp.textoPrincipal,
+                      ),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       '${insumo.cantidadFormateada} ${insumo.unidad}',
-                      style: const TextStyle(fontSize: 12.5, color: ColoresApp.textoTenue),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: ColoresApp.textoTenue,
+                      ),
                     ),
                   ],
                 ),

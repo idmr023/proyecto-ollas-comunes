@@ -29,14 +29,19 @@ class _PaginaInventarioState extends ConsumerState<PaginaInventario> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() => ref.read(controllerInventarioProvider.notifier).cargar());
+    Future<void>.microtask(
+      () => ref.read(controllerInventarioProvider.notifier).cargar(),
+    );
   }
 
-  Future<void> _recargar() => ref.read(controllerInventarioProvider.notifier).cargar();
+  Future<void> _recargar() =>
+      ref.read(controllerInventarioProvider.notifier).cargar();
 
   List<Insumo> _filtrar(List<Insumo> insumos) {
     return insumos.where((Insumo i) {
-      final bool coincideBusqueda = i.nombre.toLowerCase().contains(_busqueda.toLowerCase());
+      final bool coincideBusqueda = i.nombre.toLowerCase().contains(
+        _busqueda.toLowerCase(),
+      );
       final bool coincideFiltro = switch (_filtro) {
         _FiltroStock.todos => true,
         _FiltroStock.critico => i.estado == EstadoStock.critico,
@@ -68,8 +73,14 @@ class _PaginaInventarioState extends ConsumerState<PaginaInventario> {
 
   Widget _cuerpo(EstadoInventario estado) {
     return switch (estado) {
-      InventarioError(:final String mensaje) => VistaError(mensaje: mensaje, onReintentar: _recargar),
-      InventarioExito(:final List<Insumo> insumos) => _lista(_filtrar(insumos), insumos.isEmpty),
+      InventarioError(:final String mensaje) => VistaError(
+        mensaje: mensaje,
+        onReintentar: _recargar,
+      ),
+      InventarioExito(:final List<Insumo> insumos) => _lista(
+        _filtrar(insumos),
+        insumos.isEmpty,
+      ),
       _ => const ListaEsqueleto(),
     };
   }
@@ -90,14 +101,20 @@ class _PaginaInventarioState extends ConsumerState<PaginaInventario> {
       separatorBuilder: (_, _) => const SizedBox(height: 11),
       itemBuilder: (_, int i) => TarjetaInsumo(
         insumo: insumos[i],
-        onTap: () => context.router.push(DetalleInsumoRoute(insumo: insumos[i])),
+        onTap: () =>
+            context.router.push(DetalleInsumoRoute(insumo: insumos[i])),
       ),
     );
   }
 }
 
 class _Encabezado extends StatelessWidget {
-  const _Encabezado({required this.total, required this.onBuscar, required this.filtro, required this.onFiltro});
+  const _Encabezado({
+    required this.total,
+    required this.onBuscar,
+    required this.filtro,
+    required this.onFiltro,
+  });
 
   final int total;
   final ValueChanged<String> onBuscar;
@@ -113,25 +130,49 @@ class _Encabezado extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Inventario', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Inventario',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 2),
-            Text('$total insumos', style: const TextStyle(fontSize: 13.5, color: ColoresApp.textoTenue)),
+            Text(
+              '$total insumos',
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: ColoresApp.textoTenue,
+              ),
+            ),
             const SizedBox(height: 14),
             TextField(
               onChanged: onBuscar,
               decoration: const InputDecoration(
                 hintText: 'Buscar insumo...',
-                prefixIcon: Icon(Icons.search_rounded, color: ColoresApp.textoPlaceholder),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: ColoresApp.textoPlaceholder,
+                ),
               ),
             ),
             const SizedBox(height: 12),
             Row(
               children: <Widget>[
-                _ChipFiltro(etiqueta: 'Todos', activo: filtro == _FiltroStock.todos, onTap: () => onFiltro(_FiltroStock.todos)),
+                _ChipFiltro(
+                  etiqueta: 'Todos',
+                  activo: filtro == _FiltroStock.todos,
+                  onTap: () => onFiltro(_FiltroStock.todos),
+                ),
                 const SizedBox(width: 8),
-                _ChipFiltro(etiqueta: 'Crítico', activo: filtro == _FiltroStock.critico, onTap: () => onFiltro(_FiltroStock.critico)),
+                _ChipFiltro(
+                  etiqueta: 'Crítico',
+                  activo: filtro == _FiltroStock.critico,
+                  onTap: () => onFiltro(_FiltroStock.critico),
+                ),
                 const SizedBox(width: 8),
-                _ChipFiltro(etiqueta: 'Bajo', activo: filtro == _FiltroStock.bajo, onTap: () => onFiltro(_FiltroStock.bajo)),
+                _ChipFiltro(
+                  etiqueta: 'Bajo',
+                  activo: filtro == _FiltroStock.bajo,
+                  onTap: () => onFiltro(_FiltroStock.bajo),
+                ),
               ],
             ),
           ],
@@ -142,7 +183,11 @@ class _Encabezado extends StatelessWidget {
 }
 
 class _ChipFiltro extends StatelessWidget {
-  const _ChipFiltro({required this.etiqueta, required this.activo, required this.onTap});
+  const _ChipFiltro({
+    required this.etiqueta,
+    required this.activo,
+    required this.onTap,
+  });
 
   final String etiqueta;
   final bool activo;
@@ -157,7 +202,9 @@ class _ChipFiltro extends StatelessWidget {
         decoration: BoxDecoration(
           color: activo ? ColoresApp.verdeProfundo : ColoresApp.superficie,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: activo ? ColoresApp.verdeProfundo : ColoresApp.bordeFuerte),
+          border: Border.all(
+            color: activo ? ColoresApp.verdeProfundo : ColoresApp.bordeFuerte,
+          ),
         ),
         child: Text(
           etiqueta,

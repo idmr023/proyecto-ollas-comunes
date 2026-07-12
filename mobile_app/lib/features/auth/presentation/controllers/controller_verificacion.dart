@@ -28,7 +28,9 @@ class ControllerVerificacion extends Notifier<EstadoVerificacion> {
     );
     state = switch (resultado) {
       Exito<Usuario>(:final Usuario valor) => EstadoVerificacion.exito(valor),
-      Fallo<Usuario>(:final excepcion) => EstadoVerificacion.error(excepcion.mensaje),
+      Fallo<Usuario>(:final excepcion) => EstadoVerificacion.error(
+        excepcion.mensaje,
+      ),
     };
   }
 
@@ -37,5 +39,8 @@ class ControllerVerificacion extends Notifier<EstadoVerificacion> {
   }
 }
 
-final NotifierProvider<ControllerVerificacion, EstadoVerificacion> controllerVerificacionProvider =
-    NotifierProvider<ControllerVerificacion, EstadoVerificacion>(ControllerVerificacion.new);
+final NotifierProvider<ControllerVerificacion, EstadoVerificacion>
+controllerVerificacionProvider =
+    NotifierProvider<ControllerVerificacion, EstadoVerificacion>(
+      ControllerVerificacion.new,
+    );

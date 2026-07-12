@@ -16,9 +16,13 @@ class InventarioRepositorioImpl implements RepositorioInventario {
   Future<Resultado<List<Insumo>>> obtenerInventario() async {
     try {
       final Map<String, dynamic> datos = await _api.obtenerInventario();
-      final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+      final List<dynamic> items =
+          (datos['items'] as List<dynamic>?) ?? <dynamic>[];
       final List<Insumo> insumos = items
-          .map((dynamic e) => Insumo.desdeJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (dynamic e) =>
+                Insumo.desdeJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList();
       return Resultado<List<Insumo>>.exito(insumos);
     } on DioException catch (err) {

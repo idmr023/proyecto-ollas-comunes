@@ -1,6 +1,10 @@
 /// Datos del menú planificado para el día.
 class MenuDia {
-  const MenuDia({required this.plato, required this.estado, required this.racionesPosibles});
+  const MenuDia({
+    required this.plato,
+    required this.estado,
+    required this.racionesPosibles,
+  });
 
   final String plato;
   final String estado;
@@ -17,7 +21,11 @@ class MenuDia {
 
 /// Insumo perecible próximo a vencer mostrado en el dashboard.
 class InsumoPorVencer {
-  const InsumoPorVencer({required this.nombre, required this.cantidad, required this.venceEn});
+  const InsumoPorVencer({
+    required this.nombre,
+    required this.cantidad,
+    required this.venceEn,
+  });
 
   final String nombre;
   final String cantidad;
@@ -50,16 +58,21 @@ class ResumenDashboard {
 
   factory ResumenDashboard.desdeJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? olla = json['olla'] as Map<String, dynamic>?;
-    final Map<String, dynamic> resumen = (json['summary'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final Map<String, dynamic> resumen =
+        (json['summary'] as Map<String, dynamic>?) ?? <String, dynamic>{};
     final Map<String, dynamic>? menu = resumen['menu'] as Map<String, dynamic>?;
-    final List<dynamic> porVencer = (json['expiring'] as List<dynamic>?) ?? <dynamic>[];
+    final List<dynamic> porVencer =
+        (json['expiring'] as List<dynamic>?) ?? <dynamic>[];
     return ResumenDashboard(
       nombreOlla: olla?['name'] as String? ?? 'Sin olla asignada',
       racionesEntregadas: (resumen['entregadas'] as num?)?.toInt() ?? 0,
       racionesPlanificadas: (resumen['planificadas'] as num?)?.toInt() ?? 0,
       menuDia: menu == null ? null : MenuDia.desdeJson(menu),
       insumosPorVencer: porVencer
-          .map((dynamic e) => InsumoPorVencer.desdeJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (dynamic e) =>
+                InsumoPorVencer.desdeJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList(),
     );
   }

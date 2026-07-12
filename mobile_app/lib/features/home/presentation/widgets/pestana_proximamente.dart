@@ -18,8 +18,15 @@ class PestanaProximamente extends StatelessWidget {
             Container(
               width: 80,
               height: 80,
-              decoration: BoxDecoration(color: ColoresApp.superficieAlterna, borderRadius: BorderRadius.circular(24)),
-              child: const Icon(Icons.construction_outlined, color: ColoresApp.textoTenue, size: 38),
+              decoration: BoxDecoration(
+                color: ColoresApp.superficieAlterna,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Icon(
+                Icons.construction_outlined,
+                color: ColoresApp.textoTenue,
+                size: 38,
+              ),
             ),
             const SizedBox(height: 18),
             Text(titulo, style: Theme.of(context).textTheme.titleLarge),

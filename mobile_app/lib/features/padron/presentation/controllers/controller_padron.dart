@@ -17,10 +17,15 @@ class ControllerPadron extends Notifier<EstadoPadron> {
 
   Future<void> cargar({String? busqueda}) async {
     state = const EstadoPadron.cargando();
-    final Resultado<List<Beneficiario>> resultado = await _repositorio.listar(busqueda: busqueda);
+    final Resultado<List<Beneficiario>> resultado = await _repositorio.listar(
+      busqueda: busqueda,
+    );
     state = switch (resultado) {
-      Exito<List<Beneficiario>>(:final List<Beneficiario> valor) => EstadoPadron.exito(valor),
-      Fallo<List<Beneficiario>>(:final excepcion) => EstadoPadron.error(excepcion.mensaje),
+      Exito<List<Beneficiario>>(:final List<Beneficiario> valor) =>
+        EstadoPadron.exito(valor),
+      Fallo<List<Beneficiario>>(:final excepcion) => EstadoPadron.error(
+        excepcion.mensaje,
+      ),
     };
   }
 
@@ -29,13 +34,32 @@ class ControllerPadron extends Notifier<EstadoPadron> {
     final Resultado<void> resultado = await _repositorio.eliminar(id);
     return switch (resultado) {
       Exito<void>() => () {
-          cargar();
-          return null;
-        }(),
+        cargar();
+        return null;
+      }(),
+      Fallo<void>(:final excepcion) => excepcion.mensaje,
+    };
+  }
+
+  Future<String?> registrarEntrega({
+    required List<String> beneficiarioIds,
+    String? nombrePlato,
+  }) async {
+    final Resultado<void> resultado = await _repositorio.registrarEntrega(
+      beneficiarioIds: beneficiarioIds,
+      nombrePlato: nombrePlato,
+    );
+    return switch (resultado) {
+      Exito<void>() => () {
+        cargar();
+        return null;
+      }(),
       Fallo<void>(:final excepcion) => excepcion.mensaje,
     };
   }
 }
 
-final NotifierProvider<ControllerPadron, EstadoPadron> controllerPadronProvider =
-    NotifierProvider<ControllerPadron, EstadoPadron>(ControllerPadron.new);
+final NotifierProvider<ControllerPadron, EstadoPadron>
+controllerPadronProvider = NotifierProvider<ControllerPadron, EstadoPadron>(
+  ControllerPadron.new,
+);

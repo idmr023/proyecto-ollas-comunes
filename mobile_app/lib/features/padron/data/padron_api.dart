@@ -10,18 +10,29 @@ class PadronApi {
   Future<Map<String, dynamic>> listar({String? busqueda}) async {
     final Response<dynamic> respuesta = await _cliente.obtener(
       '/beneficiaries',
-      query: <String, dynamic>{if (busqueda != null && busqueda.isNotEmpty) 'query': busqueda},
+      query: <String, dynamic>{
+        if (busqueda != null && busqueda.isNotEmpty) 'query': busqueda,
+      },
     );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 
   Future<Map<String, dynamic>> crear(Map<String, dynamic> cuerpo) async {
-    final Response<dynamic> respuesta = await _cliente.publicar('/beneficiaries', cuerpo: cuerpo);
+    final Response<dynamic> respuesta = await _cliente.publicar(
+      '/beneficiaries',
+      cuerpo: cuerpo,
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 
-  Future<Map<String, dynamic>> actualizar(String id, Map<String, dynamic> cuerpo) async {
-    final Response<dynamic> respuesta = await _cliente.actualizarParcial('/beneficiaries/$id', cuerpo: cuerpo);
+  Future<Map<String, dynamic>> actualizar(
+    String id,
+    Map<String, dynamic> cuerpo,
+  ) async {
+    final Response<dynamic> respuesta = await _cliente.actualizarParcial(
+      '/beneficiaries/$id',
+      cuerpo: cuerpo,
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 
@@ -29,13 +40,31 @@ class PadronApi {
     await _cliente.eliminar('/beneficiaries/$id');
   }
 
+  Future<void> registrarEntrega({
+    required List<String> beneficiarioIds,
+    String? nombrePlato,
+  }) async {
+    await _cliente.publicar(
+      '/mobile/deliveries',
+      cuerpo: <String, dynamic>{
+        'beneficiaryIds': beneficiarioIds,
+        if (nombrePlato != null && nombrePlato.isNotEmpty)
+          'dishName': nombrePlato,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> listarCondiciones() async {
-    final Response<dynamic> respuesta = await _cliente.obtener('/beneficiaries/conditions');
+    final Response<dynamic> respuesta = await _cliente.obtener(
+      '/beneficiaries/conditions',
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 
   Future<Map<String, dynamic>> listarOllas() async {
-    final Response<dynamic> respuesta = await _cliente.obtener('/beneficiaries/ollas');
+    final Response<dynamic> respuesta = await _cliente.obtener(
+      '/beneficiaries/ollas',
+    );
     return Map<String, dynamic>.from(respuesta.data as Map);
   }
 }

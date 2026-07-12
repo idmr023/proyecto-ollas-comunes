@@ -21,14 +21,32 @@ void main() {
 
   group('Insumo', () {
     test('formatea la cantidad sin decimales innecesarios', () {
-      const Insumo entero = Insumo(id: '1', nombre: 'Arroz', cantidad: 120, unidad: 'kg', esPerecedero: false);
-      const Insumo decimal = Insumo(id: '2', nombre: 'Sal', cantidad: 0.5, unidad: 'kg', esPerecedero: false);
+      const Insumo entero = Insumo(
+        id: '1',
+        nombre: 'Arroz',
+        cantidad: 120,
+        unidad: 'kg',
+        esPerecedero: false,
+      );
+      const Insumo decimal = Insumo(
+        id: '2',
+        nombre: 'Sal',
+        cantidad: 0.5,
+        unidad: 'kg',
+        esPerecedero: false,
+      );
       expect(entero.cantidadFormateada, '120');
       expect(decimal.cantidadFormateada, '0.5');
     });
 
     test('deriva el estado a partir de la cantidad e inicial del nombre', () {
-      const Insumo critico = Insumo(id: '3', nombre: 'Lentejas', cantidad: 1, unidad: 'kg', esPerecedero: true);
+      const Insumo critico = Insumo(
+        id: '3',
+        nombre: 'Lentejas',
+        cantidad: 1,
+        unidad: 'kg',
+        esPerecedero: true,
+      );
       expect(critico.estado, EstadoStock.critico);
       expect(critico.inicial, 'L');
     });

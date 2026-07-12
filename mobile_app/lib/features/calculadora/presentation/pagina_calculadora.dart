@@ -28,7 +28,9 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() => ref.read(controllerRecetasProvider.notifier).cargar());
+    Future<void>.microtask(
+      () => ref.read(controllerRecetasProvider.notifier).cargar(),
+    );
   }
 
   @override
@@ -39,8 +41,12 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
 
   void _calcular() {
     if (_receta == null) return;
-    final int? personas = _personas.text.trim().isEmpty ? null : int.tryParse(_personas.text.trim());
-    ref.read(controllerCalculoProvider.notifier).calcular(recetaId: _receta!.id, personas: personas);
+    final int? personas = _personas.text.trim().isEmpty
+        ? null
+        : int.tryParse(_personas.text.trim());
+    ref
+        .read(controllerCalculoProvider.notifier)
+        .calcular(recetaId: _receta!.id, personas: personas);
   }
 
   @override
@@ -54,10 +60,20 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
         backgroundColor: ColoresApp.fondo,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
           onPressed: () => context.router.maybePop(),
         ),
-        title: const Text('Calculadora de preparación', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+        title: const Text(
+          'Calculadora de preparación',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ColoresApp.textoPrincipal,
+          ),
+        ),
         centerTitle: false,
       ),
       body: ListView(
@@ -69,7 +85,8 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
             estado: recetas,
             seleccionada: _receta,
             onCambio: (RecetaResumen? r) => setState(() => _receta = r),
-            onReintentar: () => ref.read(controllerRecetasProvider.notifier).cargar(),
+            onReintentar: () =>
+                ref.read(controllerRecetasProvider.notifier).cargar(),
           ),
           const SizedBox(height: 18),
           const _Titulo('Personas a atender'),
@@ -77,14 +94,25 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
           TextField(
             controller: _personas,
             keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(hintText: 'Dejar vacío para usar el padrón'),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            decoration: const InputDecoration(
+              hintText: 'Dejar vacío para usar el padrón',
+            ),
           ),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: (_receta == null || calculando) ? null : _calcular,
             child: calculando
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Calcular'),
           ),
           const SizedBox(height: 22),
@@ -96,7 +124,12 @@ class _PaginaCalculadoraState extends ConsumerState<PaginaCalculadora> {
 }
 
 class _SelectorReceta extends StatelessWidget {
-  const _SelectorReceta({required this.estado, required this.seleccionada, required this.onCambio, required this.onReintentar});
+  const _SelectorReceta({
+    required this.estado,
+    required this.seleccionada,
+    required this.onCambio,
+    required this.onReintentar,
+  });
 
   final EstadoRecetas estado;
   final RecetaResumen? seleccionada;
@@ -106,35 +139,75 @@ class _SelectorReceta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (estado) {
-      RecetasCargando() => const _CajaInfo(child: Row(
+      RecetasCargando() => const _CajaInfo(
+        child: Row(
           children: <Widget>[
-            SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: ColoresApp.primario)),
-            SizedBox(width: 12),
-            Text('Cargando recetas...', style: TextStyle(color: ColoresApp.textoTenue)),
-          ],
-        )),
-      RecetasError(:final String mensaje) => _CajaInfo(
-          child: Row(
-            children: <Widget>[
-              Expanded(child: Text(mensaje, style: const TextStyle(color: ColoresApp.criticoTexto, fontSize: 13))),
-              TextButton(onPressed: onReintentar, child: const Text('Reintentar')),
-            ],
-          ),
-        ),
-      RecetasExito(:final List<RecetaResumen> recetas) => recetas.isEmpty
-          ? const _CajaInfo(child: Text('No hay recetas registradas en tu organización.', style: TextStyle(color: ColoresApp.textoTenue)))
-          : DropdownButtonFormField<RecetaResumen>(
-              initialValue: seleccionada,
-              isExpanded: true,
-              hint: const Text('Selecciona una receta', style: TextStyle(color: ColoresApp.textoPlaceholder, fontSize: 15)),
-              items: recetas
-                  .map((RecetaResumen r) => DropdownMenuItem<RecetaResumen>(
-                        value: r,
-                        child: Text('${r.nombre} (${r.racionesEstimadas} raciones)', overflow: TextOverflow.ellipsis),
-                      ))
-                  .toList(),
-              onChanged: onCambio,
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                color: ColoresApp.primario,
+              ),
             ),
+            SizedBox(width: 12),
+            Text(
+              'Cargando recetas...',
+              style: TextStyle(color: ColoresApp.textoTenue),
+            ),
+          ],
+        ),
+      ),
+      RecetasError(:final String mensaje) => _CajaInfo(
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                mensaje,
+                style: const TextStyle(
+                  color: ColoresApp.criticoTexto,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: onReintentar,
+              child: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+      RecetasExito(:final List<RecetaResumen> recetas) =>
+        recetas.isEmpty
+            ? const _CajaInfo(
+                child: Text(
+                  'No hay recetas registradas en tu organización.',
+                  style: TextStyle(color: ColoresApp.textoTenue),
+                ),
+              )
+            : DropdownButtonFormField<RecetaResumen>(
+                initialValue: seleccionada,
+                isExpanded: true,
+                hint: const Text(
+                  'Selecciona una receta',
+                  style: TextStyle(
+                    color: ColoresApp.textoPlaceholder,
+                    fontSize: 15,
+                  ),
+                ),
+                items: recetas
+                    .map(
+                      (RecetaResumen r) => DropdownMenuItem<RecetaResumen>(
+                        value: r,
+                        child: Text(
+                          '${r.nombre} (${r.racionesEstimadas} raciones)',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: onCambio,
+              ),
       _ => const SizedBox.shrink(),
     };
   }
@@ -150,14 +223,19 @@ class _Resultado extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (estado) {
       CalculoInicial() => const _CajaInfo(
-          child: Text(
-            'Selecciona una receta y calcula cuántos ingredientes necesitas según las personas y tu inventario.',
-            style: TextStyle(color: ColoresApp.textoTenue, height: 1.5),
-          ),
+        child: Text(
+          'Selecciona una receta y calcula cuántos ingredientes necesitas según las personas y tu inventario.',
+          style: TextStyle(color: ColoresApp.textoTenue, height: 1.5),
         ),
+      ),
       CalculoCalculando() => const SizedBox.shrink(),
-      CalculoError(:final String mensaje) => VistaError(mensaje: mensaje, onReintentar: onReintentar),
-      CalculoExito(:final ResultadoPreparacion resultado) => _Detalle(resultado: resultado),
+      CalculoError(:final String mensaje) => VistaError(
+        mensaje: mensaje,
+        onReintentar: onReintentar,
+      ),
+      CalculoExito(:final ResultadoPreparacion resultado) => _Detalle(
+        resultado: resultado,
+      ),
       _ => const SizedBox.shrink(),
     };
   }
@@ -182,14 +260,20 @@ class _Detalle extends StatelessWidget {
           ),
           child: Row(
             children: <Widget>[
-              Icon(ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded, color: ok ? ColoresApp.okTexto : ColoresApp.criticoTexto),
+              Icon(
+                ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                color: ok ? ColoresApp.okTexto : ColoresApp.criticoTexto,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   ok
                       ? 'El stock alcanza para ${resultado.personas} personas.'
                       : 'Faltan ${resultado.ingredientesFaltantes} insumo(s) para ${resultado.personas} personas.',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: ok ? ColoresApp.okTexto : ColoresApp.criticoTexto),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: ok ? ColoresApp.okTexto : ColoresApp.criticoTexto,
+                  ),
                 ),
               ),
             ],
@@ -198,9 +282,20 @@ class _Detalle extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: <Widget>[
-            Expanded(child: _Mini(etiqueta: 'Raciones posibles', valor: '${resultado.racionesPosiblesConStock}')),
+            Expanded(
+              child: _Mini(
+                etiqueta: 'Raciones posibles',
+                valor: '${resultado.racionesPosiblesConStock}',
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _Mini(etiqueta: 'Personas', valor: '${resultado.personas}${resultado.personasDesdePadron ? ' (padrón)' : ''}')),
+            Expanded(
+              child: _Mini(
+                etiqueta: 'Personas',
+                valor:
+                    '${resultado.personas}${resultado.personasDesdePadron ? ' (padrón)' : ''}',
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -219,7 +314,9 @@ class _FilaIngrediente extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = ingrediente.alcanza ? ColoresApp.okPunto : ColoresApp.criticoPunto;
+    final Color color = ingrediente.alcanza
+        ? ColoresApp.okPunto
+        : ColoresApp.criticoPunto;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -230,17 +327,31 @@ class _FilaIngrediente extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(ingrediente.nombre, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+                Text(
+                  ingrediente.nombre,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: ColoresApp.textoPrincipal,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   'Necesario: ${_fmt(ingrediente.necesario)} · Stock: ${_fmt(ingrediente.stockActual)} ${ingrediente.unidad}',
-                  style: const TextStyle(fontSize: 12.5, color: ColoresApp.textoTenue),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: ColoresApp.textoTenue,
+                  ),
                 ),
               ],
             ),
@@ -248,7 +359,11 @@ class _FilaIngrediente extends StatelessWidget {
           if (!ingrediente.alcanza)
             Text(
               'Falta ${_fmt(ingrediente.faltante)} ${ingrediente.unidad}',
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: ColoresApp.criticoTexto),
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: ColoresApp.criticoTexto,
+              ),
             ),
         ],
       ),
@@ -256,7 +371,9 @@ class _FilaIngrediente extends StatelessWidget {
   }
 }
 
-String _fmt(double valor) => valor == valor.roundToDouble() ? valor.toInt().toString() : valor.toString();
+String _fmt(double valor) => valor == valor.roundToDouble()
+    ? valor.toInt().toString()
+    : valor.toString();
 
 class _Mini extends StatelessWidget {
   const _Mini({required this.etiqueta, required this.valor});
@@ -276,9 +393,19 @@ class _Mini extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(valor, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: ColoresApp.textoPrincipal)),
+          Text(
+            valor,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: ColoresApp.textoPrincipal,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(etiqueta, style: const TextStyle(fontSize: 12, color: ColoresApp.textoTenue)),
+          Text(
+            etiqueta,
+            style: const TextStyle(fontSize: 12, color: ColoresApp.textoTenue),
+          ),
         ],
       ),
     );
@@ -311,6 +438,13 @@ class _Titulo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(texto, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: ColoresApp.textoSecundario));
+    return Text(
+      texto,
+      style: const TextStyle(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w700,
+        color: ColoresApp.textoSecundario,
+      ),
+    );
   }
 }

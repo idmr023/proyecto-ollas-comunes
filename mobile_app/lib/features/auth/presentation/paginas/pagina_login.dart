@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../config/entorno/entorno.dart';
 import '../../../../config/router/app_router.dart';
 import '../../../../core/tema/colores_app.dart';
 import '../../../../shared/widgets/logo_olla.dart';
@@ -32,26 +34,33 @@ class _PaginaLoginState extends ConsumerState<PaginaLogin> {
 
   void _enviar() {
     if (!_formulario.currentState!.validate()) return;
-    ref.read(controllerLoginProvider.notifier).iniciarSesion(
-          email: _correo.text,
-          password: _password.text,
-        );
+    ref
+        .read(controllerLoginProvider.notifier)
+        .iniciarSesion(email: _correo.text, password: _password.text);
   }
 
   Future<void> _reaccionarEstado(EstadoLogin estado) async {
     if (estado is LoginExito) {
-      await context.router.push(VerificacionRoute(datosLogin: estado.resultado));
+      await context.router.push(
+        VerificacionRoute(datosLogin: estado.resultado),
+      );
       ref.read(controllerLoginProvider.notifier).reiniciar();
     } else if (estado is LoginError) {
       ref.read(controllerLoginProvider.notifier).reiniciar();
-      final bool reintentar = await ModalError.mostrar(context, mensaje: estado.mensaje);
+      final bool reintentar = await ModalError.mostrar(
+        context,
+        mensaje: estado.mensaje,
+      );
       if (reintentar) _enviar();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<EstadoLogin>(controllerLoginProvider, (_, EstadoLogin estado) => _reaccionarEstado(estado));
+    ref.listen<EstadoLogin>(
+      controllerLoginProvider,
+      (_, EstadoLogin estado) => _reaccionarEstado(estado),
+    );
     final bool cargando = ref.watch(controllerLoginProvider) is LoginCargando;
     return Scaffold(
       body: Column(
@@ -71,7 +80,9 @@ class _PaginaLoginState extends ConsumerState<PaginaLogin> {
                       controller: _correo,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(hintText: 'correo@ejemplo.pe'),
+                      decoration: const InputDecoration(
+                        hintText: 'correo@ejemplo.pe',
+                      ),
                       validator: _validarCorreo,
                     ),
                     const SizedBox(height: 18),
@@ -84,20 +95,30 @@ class _PaginaLoginState extends ConsumerState<PaginaLogin> {
                         hintText: '••••••••',
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _ocultarPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _ocultarPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             color: ColoresApp.textoPlaceholder,
                           ),
-                          onPressed: () => setState(() => _ocultarPassword = !_ocultarPassword),
+                          onPressed: () => setState(
+                            () => _ocultarPassword = !_ocultarPassword,
+                          ),
                         ),
                       ),
-                      validator: (String? v) => (v == null || v.isEmpty) ? 'Ingresa tu contraseña.' : null,
+                      validator: (String? v) => (v == null || v.isEmpty)
+                          ? 'Ingresa tu contraseña.'
+                          : null,
                     ),
                     const SizedBox(height: 14),
                     const Align(
                       alignment: Alignment.centerRight,
                       child: Text(
                         '¿Olvidaste tu contraseña?',
-                        style: TextStyle(color: ColoresApp.primario, fontWeight: FontWeight.w600, fontSize: 13.5),
+                        style: TextStyle(
+                          color: ColoresApp.primario,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13.5,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -105,11 +126,26 @@ class _PaginaLoginState extends ConsumerState<PaginaLogin> {
                       onPressed: cargando ? null : _enviar,
                       child: cargando
                           ? const SizedBox(
-                              width: 22, height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: Colors.white,
+                              ),
                             )
                           : const Text('Ingresar'),
                     ),
+                    if (kDebugMode) ...<Widget>[
+                      const SizedBox(height: 24),
+                      Text(
+                        'API: ${Entorno.urlBaseApi}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: ColoresApp.textoTerciario,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -122,7 +158,9 @@ class _PaginaLoginState extends ConsumerState<PaginaLogin> {
 
   String? _validarCorreo(String? valor) {
     if (valor == null || valor.trim().isEmpty) return 'Ingresa tu correo.';
-    final bool valido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(valor.trim());
+    final bool valido = RegExp(
+      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+    ).hasMatch(valor.trim());
     return valido ? null : 'Correo no válido.';
   }
 }
@@ -151,11 +189,20 @@ class _Cabecera extends StatelessWidget {
             children: <Widget>[
               const LogoOlla(tamano: 62, radio: 18),
               const SizedBox(height: 16),
-              Text('Bienvenida', style: Theme.of(context).textTheme.displayMedium?.copyWith(color: Colors.white)),
+              Text(
+                'Bienvenida',
+                style: Theme.of(
+                  context,
+                ).textTheme.displayMedium?.copyWith(color: Colors.white),
+              ),
               const SizedBox(height: 4),
               const Text(
                 'Ingresa para gestionar tu olla común',
-                style: TextStyle(color: ColoresApp.verdeClaro, fontSize: 14.5, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: ColoresApp.verdeClaro,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -174,7 +221,11 @@ class _Etiqueta extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       texto,
-      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario),
+      style: const TextStyle(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w600,
+        color: ColoresApp.textoSecundario,
+      ),
     );
   }
 }

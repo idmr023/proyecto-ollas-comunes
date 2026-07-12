@@ -11,7 +11,10 @@ sealed class ExcepcionApp implements Exception {
 
 /// Error de red: sin conexión, timeout o el servidor no respondió.
 final class ExcepcionRed extends ExcepcionApp {
-  const ExcepcionRed([super.mensaje = 'Revisa tu conexión a internet e inténtalo nuevamente.']);
+  const ExcepcionRed([
+    super.mensaje =
+        'No se pudo conectar con el servidor. Revisa tu internet o espera unos segundos e inténtalo de nuevo.',
+  ]);
 }
 
 /// El servidor respondió con un error controlado (4xx/5xx con mensaje).
@@ -23,10 +26,14 @@ final class ExcepcionServidor extends ExcepcionApp {
 
 /// Las credenciales o la sesión no son válidas (401/403).
 final class ExcepcionNoAutorizado extends ExcepcionApp {
-  const ExcepcionNoAutorizado([super.mensaje = 'Tu sesión expiró. Vuelve a iniciar sesión.']);
+  const ExcepcionNoAutorizado([
+    super.mensaje = 'Tu sesión expiró. Vuelve a iniciar sesión.',
+  ]);
 }
 
 /// Error inesperado no clasificado.
 final class ExcepcionDesconocida extends ExcepcionApp {
-  const ExcepcionDesconocida([super.mensaje = 'Algo salió mal. Inténtalo otra vez.']);
+  const ExcepcionDesconocida([
+    super.mensaje = 'Algo salió mal. Inténtalo otra vez.',
+  ]);
 }

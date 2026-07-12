@@ -36,13 +36,20 @@ class _PaginaHomeState extends State<PaginaHome> {
       body: IndexedStack(
         index: _indice,
         children: <Widget>[
-          PaginaDashboard(onIrInventario: () => _irA(1), onIrPadron: () => _irA(2)),
+          PaginaDashboard(
+            onIrInventario: () => _irA(1),
+            onIrPadron: () => _irA(2),
+          ),
           const PaginaInventario(),
           const PaginaPadron(),
           const PaginaMas(),
         ],
       ),
-      bottomNavigationBar: BarraNavegacion(indiceActivo: _indice, onCambio: _irA, items: _items),
+      bottomNavigationBar: BarraNavegacion(
+        indiceActivo: _indice,
+        onCambio: _irA,
+        items: _items,
+      ),
     );
   }
 }

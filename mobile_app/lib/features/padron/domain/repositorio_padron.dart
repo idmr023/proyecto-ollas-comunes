@@ -13,10 +13,18 @@ abstract interface class RepositorioPadron {
   Future<Resultado<Beneficiario>> crear(DatosBeneficiario datos);
 
   /// Actualiza un beneficiario existente.
-  Future<Resultado<Beneficiario>> actualizar(String id, DatosBeneficiario datos);
+  Future<Resultado<Beneficiario>> actualizar(
+    String id,
+    DatosBeneficiario datos,
+  );
 
   /// Elimina un beneficiario del padrón.
   Future<Resultado<void>> eliminar(String id);
+
+  Future<Resultado<void>> registrarEntrega({
+    required List<String> beneficiarioIds,
+    String? nombrePlato,
+  });
 
   /// Lista las condiciones de salud disponibles.
   Future<Resultado<List<CondicionSalud>>> listarCondiciones();

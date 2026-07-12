@@ -48,7 +48,9 @@ class _CampoCodigoOtpState extends State<CampoCodigoOtp> {
         Row(
           children: List<Widget>.generate(
             CampoCodigoOtp.cantidadDigitos,
-            (int i) => Expanded(child: _Casilla(digito: _digitoEn(i), activa: _esActiva(i))),
+            (int i) => Expanded(
+              child: _Casilla(digito: _digitoEn(i), activa: _esActiva(i)),
+            ),
           ),
         ),
         Positioned.fill(
@@ -62,7 +64,9 @@ class _CampoCodigoOtpState extends State<CampoCodigoOtp> {
               keyboardType: TextInputType.number,
               maxLength: CampoCodigoOtp.cantidadDigitos,
               showCursor: false,
-              inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               onChanged: _alCambiar,
             ),
           ),
@@ -71,7 +75,8 @@ class _CampoCodigoOtpState extends State<CampoCodigoOtp> {
     );
   }
 
-  String _digitoEn(int i) => i < _controlador.text.length ? _controlador.text[i] : '';
+  String _digitoEn(int i) =>
+      i < _controlador.text.length ? _controlador.text[i] : '';
 
   bool _esActiva(int i) => i == _controlador.text.length;
 }
@@ -95,13 +100,23 @@ class _Casilla extends StatelessWidget {
           width: activa ? 2 : 1.5,
         ),
         boxShadow: activa
-            ? <BoxShadow>[BoxShadow(color: ColoresApp.primario.withValues(alpha: 0.12), blurRadius: 4, spreadRadius: 4)]
+            ? <BoxShadow>[
+                BoxShadow(
+                  color: ColoresApp.primario.withValues(alpha: 0.12),
+                  blurRadius: 4,
+                  spreadRadius: 4,
+                ),
+              ]
             : null,
       ),
       alignment: Alignment.center,
       child: Text(
         digito,
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal),
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: ColoresApp.textoPrincipal,
+        ),
       ),
     );
   }

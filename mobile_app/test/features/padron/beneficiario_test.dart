@@ -23,7 +23,20 @@ void main() {
       expect(actual.prioridad, Prioridad.alta);
       expect(actual.nombreOlla, 'Olla Los Olivos');
       expect(actual.iniciales, 'EF');
+      expect(actual.recibioRacionHoy, isFalse);
       expect(actual.condiciones.single.nombre, 'Hipertensión');
+    });
+
+    test('mapea si el beneficiario ya recibio racion hoy', () {
+      final Beneficiario actual = Beneficiario.desdeJson(<String, dynamic>{
+        'id': 'b3',
+        'firstName': 'Rosa',
+        'lastName': 'Mamani',
+        'birthDate': '1980-01-01T00:00:00.000Z',
+        'priorityLevel': 'normal',
+        'hasEatenToday': true,
+      });
+      expect(actual.recibioRacionHoy, isTrue);
     });
 
     test('calcula la edad a partir de la fecha de nacimiento', () {

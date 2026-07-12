@@ -17,13 +17,21 @@ class ControllerInventario extends Notifier<EstadoInventario> {
 
   Future<void> cargar() async {
     state = const EstadoInventario.cargando();
-    final Resultado<List<Insumo>> resultado = await _repositorio.obtenerInventario();
+    final Resultado<List<Insumo>> resultado = await _repositorio
+        .obtenerInventario();
     state = switch (resultado) {
-      Exito<List<Insumo>>(:final List<Insumo> valor) => EstadoInventario.exito(valor),
-      Fallo<List<Insumo>>(:final excepcion) => EstadoInventario.error(excepcion.mensaje),
+      Exito<List<Insumo>>(:final List<Insumo> valor) => EstadoInventario.exito(
+        valor,
+      ),
+      Fallo<List<Insumo>>(:final excepcion) => EstadoInventario.error(
+        excepcion.mensaje,
+      ),
     };
   }
 }
 
-final NotifierProvider<ControllerInventario, EstadoInventario> controllerInventarioProvider =
-    NotifierProvider<ControllerInventario, EstadoInventario>(ControllerInventario.new);
+final NotifierProvider<ControllerInventario, EstadoInventario>
+controllerInventarioProvider =
+    NotifierProvider<ControllerInventario, EstadoInventario>(
+      ControllerInventario.new,
+    );

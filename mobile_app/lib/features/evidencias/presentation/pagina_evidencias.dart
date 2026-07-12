@@ -33,7 +33,11 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
   }
 
   Future<void> _elegirImagen(ImageSource origen) async {
-    final XFile? archivo = await _selector.pickImage(source: origen, imageQuality: 70, maxWidth: 1600);
+    final XFile? archivo = await _selector.pickImage(
+      source: origen,
+      imageQuality: 70,
+      maxWidth: 1600,
+    );
     if (archivo == null) return;
     final Uint8List bytes = await archivo.readAsBytes();
     setState(() {
@@ -44,16 +48,28 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
 
   void _subir() {
     if (_bytes == null) {
-      ModalError.mostrar(context, titulo: 'Falta la foto', mensaje: 'Captura o selecciona una imagen primero.');
+      ModalError.mostrar(
+        context,
+        titulo: 'Falta la foto',
+        mensaje: 'Captura o selecciona una imagen primero.',
+      );
       return;
     }
     if (_titulo.text.trim().isEmpty) {
-      ModalError.mostrar(context, titulo: 'Falta el título', mensaje: 'Escribe un título para la evidencia.');
+      ModalError.mostrar(
+        context,
+        titulo: 'Falta el título',
+        mensaje: 'Escribe un título para la evidencia.',
+      );
       return;
     }
-    ref.read(controllerEvidenciaProvider.notifier).subir(
+    ref
+        .read(controllerEvidenciaProvider.notifier)
+        .subir(
           DatosEvidencia(
-            nombreArchivo: _nombreArchivo.isEmpty ? 'evidencia.jpg' : _nombreArchivo,
+            nombreArchivo: _nombreArchivo.isEmpty
+                ? 'evidencia.jpg'
+                : _nombreArchivo,
             tipoArchivo: 'image/jpeg',
             titulo: _titulo.text.trim(),
             base64: base64Encode(_bytes!),
@@ -64,7 +80,10 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
   Future<void> _reaccionar(EstadoEvidencia estado) async {
     if (estado is EvidenciaExito) {
       ref.read(controllerEvidenciaProvider.notifier).reiniciar();
-      await ModalExito.mostrar(context, mensaje: 'La evidencia se subió correctamente.');
+      await ModalExito.mostrar(
+        context,
+        mensaje: 'La evidencia se subió correctamente.',
+      );
       if (!mounted) return;
       context.router.maybePop();
     } else if (estado is EvidenciaError) {
@@ -75,18 +94,32 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<EstadoEvidencia>(controllerEvidenciaProvider, (_, EstadoEvidencia e) => _reaccionar(e));
-    final bool subiendo = ref.watch(controllerEvidenciaProvider) is EvidenciaSubiendo;
+    ref.listen<EstadoEvidencia>(
+      controllerEvidenciaProvider,
+      (_, EstadoEvidencia e) => _reaccionar(e),
+    );
+    final bool subiendo =
+        ref.watch(controllerEvidenciaProvider) is EvidenciaSubiendo;
     return Scaffold(
       backgroundColor: ColoresApp.fondo,
       appBar: AppBar(
         backgroundColor: ColoresApp.fondo,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
           onPressed: () => context.router.maybePop(),
         ),
-        title: const Text('Nueva evidencia', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+        title: const Text(
+          'Nueva evidencia',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ColoresApp.textoPrincipal,
+          ),
+        ),
         centerTitle: false,
       ),
       body: ListView(
@@ -96,15 +129,39 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
           const SizedBox(height: 14),
           Row(
             children: <Widget>[
-              Expanded(child: _BotonOrigen(icono: Icons.photo_camera_outlined, etiqueta: 'Cámara', onTap: () => _elegirImagen(ImageSource.camera))),
+              Expanded(
+                child: _BotonOrigen(
+                  icono: Icons.photo_camera_outlined,
+                  etiqueta: 'Cámara',
+                  onTap: () => _elegirImagen(ImageSource.camera),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _BotonOrigen(icono: Icons.photo_library_outlined, etiqueta: 'Galería', onTap: () => _elegirImagen(ImageSource.gallery))),
+              Expanded(
+                child: _BotonOrigen(
+                  icono: Icons.photo_library_outlined,
+                  etiqueta: 'Galería',
+                  onTap: () => _elegirImagen(ImageSource.gallery),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          const Text('Título', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: ColoresApp.textoSecundario)),
+          const Text(
+            'Título',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: ColoresApp.textoSecundario,
+            ),
+          ),
           const SizedBox(height: 8),
-          TextField(controller: _titulo, decoration: const InputDecoration(hintText: 'Ej. Acta de entrega, foto del almuerzo...')),
+          TextField(
+            controller: _titulo,
+            decoration: const InputDecoration(
+              hintText: 'Ej. Acta de entrega, foto del almuerzo...',
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -113,7 +170,14 @@ class _PaginaEvidenciasState extends ConsumerState<PaginaEvidencias> {
           child: FilledButton(
             onPressed: subiendo ? null : _subir,
             child: subiendo
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Subir evidencia'),
           ),
         ),
@@ -142,9 +206,16 @@ class _AreaImagen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(Icons.image_outlined, size: 48, color: ColoresApp.textoPlaceholder),
+                  Icon(
+                    Icons.image_outlined,
+                    size: 48,
+                    color: ColoresApp.textoPlaceholder,
+                  ),
                   SizedBox(height: 10),
-                  Text('Aún no hay imagen', style: TextStyle(color: ColoresApp.textoTenue)),
+                  Text(
+                    'Aún no hay imagen',
+                    style: TextStyle(color: ColoresApp.textoTenue),
+                  ),
                 ],
               ),
             )
@@ -154,7 +225,11 @@ class _AreaImagen extends StatelessWidget {
 }
 
 class _BotonOrigen extends StatelessWidget {
-  const _BotonOrigen({required this.icono, required this.etiqueta, required this.onTap});
+  const _BotonOrigen({
+    required this.icono,
+    required this.etiqueta,
+    required this.onTap,
+  });
 
   final IconData icono;
   final String etiqueta;
@@ -170,12 +245,22 @@ class _BotonOrigen extends StatelessWidget {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: ColoresApp.bordeFuerte)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: ColoresApp.bordeFuerte),
+          ),
           child: Column(
             children: <Widget>[
               Icon(icono, color: ColoresApp.verdeMedio, size: 26),
               const SizedBox(height: 8),
-              Text(etiqueta, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario)),
+              Text(
+                etiqueta,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: ColoresApp.textoSecundario,
+                ),
+              ),
             ],
           ),
         ),

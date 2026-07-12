@@ -5,10 +5,10 @@ enum TipoAlerta {
   sincronizacion;
 
   static TipoAlerta desdeCodigo(String? codigo) => switch (codigo) {
-        'bajo_stock' => TipoAlerta.stockBajo,
-        'sincronizacion' => TipoAlerta.sincronizacion,
-        _ => TipoAlerta.general,
-      };
+    'bajo_stock' => TipoAlerta.stockBajo,
+    'sincronizacion' => TipoAlerta.sincronizacion,
+    _ => TipoAlerta.general,
+  };
 }
 
 /// Alerta operativa de la olla común (stock bajo, reporte faltante, etc.).

@@ -3,9 +3,10 @@
     <!-- Permiso de cámara para capturar evidencias (image_picker). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="sigo_ollas"
+        android:label="SIGO-OLLAS"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

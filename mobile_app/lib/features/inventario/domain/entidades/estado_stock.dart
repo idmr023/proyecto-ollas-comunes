@@ -19,8 +19,8 @@ enum EstadoStock {
   }
 
   String get etiqueta => switch (this) {
-        EstadoStock.ok => 'En stock',
-        EstadoStock.bajo => 'Stock bajo',
-        EstadoStock.critico => 'Crítico',
-      };
+    EstadoStock.ok => 'En stock',
+    EstadoStock.bajo => 'Stock bajo',
+    EstadoStock.critico => 'Crítico',
+  };
 }

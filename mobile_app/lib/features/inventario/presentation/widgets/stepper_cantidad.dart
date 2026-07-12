@@ -28,15 +28,37 @@ class StepperCantidad extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          _Boton(icono: Icons.remove_rounded, primario: false, onTap: onDecrementar),
+          _Boton(
+            icono: Icons.remove_rounded,
+            primario: false,
+            onTap: onDecrementar,
+          ),
           Column(
             children: <Widget>[
-              Text('$valor', style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: ColoresApp.textoPrincipal, height: 1)),
+              Text(
+                '$valor',
+                style: const TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w800,
+                  color: ColoresApp.textoPrincipal,
+                  height: 1,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(unidad, style: const TextStyle(fontSize: 13, color: ColoresApp.textoTenue)),
+              Text(
+                unidad,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: ColoresApp.textoTenue,
+                ),
+              ),
             ],
           ),
-          _Boton(icono: Icons.add_rounded, primario: true, onTap: onIncrementar),
+          _Boton(
+            icono: Icons.add_rounded,
+            primario: true,
+            onTap: onIncrementar,
+          ),
         ],
       ),
     );
@@ -44,7 +66,11 @@ class StepperCantidad extends StatelessWidget {
 }
 
 class _Boton extends StatelessWidget {
-  const _Boton({required this.icono, required this.primario, required this.onTap});
+  const _Boton({
+    required this.icono,
+    required this.primario,
+    required this.onTap,
+  });
 
   final IconData icono;
   final bool primario;
@@ -64,9 +90,15 @@ class _Boton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: primario ? null : Border.all(color: ColoresApp.bordeInput, width: 1.5),
+            border: primario
+                ? null
+                : Border.all(color: ColoresApp.bordeInput, width: 1.5),
           ),
-          child: Icon(icono, color: primario ? Colors.white : ColoresApp.textoPrincipal, size: 26),
+          child: Icon(
+            icono,
+            color: primario ? Colors.white : ColoresApp.textoPrincipal,
+            size: 26,
+          ),
         ),
       ),
     );

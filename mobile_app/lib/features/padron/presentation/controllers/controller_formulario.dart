@@ -23,12 +23,16 @@ class ControllerFormulario extends Notifier<EstadoFormulario> {
 
   Future<void> cargarOpciones() async {
     state = const EstadoFormulario.cargando();
-    final List<dynamic> resultados = await Future.wait<dynamic>(<Future<dynamic>>[
-      _repositorio.listarCondiciones(),
-      _repositorio.listarOllas(),
-    ]);
-    final Resultado<List<CondicionSalud>> resCond = resultados[0] as Resultado<List<CondicionSalud>>;
-    final Resultado<List<OllaReferencia>> resOllas = resultados[1] as Resultado<List<OllaReferencia>>;
+    final List<dynamic> resultados = await Future.wait<dynamic>(
+      <Future<dynamic>>[
+        _repositorio.listarCondiciones(),
+        _repositorio.listarOllas(),
+      ],
+    );
+    final Resultado<List<CondicionSalud>> resCond =
+        resultados[0] as Resultado<List<CondicionSalud>>;
+    final Resultado<List<OllaReferencia>> resOllas =
+        resultados[1] as Resultado<List<OllaReferencia>>;
     if (resCond is Fallo<List<CondicionSalud>>) {
       state = EstadoFormulario.error(resCond.excepcion.mensaje);
       return;
@@ -49,7 +53,9 @@ class ControllerFormulario extends Notifier<EstadoFormulario> {
         : await _repositorio.actualizar(idEdicion, datos);
     state = switch (resultado) {
       Exito<Beneficiario>() => const EstadoFormulario.guardado(),
-      Fallo<Beneficiario>(:final excepcion) => EstadoFormulario.error(excepcion.mensaje),
+      Fallo<Beneficiario>(:final excepcion) => EstadoFormulario.error(
+        excepcion.mensaje,
+      ),
     };
   }
 
@@ -59,5 +65,8 @@ class ControllerFormulario extends Notifier<EstadoFormulario> {
   }
 }
 
-final NotifierProvider<ControllerFormulario, EstadoFormulario> controllerFormularioProvider =
-    NotifierProvider<ControllerFormulario, EstadoFormulario>(ControllerFormulario.new);
+final NotifierProvider<ControllerFormulario, EstadoFormulario>
+controllerFormularioProvider =
+    NotifierProvider<ControllerFormulario, EstadoFormulario>(
+      ControllerFormulario.new,
+    );

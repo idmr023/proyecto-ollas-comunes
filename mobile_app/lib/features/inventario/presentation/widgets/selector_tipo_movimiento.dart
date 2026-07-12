@@ -4,7 +4,11 @@ import '../../domain/tipo_movimiento.dart';
 
 /// Selector segmentado entre Entrada y Salida, fiel al mockup.
 class SelectorTipoMovimiento extends StatelessWidget {
-  const SelectorTipoMovimiento({super.key, required this.seleccionado, required this.onCambio});
+  const SelectorTipoMovimiento({
+    super.key,
+    required this.seleccionado,
+    required this.onCambio,
+  });
 
   final TipoMovimiento seleccionado;
   final ValueChanged<TipoMovimiento> onCambio;
@@ -13,7 +17,10 @@ class SelectorTipoMovimiento extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(color: ColoresApp.superficieAlterna, borderRadius: BorderRadius.circular(15)),
+      decoration: BoxDecoration(
+        color: ColoresApp.superficieAlterna,
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Row(
         children: <Widget>[
           Expanded(
@@ -42,7 +49,13 @@ class SelectorTipoMovimiento extends StatelessWidget {
 }
 
 class _Opcion extends StatelessWidget {
-  const _Opcion({required this.etiqueta, required this.icono, required this.activo, required this.colorActivo, required this.onTap});
+  const _Opcion({
+    required this.etiqueta,
+    required this.icono,
+    required this.activo,
+    required this.colorActivo,
+    required this.onTap,
+  });
 
   final String etiqueta;
   final IconData icono;
@@ -63,7 +76,11 @@ class _Opcion extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icono, size: 17, color: activo ? colorActivo : ColoresApp.textoTenue),
+            Icon(
+              icono,
+              size: 17,
+              color: activo ? colorActivo : ColoresApp.textoTenue,
+            ),
             const SizedBox(width: 7),
             Text(
               etiqueta,

@@ -36,7 +36,9 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
 
   void _guardar() {
     if (_cantidad <= 0) return;
-    ref.read(controllerMovimientoProvider.notifier).registrar(
+    ref
+        .read(controllerMovimientoProvider.notifier)
+        .registrar(
           insumoId: widget.insumo.id,
           tipo: _tipo,
           cantidad: _cantidad.toDouble(),
@@ -49,30 +51,50 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
       ref.read(controllerMovimientoProvider.notifier).reiniciar();
       await ref.read(controllerInventarioProvider.notifier).cargar();
       if (!mounted) return;
-      await ModalExito.mostrar(context, mensaje: 'El movimiento se registró y el stock fue actualizado.');
+      await ModalExito.mostrar(
+        context,
+        mensaje: 'El movimiento se registró y el stock fue actualizado.',
+      );
       if (!mounted) return;
       await context.router.maybePop();
     } else if (estado is MovimientoError) {
       ref.read(controllerMovimientoProvider.notifier).reiniciar();
-      final bool reintentar = await ModalError.mostrar(context, mensaje: estado.mensaje);
+      final bool reintentar = await ModalError.mostrar(
+        context,
+        mensaje: estado.mensaje,
+      );
       if (reintentar) _guardar();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<EstadoMovimiento>(controllerMovimientoProvider, (_, EstadoMovimiento e) => _reaccionar(e));
-    final bool guardando = ref.watch(controllerMovimientoProvider) is MovimientoGuardando;
+    ref.listen<EstadoMovimiento>(
+      controllerMovimientoProvider,
+      (_, EstadoMovimiento e) => _reaccionar(e),
+    );
+    final bool guardando =
+        ref.watch(controllerMovimientoProvider) is MovimientoGuardando;
     return Scaffold(
       backgroundColor: ColoresApp.fondo,
       appBar: AppBar(
         backgroundColor: ColoresApp.fondo,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: ColoresApp.textoPrincipal),
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: ColoresApp.textoPrincipal,
+          ),
           onPressed: () => context.router.maybePop(),
         ),
-        title: const Text('Registrar movimiento', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
+        title: const Text(
+          'Registrar movimiento',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: ColoresApp.textoPrincipal,
+          ),
+        ),
         centerTitle: false,
       ),
       body: ListView(
@@ -82,7 +104,10 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
           const SizedBox(height: 22),
           const _Titulo('Tipo de movimiento'),
           const SizedBox(height: 10),
-          SelectorTipoMovimiento(seleccionado: _tipo, onCambio: (TipoMovimiento t) => setState(() => _tipo = t)),
+          SelectorTipoMovimiento(
+            seleccionado: _tipo,
+            onCambio: (TipoMovimiento t) => setState(() => _tipo = t),
+          ),
           const SizedBox(height: 22),
           const _Titulo('Cantidad'),
           const SizedBox(height: 12),
@@ -90,7 +115,8 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
             valor: _cantidad,
             unidad: widget.insumo.unidad,
             onIncrementar: () => setState(() => _cantidad++),
-            onDecrementar: () => setState(() => _cantidad = _cantidad > 0 ? _cantidad - 1 : 0),
+            onDecrementar: () =>
+                setState(() => _cantidad = _cantidad > 0 ? _cantidad - 1 : 0),
           ),
           const SizedBox(height: 22),
           const _Titulo('Nota (opcional)'),
@@ -98,7 +124,9 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
           TextField(
             controller: _nota,
             maxLines: 3,
-            decoration: const InputDecoration(hintText: 'Ej. Almuerzo del día, donación recibida...'),
+            decoration: const InputDecoration(
+              hintText: 'Ej. Almuerzo del día, donación recibida...',
+            ),
           ),
         ],
       ),
@@ -108,7 +136,14 @@ class _PaginaMovimientoState extends ConsumerState<PaginaMovimiento> {
           child: FilledButton(
             onPressed: guardando ? null : _guardar,
             child: guardando
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Guardar movimiento'),
           ),
         ),
@@ -136,16 +171,38 @@ class _EncabezadoInsumo extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: ColoresApp.superficieAlterna, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: ColoresApp.superficieAlterna,
+              borderRadius: BorderRadius.circular(12),
+            ),
             alignment: Alignment.center,
-            child: Text(insumo.inicial, style: const TextStyle(fontWeight: FontWeight.w800, color: ColoresApp.verdeMedio)),
+            child: Text(
+              insumo.inicial,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: ColoresApp.verdeMedio,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(insumo.nombre, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ColoresApp.textoPrincipal)),
-              Text('Stock actual: ${insumo.cantidadFormateada} ${insumo.unidad}', style: const TextStyle(fontSize: 12.5, color: ColoresApp.textoTenue)),
+              Text(
+                insumo.nombre,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: ColoresApp.textoPrincipal,
+                ),
+              ),
+              Text(
+                'Stock actual: ${insumo.cantidadFormateada} ${insumo.unidad}',
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  color: ColoresApp.textoTenue,
+                ),
+              ),
             ],
           ),
         ],
@@ -161,6 +218,13 @@ class _Titulo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(texto, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: ColoresApp.textoSecundario));
+    return Text(
+      texto,
+      style: const TextStyle(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w700,
+        color: ColoresApp.textoSecundario,
+      ),
+    );
   }
 }

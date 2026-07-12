@@ -31,15 +31,20 @@ class PaginaSplash extends StatelessWidget {
                 Text(
                   'SIGO-OLLAS',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        color: Colors.white,
-                        letterSpacing: 1,
-                      ),
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Gestión de ollas comunes\npara nuestra comunidad',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: ColoresApp.verdeClaro, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4),
+                  style: TextStyle(
+                    color: ColoresApp.verdeClaro,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
                 ),
                 const Spacer(),
                 SizedBox(

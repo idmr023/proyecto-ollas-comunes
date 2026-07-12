@@ -17,13 +17,29 @@ class ControllerMenuIa extends Notifier<EstadoMenuIa> {
 
   Future<void> cargar() async {
     state = const EstadoMenuIa.cargando();
-    final Resultado<List<SugerenciaMenu>> resultado = await _repositorio.obtenerSugerencias();
+    final Resultado<List<SugerenciaMenu>> resultado = await _repositorio
+        .obtenerSugerencias();
     state = switch (resultado) {
-      Exito<List<SugerenciaMenu>>(:final List<SugerenciaMenu> valor) => EstadoMenuIa.exito(valor),
-      Fallo<List<SugerenciaMenu>>(:final excepcion) => EstadoMenuIa.error(excepcion.mensaje),
+      Exito<List<SugerenciaMenu>>(:final List<SugerenciaMenu> valor) =>
+        EstadoMenuIa.exito(valor),
+      Fallo<List<SugerenciaMenu>>(:final excepcion) => EstadoMenuIa.error(
+        excepcion.mensaje,
+      ),
+    };
+  }
+
+  Future<String?> aprobar(SugerenciaMenu sugerencia) async {
+    final Resultado<void> resultado = await _repositorio.aprobarSugerencia(
+      sugerencia,
+    );
+    return switch (resultado) {
+      Exito<void>() => null,
+      Fallo<void>(:final excepcion) => excepcion.mensaje,
     };
   }
 }
 
-final NotifierProvider<ControllerMenuIa, EstadoMenuIa> controllerMenuIaProvider =
-    NotifierProvider<ControllerMenuIa, EstadoMenuIa>(ControllerMenuIa.new);
+final NotifierProvider<ControllerMenuIa, EstadoMenuIa>
+controllerMenuIaProvider = NotifierProvider<ControllerMenuIa, EstadoMenuIa>(
+  ControllerMenuIa.new,
+);

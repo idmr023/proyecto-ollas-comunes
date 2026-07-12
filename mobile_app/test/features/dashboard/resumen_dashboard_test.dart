@@ -9,10 +9,18 @@ void main() {
         'summary': <String, dynamic>{
           'planificadas': 200,
           'entregadas': 180,
-          'menu': <String, dynamic>{'dishName': 'Lentejas', 'status': 'executed', 'maxServingsRemaining': 40},
+          'menu': <String, dynamic>{
+            'dishName': 'Lentejas',
+            'status': 'executed',
+            'maxServingsRemaining': 40,
+          },
         },
         'expiring': <dynamic>[
-          <String, dynamic>{'nombre': 'Leche en polvo', 'cantidad': '10 kg', 'venceEn': 'Próximamente'},
+          <String, dynamic>{
+            'nombre': 'Leche en polvo',
+            'cantidad': '10 kg',
+            'venceEn': 'Próximamente',
+          },
         ],
       };
       final ResumenDashboard actual = ResumenDashboard.desdeJson(inputJson);
@@ -25,11 +33,17 @@ void main() {
     });
 
     test('usa valores por defecto cuando no hay olla ni menú', () {
-      final ResumenDashboard actual = ResumenDashboard.desdeJson(<String, dynamic>{
-        'olla': null,
-        'summary': <String, dynamic>{'planificadas': 0, 'entregadas': 0, 'menu': null},
-        'expiring': <dynamic>[],
-      });
+      final ResumenDashboard actual = ResumenDashboard.desdeJson(
+        <String, dynamic>{
+          'olla': null,
+          'summary': <String, dynamic>{
+            'planificadas': 0,
+            'entregadas': 0,
+            'menu': null,
+          },
+          'expiring': <dynamic>[],
+        },
+      );
       expect(actual.nombreOlla, 'Sin olla asignada');
       expect(actual.menuDia, isNull);
       expect(actual.insumosPorVencer, isEmpty);

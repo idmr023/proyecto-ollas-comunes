@@ -20,7 +20,9 @@ class PadronRepositorioImpl implements RepositorioPadron {
       final Map<String, dynamic> datos = await _api.listar(busqueda: busqueda);
       return Resultado<List<Beneficiario>>.exito(_mapearLista(datos));
     } on DioException catch (err) {
-      return Resultado<List<Beneficiario>>.fallo(ClienteHttp.traducirError(err));
+      return Resultado<List<Beneficiario>>.fallo(
+        ClienteHttp.traducirError(err),
+      );
     }
   }
 
@@ -30,7 +32,10 @@ class PadronRepositorioImpl implements RepositorioPadron {
   }
 
   @override
-  Future<Resultado<Beneficiario>> actualizar(String id, DatosBeneficiario datos) async {
+  Future<Resultado<Beneficiario>> actualizar(
+    String id,
+    DatosBeneficiario datos,
+  ) async {
     return _enviar(() => _api.actualizar(id, datos.aJson()));
   }
 
@@ -45,15 +50,39 @@ class PadronRepositorioImpl implements RepositorioPadron {
   }
 
   @override
+  Future<Resultado<void>> registrarEntrega({
+    required List<String> beneficiarioIds,
+    String? nombrePlato,
+  }) async {
+    try {
+      await _api.registrarEntrega(
+        beneficiarioIds: beneficiarioIds,
+        nombrePlato: nombrePlato,
+      );
+      return const Resultado<void>.exito(null);
+    } on DioException catch (err) {
+      return Resultado<void>.fallo(ClienteHttp.traducirError(err));
+    }
+  }
+
+  @override
   Future<Resultado<List<CondicionSalud>>> listarCondiciones() async {
     try {
       final Map<String, dynamic> datos = await _api.listarCondiciones();
-      final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+      final List<dynamic> items =
+          (datos['items'] as List<dynamic>?) ?? <dynamic>[];
       return Resultado<List<CondicionSalud>>.exito(
-        items.map((dynamic e) => CondicionSalud.desdeJson(Map<String, dynamic>.from(e as Map))).toList(),
+        items
+            .map(
+              (dynamic e) =>
+                  CondicionSalud.desdeJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList(),
       );
     } on DioException catch (err) {
-      return Resultado<List<CondicionSalud>>.fallo(ClienteHttp.traducirError(err));
+      return Resultado<List<CondicionSalud>>.fallo(
+        ClienteHttp.traducirError(err),
+      );
     }
   }
 
@@ -61,16 +90,26 @@ class PadronRepositorioImpl implements RepositorioPadron {
   Future<Resultado<List<OllaReferencia>>> listarOllas() async {
     try {
       final Map<String, dynamic> datos = await _api.listarOllas();
-      final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+      final List<dynamic> items =
+          (datos['items'] as List<dynamic>?) ?? <dynamic>[];
       return Resultado<List<OllaReferencia>>.exito(
-        items.map((dynamic e) => OllaReferencia.desdeJson(Map<String, dynamic>.from(e as Map))).toList(),
+        items
+            .map(
+              (dynamic e) =>
+                  OllaReferencia.desdeJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList(),
       );
     } on DioException catch (err) {
-      return Resultado<List<OllaReferencia>>.fallo(ClienteHttp.traducirError(err));
+      return Resultado<List<OllaReferencia>>.fallo(
+        ClienteHttp.traducirError(err),
+      );
     }
   }
 
-  Future<Resultado<Beneficiario>> _enviar(Future<Map<String, dynamic>> Function() accion) async {
+  Future<Resultado<Beneficiario>> _enviar(
+    Future<Map<String, dynamic>> Function() accion,
+  ) async {
     try {
       final Map<String, dynamic> datos = await accion();
       return Resultado<Beneficiario>.exito(
@@ -82,7 +121,13 @@ class PadronRepositorioImpl implements RepositorioPadron {
   }
 
   List<Beneficiario> _mapearLista(Map<String, dynamic> datos) {
-    final List<dynamic> items = (datos['items'] as List<dynamic>?) ?? <dynamic>[];
-    return items.map((dynamic e) => Beneficiario.desdeJson(Map<String, dynamic>.from(e as Map))).toList();
+    final List<dynamic> items =
+        (datos['items'] as List<dynamic>?) ?? <dynamic>[];
+    return items
+        .map(
+          (dynamic e) =>
+              Beneficiario.desdeJson(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList();
   }
 }

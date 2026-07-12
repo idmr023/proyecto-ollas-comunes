@@ -106,7 +106,82 @@ dart run build_runner build --delete-conflicting-outputs
 ```bash
 flutter analyze   # análisis estático (sin issues)
 flutter test      # pruebas unitarias y de widgets
+dart run tool/reporte_confiabilidad.dart
 ```
+
+En Windows puedes ejecutar todo el gate de calidad con:
+
+```bash
+qa-gate.bat
+```
+
+Ese comando verifica formato, analisis, pruebas, reporte Lighthouse movil/ISO
+25010 y build APK release.
+
+## Offline y sincronizacion
+
+La app conserva el ultimo resultado exitoso de las lecturas `GET` y encola
+acciones criticas cuando no hay red:
+
+- movimientos de inventario,
+- entrega de raciones,
+- aprobacion de menu del dia,
+- subida de evidencias.
+
+En la pestana **Mas** aparece el estado de sincronizacion y el boton
+`Sincronizar pendientes (N)`. Al recuperar conexion, ese boton reintenta la cola
+y limpia las acciones confirmadas por el backend.
+
+## Reporte Lighthouse movil / ISO 25010
+
+Flutter movil no usa Lighthouse real de navegador. Para este proyecto se deja un
+reporte simulado reproducible con ISO/IEC 25010 Reliability:
+
+```bash
+dart run tool/reporte_confiabilidad.dart
+```
+
+El reporte documentado vive en
+[`docs/REPORTE_LIGHTHOUSE_ISO25010.md`](docs/REPORTE_LIGHTHOUSE_ISO25010.md).
+
+## Build APK
+
+Para generar APK release usando el backend por defecto:
+
+```bash
+build-apk.bat
+```
+
+Para apuntar a un backend local desde emulador:
+
+```bash
+build-apk.bat http://10.0.2.2:4000
+```
+
+Para dispositivo fisico en la misma red usa la IP LAN del PC:
+
+```bash
+build-apk.bat http://192.168.x.x:4000
+```
+
+Android permite trafico HTTP claro para desarrollo local. El backend por defecto
+de produccion sigue usando HTTPS.
+
+### Firma release real
+
+Si existe `android/key.properties`, Gradle firma con keystore real. Si no existe,
+usa firma debug como fallback de desarrollo.
+
+Ejemplo de `android/key.properties`:
+
+```properties
+storeFile=C:\\ruta\\sigo-ollas-release.jks
+storePassword=********
+keyAlias=sigo-ollas
+keyPassword=********
+```
+
+`android/key.properties` esta ignorado por git para no filtrar credenciales.
 
 ## Contrato de la API
 
