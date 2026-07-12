@@ -22,3 +22,6 @@ node_modules
 
 # Test coverage output (se regenera con npm run test:coverage)
 /backend/coverage
+
+.codebase-memory/
+.vscode/
