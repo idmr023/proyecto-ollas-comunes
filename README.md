@@ -69,6 +69,27 @@ proyecto-ollas-comunes/
 ---
 
 
+---
+
+## Calidad de Código — SonarQube
+
+El proyecto mantiene un perfil de calidad en SonarQube. En julio 2026 se ejecutó un plan de remediación que redujo los issues de **324 a ~50**:
+
+| Fase | Reglas | Issues eliminados | Tipo |
+|------|--------|-------------------|------|
+| 0 | S7764 (tipado estricto), S6759 (camelCase JS) | −118 | Desactivación vía Quality Profile |
+| 1 | S3776, S2004, S4123 (CRITICAL) | −20 | Extracción de helpers, reducción de complejidad |
+| 2 | S1128, S3358, S6582, S7772, S1854, S2486, S7785 | −53 | Mecánicos (imports, ternarios, optional chaining, código muerto) |
+| 3 | S1874, S6478, S3863, S6479, S4624 | −10 | APIs deprecadas, keys de React, templates anidados |
+
+**Cambios funcionales derivados:**
+- **Accesibilidad:** Backdrop de modal migrado de `<div role="button">` a `<button type="button">` — corrige tab order y anuncio en lectores de pantalla.
+- **Formulario de beneficiarios:** Integración del componente `BeneficiaryForm` (antes huérfano). Ahora incluye sección "Contacto" con teléfono y dirección. Al editar, se preserva el estado original del beneficiario (antes se reseteaba a `'active'`).
+
+Documentación relacionada: `docs/Fixes_Sonar_Qube.md`.
+
+---
+
 ## Documentación Disponible
 
 | Archivo | Contenido |
