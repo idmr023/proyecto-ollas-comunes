@@ -1,0 +1,90 @@
+config:
+  target: "http://localhost:4000"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      rampTo: 10
+      name: "Fase 1: Calentamiento (30s, 2→10 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 10
+      rampTo: 30
+      name: "Fase 2: Carga media (30s, 10→30 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 30
+      rampTo: 50
+      name: "Fase 3: Estrés alto (30s, 30→50 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 50
+      name: "Fase 4: Sostenido (30s, 50 usuarios/seg constantes)"
+  plugins:
+    expect: {}
+  variables:
+    invalidEmail: "stress-test@example.com"
+    invalidPassword: "wrong-password-123"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Health Check - endpoint raíz"
+    flow:
+      - get:
+          url: "/"
+          expect:
+            statusCode: 200
+
+  - name: "Health Check - API health"
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            statusCode: 200
+
+  - name: "Health Check - Prisma"
+    flow:
+      - get:
+          url: "/api/health/prisma"
+          expect:
+            statusCode: 200
+
+  - name: "Health Check - Supabase"
+    flow:
+      - get:
+          url: "/api/health/supabase"
+          expect:
+            statusCode: [200, 500, 503]
+
+  - name: "Login inválido (carga en auth)"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ invalidEmail }}"
+            password: "{{ invalidPassword }}"
+          expect:
+            statusCode: 401
+
+  - name: "Registro inválido (validación)"
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            email: ""
+            password: "123"
+          expect:
+            statusCode: 400
+
+  - name: "Mezcla: health + login inválido"
+    weight: 3
+    flow:
+      - get:
+          url: "/api/health"
+      - think: 1
+      - get:
+          url: "/api/health/prisma"
+      - think: 1
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ invalidEmail }}"
+            password: "{{ invalidPassword }}"

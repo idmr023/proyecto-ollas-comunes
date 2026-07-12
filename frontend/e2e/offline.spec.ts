@@ -6,7 +6,7 @@ import { prisma } from '../../backend/src/lib/prisma'
 const TEST_EMAIL = 'admin@ollascomunes.pe'
 const TEST_PASSWORD = 'admin123'
 
-async function O(page: Page) {
+async function loginAsAdmin(page: Page) {
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()))
   page.on('pageerror', err => console.error('BROWSER ERROR:', err.message))
 
@@ -108,7 +108,7 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
       orderBy: { name: 'asc' }
     })
     if (!firstOlla) throw new Error('No hay ollas activas en base de datos para las pruebas')
-    
+
     const b = await prisma.beneficiary.create({
       data: {
         firstName: 'RacionTest',
@@ -174,7 +174,7 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
 
     // Confirmar entrega (esto encola la mutación offline e inyecta hasEatenToday = true)
     await page.click('button:has-text("Confirmar")')
-    
+
     // Verificamos toast de éxito offline y redirección a inicio
     await expect(page).toHaveURL(/\/mobile\/inicio/, { timeout: 35000 })
 
@@ -331,7 +331,7 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
 
     // 8. Hacer clic en "Revisar" para abrir el panel detallado
     await page.click('button:has-text("Revisar")')
-    
+
     // El panel desplegable debe mostrar el error lógico descriptivo
     await expect(page.locator('text=Ya existe un beneficiario con ese DNI')).toBeVisible({ timeout: 20000 })
 
