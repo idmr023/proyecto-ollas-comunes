@@ -10,7 +10,7 @@ export function LoadingSkeleton({ count = 3, height = "h-10", className }: Loadi
   return (
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className={cn("w-full animate-pulse rounded-lg bg-muted", height)} />
+        <div key={"skel-" + i} className={cn("w-full animate-pulse rounded-lg bg-muted", height)} />
       ))}
     </div>
   )

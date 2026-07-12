@@ -248,7 +248,7 @@ export default function BeneficiariosPage() {
       {loading && (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            <Skeleton key={"skel-" + i} className="h-12 w-full rounded-lg" />
           ))}
         </div>
       )}

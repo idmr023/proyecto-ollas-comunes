@@ -168,7 +168,7 @@ export async function listBeneficiaries(filters?: {
   if (filters?.ollaId) params.set('ollaId', filters.ollaId)
   if (filters?.healthConditionId) params.set('healthConditionId', filters.healthConditionId)
   const qs = params.toString()
-  const path = `/api/beneficiaries${qs ? `?${qs}` : ''}`
+  const path = qs ? `/api/beneficiaries?${qs}` : '/api/beneficiaries'
   const payload = await apiRequest<Beneficiary>(path)
   return payload?.items ?? []
 }

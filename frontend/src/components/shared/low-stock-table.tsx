@@ -25,7 +25,7 @@ export function LowStockTable({ items, loading }: LowStockTableProps) {
           <p className="py-4 text-center text-sm text-muted-foreground">No hay insumos críticos.</p>
         ) : (
           items.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+            <div key={item.ollaName + "-" + item.name} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
                 {item.name[0]}
               </div>

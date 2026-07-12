@@ -253,11 +253,13 @@ async function main() {
   console.log(`   ${GREEN}Aprobados: ${passedTests}/${totalTests}${RESET}`)
   console.log(`   ${RED}Fallidos:  ${failedTests}/${totalTests}${RESET}`)
   console.log(`   Tasa de éxito: ${passRate}%`)
-  console.log(`   ${passRate >= 90 ? `${GREEN}✅ Cumple estándar esperado` : `${YELLOW}⚠️ Por debajo del estándar`}${RESET}`)
+  const statusMsg = passRate >= 90 ? `${GREEN}✅ Cumple estándar esperado` : `${YELLOW}⚠️ Por debajo del estándar`
+  console.log(`   ${statusMsg}${RESET}`)
   console.log('')
   console.log('   Detalle de resultados:')
   for (const r of results) {
-    console.log(`     ${r.passed ? `${GREEN}✓` : `${RED}✗`}${RESET} ${r.name}`)
+    const icon = r.passed ? `${GREEN}✓` : `${RED}✗`
+    console.log(`     ${icon}${RESET} ${r.name}`)
     if (r.error) console.log(`         ${RED}${r.error}${RESET}`)
   }
   console.log('============================================================\n')

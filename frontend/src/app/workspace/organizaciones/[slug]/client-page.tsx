@@ -222,7 +222,7 @@ export default function OrganizationClientPage() {
         {ollasLoading && (
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              <Skeleton key={"skel-" + i} className="h-16 w-full rounded-lg" />
             ))}
           </div>
         )}
