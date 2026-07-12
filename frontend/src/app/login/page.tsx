@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
     e.preventDefault()
     if (!email || !password) { toast.error("Completa todos los campos"); return }
     setLoading(true)
@@ -32,7 +32,20 @@ export default function LoginPage() {
 
       if (data.status === "TOTP_SETUP_REQUIRED") {
         setToken(data.tempToken)
-        router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}`)
+        // Segundo paso: pedir al backend que genere/persista el secret y nos devuelva el QR.
+        // Solo en este momento el secret se guarda en BD.
+        const setupRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/totp/setup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tempToken: data.tempToken }),
+        })
+        if (!setupRes.ok) {
+          const err = await setupRes.json().catch(() => ({}))
+          toast.error(err.message ?? "No se pudo iniciar la configuración TOTP")
+          return
+        }
+        const setup = await setupRes.json()
+        router.push(`/login/otp?email=${encodeURIComponent(setup.email)}&setup=1&secret=${encodeURIComponent(setup.secret)}&qrCodeUri=${encodeURIComponent(setup.qrCodeUri)}`)
       } else if (data.status === "MFA_PENDING") {
         setToken(data.tempToken)
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
@@ -118,7 +131,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
+              <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
@@ -135,7 +148,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
+              <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input

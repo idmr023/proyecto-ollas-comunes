@@ -11,7 +11,6 @@ import {
   Download,
   Calendar,
   AlertTriangle,
-  CheckCircle2,
   UserPlus,
   Clock,
 } from "lucide-react"
@@ -194,13 +193,13 @@ export default function HomePage() {
           <div className="space-y-3">
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
+                {[1, 2, 3].map(i => <Skeleton key={"skel-" + i} className="h-10 w-full rounded-lg" />)}
               </div>
             ) : !data?.lowStock || data.lowStock.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No hay insumos críticos.</p>
             ) : (
               data.lowStock.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                <div key={item.ollaName + "-" + item.name} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
                     {item.name[0]}
                   </div>

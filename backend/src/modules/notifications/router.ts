@@ -1,4 +1,4 @@
-import { Router, Response } from 'express'
+import { Router } from 'express'
 import { requireAuth } from '../../lib/middleware/auth'
 import { backupMutation, reportDataLoss } from './service'
 

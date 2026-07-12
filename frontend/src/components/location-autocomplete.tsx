@@ -9,7 +9,7 @@ type Props = {
 function loadGoogleMaps(apiKey: string) {
   return new Promise<void>((resolve, reject) => {
     if (typeof window === 'undefined') return reject(new Error('No window'))
-    if ((window as any).google && (window as any).google.maps) {
+    if ((window as any).google?.maps) {
       resolve()
       return
     }
@@ -32,6 +32,22 @@ function loadGoogleMaps(apiKey: string) {
   })
 }
 
+type ReverseGeocodeDeps = {
+  inputRef: React.MutableRefObject<HTMLInputElement | null>
+  geocoderRef: React.MutableRefObject<any>
+  onSelect: Props['onSelect']
+}
+
+function reverseGeocodeAndSelect(latLng: any, deps: ReverseGeocodeDeps) {
+  deps.geocoderRef.current?.geocode({ location: latLng }, (results: any, status: any) => {
+    if (status === 'OK' && results?.[0]) {
+      const address = results[0].formatted_address
+      if (deps.inputRef.current) deps.inputRef.current.value = address
+      deps.onSelect({ address, lat: latLng.lat(), lng: latLng.lng() })
+    }
+  })
+}
+
 export default function LocationAutocomplete({ onSelect }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const autocompleteRef = useRef<any>(null)
@@ -45,13 +61,14 @@ export default function LocationAutocomplete({ onSelect }: Props) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string
     if (!apiKey) return
 
+    const reverseDeps: ReverseGeocodeDeps = { inputRef, geocoderRef, onSelect }
+
     loadGoogleMaps(apiKey)
       .then(() => {
         if (!mounted || !inputRef.current || !(window as any).google) return
 
         const google = (window as any).google
 
-        // init map
         if (mapRef.current && !mapInstanceRef.current) {
           mapInstanceRef.current = new google.maps.Map(mapRef.current, {
             center: { lat: -12.046374, lng: -77.042793 },
@@ -59,7 +76,6 @@ export default function LocationAutocomplete({ onSelect }: Props) {
           })
         }
 
-        // init marker
         if (mapInstanceRef.current && !markerRef.current) {
           markerRef.current = new google.maps.Marker({
             map: mapInstanceRef.current,
@@ -70,20 +86,12 @@ export default function LocationAutocomplete({ onSelect }: Props) {
           markerRef.current.addListener('dragend', () => {
             const pos = markerRef.current!.getPosition()
             if (!pos) return
-            geocoderRef.current?.geocode({ location: pos }, (results: any, status: any) => {
-              if (status === 'OK' && results && results[0]) {
-                const address = results[0].formatted_address
-                if (inputRef.current) inputRef.current.value = address
-                onSelect({ address, lat: pos.lat(), lng: pos.lng() })
-              }
-            })
+            reverseGeocodeAndSelect(pos, reverseDeps)
           })
         }
 
-        // geocoder
         if (!geocoderRef.current) geocoderRef.current = new google.maps.Geocoder()
 
-        // autocomplete
         autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
           types: ['geocode', 'establishment'],
         })
@@ -106,18 +114,11 @@ export default function LocationAutocomplete({ onSelect }: Props) {
           onSelect({ address, lat, lng })
         })
 
-        // map click -> place marker + reverse geocode
         mapInstanceRef.current!.addListener('click', (ev: any) => {
           const latLng = ev.latLng
           markerRef.current!.setPosition(latLng)
           markerRef.current!.setVisible(true)
-          geocoderRef.current!.geocode({ location: latLng }, (results: any, status: any) => {
-            if (status === 'OK' && results && results[0]) {
-              const address = results[0].formatted_address
-              if (inputRef.current) inputRef.current.value = address
-              onSelect({ address, lat: latLng.lat(), lng: latLng.lng() })
-            }
-          })
+          reverseGeocodeAndSelect(latLng, reverseDeps)
         })
       })
       .catch(() => {
@@ -129,7 +130,6 @@ export default function LocationAutocomplete({ onSelect }: Props) {
     }
   }, [onSelect])
 
-  // helper: buscar texto en geocoder
   const handleSearch = () => {
     const address = inputRef.current?.value
     if (!address || !geocoderRef.current) return

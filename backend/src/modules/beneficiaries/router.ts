@@ -118,7 +118,7 @@ beneficiariesRouter.get('/:id', async (request, response) => {
 
     if (request.user!.role === 'lideresa_olla') {
       const olla = await mobileRepository.getUserOlla(tenantId)
-      if (!olla || item.ollaId !== olla.id) {
+      if (item.ollaId !== olla?.id) {
         response.status(403).json({ ok: false, message: 'No tienes permisos para ver este beneficiario.' })
         return
       }

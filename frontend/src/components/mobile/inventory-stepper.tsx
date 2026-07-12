@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Minus, Plus, ChevronLeft, ChevronRight, Check } from "lucide-react"
+import { Search, Minus, Plus, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -245,14 +245,18 @@ export function InventoryStepper({ onComplete, onCancel, supplyItems, isSalida }
                     type="number"
                     className="w-28 text-center text-5xl font-black text-foreground border-b-3 border-primary focus:outline-none bg-transparent"
                     value={cantidad === 0 ? "" : cantidad}
-                    onChange={(e) => setCantidad(Math.max(0, parseInt(e.target.value) || 0))}
+                    onChange={(e) => setCantidad(Math.max(0, Number.parseInt(e.target.value) || 0))}
                     onBlur={() => setModoTeclado(false)}
                     autoFocus
                   />
                 ) : (
                   <span
-                    className="text-6xl font-black text-foreground cursor-pointer hover:text-primary transition-colors active:scale-95 leading-none"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Editar cantidad"
                     onClick={() => setModoTeclado(true)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModoTeclado(true) } }}
+                    className="text-6xl font-black text-foreground cursor-pointer hover:text-primary transition-colors active:scale-95 leading-none"
                     title="Toca para ingresar número"
                   >
                     {cantidad}

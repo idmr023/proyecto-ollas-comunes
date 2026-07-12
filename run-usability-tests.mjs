@@ -28,92 +28,142 @@ const audits = [
 
 // 1. Escaneo estático del código del frontend para justificar la puntuación
 console.log('Escaneando archivos JSX/TSX en search de problemas de usabilidad/accesibilidad...')
-let imagesChecked = 0
-let imagesWithoutAlt = 0
-let inputFieldsChecked = 0
-let formsWithDoubleSubmitProtection = 0
-let multipleH1Files = 0
-let inputsWithoutAria = 0
-let nonResponsiveWidths = 0
-let deletionButtonsWithoutConfirmation = 0
-let missingDarkModeStyles = 0
 
-function walkDir(dir) {
+function emptyResult() {
+  return {
+    imagesChecked: 0,
+    imagesWithoutAlt: 0,
+    inputFieldsChecked: 0,
+    formsWithDoubleSubmitProtection: 0,
+    multipleH1Files: 0,
+    inputsWithoutAria: 0,
+    nonResponsiveWidths: 0,
+    deletionButtonsWithoutConfirmation: 0,
+    missingDarkModeStyles: 0,
+  }
+}
+
+function countImages(content) {
+  const matches = content.match(/<img\s+/g) || []
+  const result = { imagesChecked: matches.length, imagesWithoutAlt: 0 }
+  if (matches.length === 0) return result
+  for (const line of content.split('\n')) {
+    if (line.includes('<img ') && !line.includes('alt=')) {
+      result.imagesWithoutAlt++
+    }
+  }
+  return result
+}
+
+function hasDoubleSubmitProtection(content) {
+  return content.includes('disabled={') && (content.includes('loading') || content.includes('isSubmitting'))
+}
+
+function countInputFields(content) {
+  return (content.match(/<input\s+/g) || []).length
+}
+
+function countMultipleH1(content) {
+  return (content.match(/<h1\b/g) || []).length
+}
+
+function countInputsWithoutAria(content) {
+  const inputs = content.match(/<input\s+[^>]*>/g) || []
+  let count = 0
+  for (const inp of inputs) {
+    if (!inp.includes('aria-label') && !inp.includes('aria-labelledby') && !inp.includes('id=')) {
+      count++
+    }
+  }
+  return count
+}
+
+function hasFixedWidths(content) {
+  return /className="[^"]*\bw-\[(?:4|5|6)\d\dpx\]/g.test(content)
+}
+
+function hasUnconfirmedDestructiveButton(content) {
+  return (
+    content.includes('Eliminar') &&
+    !content.includes('confirm') &&
+    !content.includes('AlertDialog') &&
+    !content.includes('Dialog')
+  )
+}
+
+function hasMissingDarkModeStyles(content) {
+  return (
+    (content.includes('bg-white') && !content.includes('dark:bg-')) ||
+    (content.includes('text-black') && !content.includes('dark:text-'))
+  )
+}
+
+function scanFileContent(content) {
+  const result = emptyResult()
+  const images = countImages(content)
+  result.imagesChecked = images.imagesChecked
+  result.imagesWithoutAlt = images.imagesWithoutAlt
+  result.inputFieldsChecked = countInputFields(content)
+  if (hasDoubleSubmitProtection(content)) result.formsWithDoubleSubmitProtection++
+  if (countMultipleH1(content) > 1) result.multipleH1Files++
+  result.inputsWithoutAria = countInputsWithoutAria(content)
+  if (hasFixedWidths(content)) result.nonResponsiveWidths++
+  if (hasUnconfirmedDestructiveButton(content)) result.deletionButtonsWithoutConfirmation++
+  if (hasMissingDarkModeStyles(content)) result.missingDarkModeStyles++
+  return result
+}
+
+function mergeResults(target, source) {
+  target.imagesChecked += source.imagesChecked
+  target.imagesWithoutAlt += source.imagesWithoutAlt
+  target.inputFieldsChecked += source.inputFieldsChecked
+  target.formsWithDoubleSubmitProtection += source.formsWithDoubleSubmitProtection
+  target.multipleH1Files += source.multipleH1Files
+  target.inputsWithoutAria += source.inputsWithoutAria
+  target.nonResponsiveWidths += source.nonResponsiveWidths
+  target.deletionButtonsWithoutConfirmation += source.deletionButtonsWithoutConfirmation
+  target.missingDarkModeStyles += source.missingDarkModeStyles
+}
+
+function walkDir(dir, accumulator) {
   const files = fs.readdirSync(dir)
   for (const file of files) {
     const fullPath = path.join(dir, file)
     const stat = fs.statSync(fullPath)
     if (stat.isDirectory()) {
-      walkDir(fullPath)
+      walkDir(fullPath, accumulator)
     } else if (file.endsWith('.tsx') || file.endsWith('.ts')) {
       const content = fs.readFileSync(fullPath, 'utf8')
-      
-      // Chequear imágenes
-      const imgRegex = /<img\s+/g
-      const matches = content.match(imgRegex)
-      if (matches) {
-        imagesChecked += matches.length
-        // Contar cuántos no tienen alt
-        const lines = content.split('\n')
-        for (const line of lines) {
-          if (line.includes('<img ') && !line.includes('alt=')) {
-            imagesWithoutAlt++
-          }
-        }
-      }
-
-      // Chequear protección de doble click
-      if (content.includes('disabled={') && (content.includes('loading') || content.includes('isSubmitting'))) {
-        formsWithDoubleSubmitProtection++
-      }
-
-      // Chequear inputs
-      const inputRegex = /<input\s+/g
-      const inputMatches = content.match(inputRegex)
-      if (inputMatches) {
-        inputFieldsChecked += inputMatches.length
-      }
-
-      // Chequear múltiples H1
-      const h1Count = (content.match(/<h1\b/g) || []).length
-      if (h1Count > 1) {
-        multipleH1Files++
-      }
-
-      // Chequear inputs sin label/aria
-      const inputRegexFull = /<input\s+[^>]*>/g
-      const inputs = content.match(inputRegexFull) || []
-      for (const inp of inputs) {
-        if (!inp.includes('aria-label') && !inp.includes('aria-labelledby') && !inp.includes('id=')) {
-          inputsWithoutAria++
-        }
-      }
-
-      // Chequear anchos fijos no responsivos en tailwind
-      const badWidthRegex = /className="[^"]*\bw-\[(?:4|5|6)\d\dpx\]/g
-      if (badWidthRegex.test(content)) {
-        nonResponsiveWidths++
-      }
-
-      // Chequear botones destructivos sin modal/confirmación
-      if (content.includes('Eliminar') && !content.includes('confirm') && !content.includes('AlertDialog') && !content.includes('Dialog')) {
-        deletionButtonsWithoutConfirmation++
-      }
-
-      // Chequear clases quemadas sin modo oscuro
-      if ((content.includes('bg-white') && !content.includes('dark:bg-')) || (content.includes('text-black') && !content.includes('dark:text-'))) {
-        missingDarkModeStyles++
-      }
+      mergeResults(accumulator, scanFileContent(content))
     }
   }
 }
 
 try {
+  const scanResult = emptyResult()
   if (fs.existsSync(frontendPath)) {
-    walkDir(frontendPath)
+    walkDir(frontendPath, scanResult)
   }
+  var imagesChecked = scanResult.imagesChecked
+  var imagesWithoutAlt = scanResult.imagesWithoutAlt
+  var inputFieldsChecked = scanResult.inputFieldsChecked
+  var formsWithDoubleSubmitProtection = scanResult.formsWithDoubleSubmitProtection
+  var multipleH1Files = scanResult.multipleH1Files
+  var inputsWithoutAria = scanResult.inputsWithoutAria
+  var nonResponsiveWidths = scanResult.nonResponsiveWidths
+  var deletionButtonsWithoutConfirmation = scanResult.deletionButtonsWithoutConfirmation
+  var missingDarkModeStyles = scanResult.missingDarkModeStyles
 } catch (err) {
   console.log('Aviso: Directorio del frontend no accesible directamente.', err.message)
+  var imagesChecked = 0
+  var imagesWithoutAlt = 0
+  var inputFieldsChecked = 0
+  var formsWithDoubleSubmitProtection = 0
+  var multipleH1Files = 0
+  var inputsWithoutAria = 0
+  var nonResponsiveWidths = 0
+  var deletionButtonsWithoutConfirmation = 0
+  var missingDarkModeStyles = 0
 }
 
 // Actualizar puntuación basado en escaneo estático

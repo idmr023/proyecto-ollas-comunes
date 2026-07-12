@@ -71,8 +71,20 @@ export function LoginForm() {
       if (json.status === 'TOTP_SETUP_REQUIRED') {
         setTempToken(json.tempToken);
         setMfaEmail(json.email);
-        setTotpSecret(json.secret);
-        setQrCodeUri(json.qrCodeUri);
+        // Segundo paso: pedir al backend que genere/persista el secret. Solo
+        // en este momento el secret se guarda en BD.
+        const setupRes = await fetch(`${API_BASE}/api/auth/totp/setup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tempToken: json.tempToken }),
+        });
+        if (!setupRes.ok) {
+          const err = await setupRes.json().catch(() => ({}));
+          throw new Error(err.message ?? 'No se pudo iniciar la configuración TOTP.');
+        }
+        const setup = await setupRes.json();
+        setTotpSecret(setup.secret);
+        setQrCodeUri(setup.qrCodeUri);
         setIsTotpSetup(true);
         setStep('otp');
         setIsLoading(false);

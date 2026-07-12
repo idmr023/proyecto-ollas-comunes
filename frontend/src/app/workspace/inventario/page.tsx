@@ -17,10 +17,8 @@ import {
   Boxes,
   History,
   Search,
-  Filter,
   ArrowUpRight,
   ArrowDownLeft,
-  Info,
   RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -62,7 +60,7 @@ export default function InventarioPage() {
     const names = new Set<string>();
     stocks.forEach((s) => names.add(s.ollaName));
     movements.forEach((m) => names.add(m.ollaName));
-    return Array.from(names).sort();
+    return Array.from(names).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
   }, [stocks, movements]);
 
   // Filtrado de stock
@@ -83,8 +81,8 @@ export default function InventarioPage() {
       const matchesSearch =
         m.supplyItemName.toLowerCase().includes(search.toLowerCase()) ||
         m.ollaName.toLowerCase().includes(search.toLowerCase()) ||
-        (m.notes && m.notes.toLowerCase().includes(search.toLowerCase())) ||
-        (m.sourceName && m.sourceName.toLowerCase().includes(search.toLowerCase()));
+        m.notes?.toLowerCase().includes(search.toLowerCase()) ||
+        m.sourceName?.toLowerCase().includes(search.toLowerCase());
       const matchesOlla = !filterOlla || m.ollaName === filterOlla;
       const matchesType = !filterMovementType || m.movementType === filterMovementType;
       return matchesSearch && matchesOlla && matchesType;

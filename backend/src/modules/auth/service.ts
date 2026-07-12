@@ -5,6 +5,7 @@ import { AuthError } from './errors'
 import {
   loginSchema,
   registerSchema,
+  totpSetupSchema,
   verifyOtpSchema,
 } from './validators'
 import { getOrCreateTotpSecret, verifyTotpCode } from './totp-service'
@@ -14,7 +15,9 @@ import {
   LoginInput,
   MfaPendingResponse,
   RegisterInput,
+  TotpSetupInput,
   TotpSetupRequiredResponse,
+  TotpSetupResponse,
   VerifyOtpInput,
 } from './types'
 
@@ -74,20 +77,36 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
 
   if (!user.totpSecret) {
-    const { secret, qrCodeUri } = await getOrCreateTotpSecret(user.id, user.email)
+    // Sin side-effect: NO creamos/guardamos el secret aqui. Eso sucede en /api/auth/totp/setup,
+    // que el frontend llama solo cuando ya esta listo para mostrar el QR al usuario.
     const tempToken = generateTempToken(user.id, user.email)
-    return { status: 'TOTP_SETUP_REQUIRED', tempToken, secret, qrCodeUri, email: user.email }
+    return { status: 'TOTP_SETUP_REQUIRED', tempToken, email: user.email }
   }
 
   const tempToken = generateTempToken(user.id, user.email)
   return { status: 'MFA_PENDING', tempToken, email: user.email }
 }
 
+/* ── Step 1b: setup TOTP (crea/persiste el secret) ── */
+
+export async function setupTotp(input: TotpSetupInput): Promise<TotpSetupResponse> {
+  const parsed = totpSetupSchema.parse(input)
+  const { userId, email } = verifyTempToken(parsed.tempToken)
+
+  const user = await prisma.appUser.findUnique({ where: { id: userId } })
+  if (!user || user.status === 'inactive') throw new AuthError(403, 'Cuenta no disponible.')
+
+  // getOrCreateTotpSecret es idempotente: si el usuario ya tiene secret, devuelve ese mismo.
+  // La persistencia ocurre aqui, no en /login.
+  const { secret, qrCodeUri } = await getOrCreateTotpSecret(user.id, user.email)
+  return { secret, qrCodeUri, email }
+}
+
 /* ── Step 2: TOTP code → JWT ────────────────────── */
 
 export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
   const parsed = verifyOtpSchema.parse(input)
-  const { email, tempToken, code } = parsed
+  const { tempToken, code } = parsed
 
   const { userId } = verifyTempToken(tempToken)
 

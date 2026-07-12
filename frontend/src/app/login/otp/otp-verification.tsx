@@ -85,7 +85,7 @@ function OtpVerification() {
     }
   }, [code, handleVerify])
 
-  const digits = code.split("").concat(Array(6 - code.length).fill(""))
+  const digits = code.split("").concat(new Array(6 - code.length).fill(""))
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#f5f0eb] to-white px-6">

@@ -12,6 +12,10 @@ export const loginSchema = z.object({
     .max(128, 'Contrasena demasiado larga.'),
 })
 
+export const totpSetupSchema = z.object({
+  tempToken: z.string().min(1, 'Token temporal requerido.'),
+})
+
 export const registerSchema = z.object({
   email: z
     .string()

@@ -19,7 +19,7 @@ const beneficiarySchema = z.object({
   lastName: z.string().trim().min(1, "Los apellidos son obligatorios"),
   birthDate: z.string().trim().min(1, "La fecha de nacimiento es obligatoria").refine((val) => {
     const d = new Date(val)
-    return !isNaN(d.getTime()) && d <= new Date()
+    return !Number.isNaN(d.getTime()) && d <= new Date()
   }, { message: "Fecha de nacimiento inválida o futura" }),
   dni: z.string().trim().min(1, "El DNI es obligatorio").max(20, "Máximo 20 caracteres"),
   phone: z.string().trim().max(30, "Máximo 30 caracteres").optional().or(z.literal("")),
@@ -68,7 +68,6 @@ export default function PadronPage() {
   const [seleccionados, setSeleccionados] = useState<string[]>([])
   const [delivering, setDelivering] = useState(false)
   const [activeDishName, setActiveDishName] = useState<string | null>(null)
-  const [isMenuExecuted, setIsMenuExecuted] = useState(false)
   const [maxServingsRemaining, setMaxServingsRemaining] = useState<number>(0)
   const [currentOllaId, setCurrentOllaId] = useState<string | null>(null)
 
@@ -128,11 +127,9 @@ export default function PadronPage() {
       }
       if (data.ok && data.summary?.menu) {
         setActiveDishName(data.summary.menu.dishName)
-        setIsMenuExecuted(data.summary.menu.status === "executed")
         setMaxServingsRemaining(data.summary.menu.maxServingsRemaining ?? 0)
       } else {
         setActiveDishName(null)
-        setIsMenuExecuted(false)
         setMaxServingsRemaining(0)
       }
     } catch (err) {
@@ -142,13 +139,7 @@ export default function PadronPage() {
   }, [get])
 
   useEffect(() => {
-    if (currentOllaId) {
-      fetchBeneficiaries()
-    } else {
-      // Si aún no tenemos ollaId resolved, podemos intentar cargar inicialmente
-      // pero una vez que cargue fetchActiveMenu se disparará de nuevo con la olla correcta.
-      fetchBeneficiaries()
-    }
+    fetchBeneficiaries()
 
     const handleSync = () => {
       console.log('[Padron Mobile] Sincronización completada. Refrescando beneficiarios...')
@@ -172,6 +163,25 @@ export default function PadronPage() {
       window.removeEventListener('pwa-sync-completed', handleSync)
     }
   }, [fetchActiveMenu])
+
+  const handleBeneficiaryClick = (b: Beneficiary) => {
+    if (!modoEntrega) {
+      toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
+      return
+    }
+    if (b.hasEatenToday) {
+      toast.info(`${b.nombre} ya recibió su ración hoy.`)
+      return
+    }
+    const isSelectedAlready = seleccionados.includes(b.id)
+    if (!isSelectedAlready && seleccionados.length >= maxServingsRemaining) {
+      toast.warning(`⚠️ Solo queda stock para ${maxServingsRemaining} ración(es) más.`)
+      return
+    }
+    setSeleccionados((prev) =>
+      prev.includes(b.id) ? prev.filter((id) => id !== b.id) : [...prev, b.id],
+    )
+  }
 
   useEffect(() => {
     if (modalAbierto) {
@@ -328,26 +338,7 @@ export default function PadronPage() {
               key={b.id}
               beneficiary={b}
               isSelected={seleccionados.includes(b.id)}
-              onClick={() => {
-                if (modoEntrega) {
-                  if (b.hasEatenToday) {
-                    toast.info(`${b.nombre} ya recibió su ración hoy.`)
-                    return
-                  }
-                  const isSelectedAlready = seleccionados.includes(b.id)
-                  if (!isSelectedAlready && seleccionados.length >= maxServingsRemaining) {
-                    toast.warning(`⚠️ Solo queda stock para ${maxServingsRemaining} ración(es) más.`)
-                    return
-                  }
-                  setSeleccionados((prev) =>
-                      prev.includes(b.id)
-                          ? prev.filter((id) => id !== b.id)
-                          : [...prev, b.id],
-                  )
-                } else {
-                  toast.info(`${b.nombre} ${b.apellido} — DNI ${b.dni}`)
-                }
-              }}
+              onClick={() => handleBeneficiaryClick(b)}
             />
           ))}
         </div>

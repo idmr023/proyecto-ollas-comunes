@@ -18,6 +18,32 @@ function getAuthHeaders(): Record<string, string> {
   return {}
 }
 
+function readCache<T>(cacheKey: string): { ts: number; payload: T } | null {
+  try {
+    const cached = localStorage.getItem(cacheKey)
+    if (!cached) return null
+    return JSON.parse(cached) as { ts: number; payload: T }
+  } catch {
+    return null
+  }
+}
+
+function writeCache(cacheKey: string, payload: unknown) {
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), payload }))
+  } catch {}
+}
+
+function handleUnauthorized() {
+  try {
+    const store = JSON.parse(localStorage.getItem('auth-storage') ?? '{}')
+    if (store.state?.isAuthenticated) {
+      localStorage.removeItem('auth-storage')
+      window.location.href = '/login'
+    }
+  } catch {}
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit) {
   const url = `${apiBaseUrl}${path}`
   const method = (init?.method ?? 'GET').toUpperCase()
@@ -39,36 +65,17 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
       | null
 
     if (!response.ok) {
-      if (response.status === 401) {
-        try {
-          const store = JSON.parse(localStorage.getItem('auth-storage') ?? '{}')
-          if (store.state?.isAuthenticated) {
-            localStorage.removeItem('auth-storage')
-            window.location.href = '/login'
-          }
-        } catch {}
-      }
+      if (response.status === 401) handleUnauthorized()
       throw new Error(payload?.message ?? 'No se pudo completar la solicitud.')
     }
 
-    if (method === 'GET') {
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), payload }))
-      } catch {}
-    }
-
+    if (method === 'GET') writeCache(cacheKey, payload)
     return payload
   } catch (err) {
     if (method === 'GET') {
-      try {
-        const cached = localStorage.getItem(cacheKey)
-        if (cached) {
-          const parsed = JSON.parse(cached) as { ts: number; payload: any }
-          return parsed.payload
-        }
-      } catch {}
+      const cached = readCache<{ message?: string; item?: T; items?: T[] }>(cacheKey)
+      if (cached) return cached.payload
     }
-
     throw err
   }
 }

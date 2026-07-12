@@ -13,6 +13,25 @@ export async function loginRequest(credentials: LoginCredentials): Promise<AuthR
   return response.json()
 }
 
+/**
+ * Segundo paso del setup TOTP. El backend persiste el secret en BD aqui
+ * (no en /login), de modo que si el usuario solo llega a /login sin llamar
+ * a /totp/setup, la BD no queda mutada.
+ */
+export async function setupTotpRequest(tempToken: string): Promise<{
+  secret: string
+  qrCodeUri: string
+  email: string
+}> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/totp/setup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tempToken }),
+  })
+
+  return response.json()
+}
+
 export async function registerRequest(input: RegisterInput): Promise<AuthResponse> {
   const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
     method: 'POST',

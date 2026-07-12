@@ -7,4 +7,4 @@ async function main() {
   const data = await r.json();
   console.log('Ollas disponibles:', JSON.stringify(data, null, 2));
 }
-main().catch(console.error);
+try { await main() } catch (e) { console.error(e) }

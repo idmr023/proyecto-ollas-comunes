@@ -33,9 +33,27 @@ export interface MfaPendingResponse {
   email: string
 }
 
+/**
+ * Primer paso del setup TOTP. /login devuelve esto cuando el usuario NO tiene
+ * aún un secret configurado. NO incluye el secret ni el QR — esos se obtienen
+ * en el segundo paso llamando a /api/auth/totp/setup, de modo que el secret
+ * solo se persiste en BD cuando el frontend ya esta listo para mostrarlo.
+ */
 export interface TotpSetupRequiredResponse {
   status: 'TOTP_SETUP_REQUIRED'
   tempToken: string
+  email: string
+}
+
+/**
+ * Segundo paso del setup TOTP. Aqui SI se persiste el secret en BD.
+ * Es idempotente: si el usuario ya tiene secret, devuelve el mismo.
+ */
+export interface TotpSetupInput {
+  tempToken: string
+}
+
+export interface TotpSetupResponse {
   secret: string
   qrCodeUri: string
   email: string
