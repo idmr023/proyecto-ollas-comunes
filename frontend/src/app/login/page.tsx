@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
     e.preventDefault()
     if (!email || !password) { toast.error("Completa todos los campos"); return }
     setLoading(true)

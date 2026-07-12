@@ -56,11 +56,13 @@ export function ExportButtons({ movements, loading, from, to }: ExportButtonsPro
     if (!content) return
     const printWindow = window.open("", "_blank")
     if (!printWindow) return
-    printWindow.document.write(`
+    const doc = printWindow.document
+    doc.open()
+    doc.documentElement.innerHTML = `
       <!DOCTYPE html><html><head><title>Reporte SIGO-Ollas</title>
       <style>body{font-family:Arial;padding:30px;color:#333}h1{color:#0F3821}h2{color:#666;font-size:14px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#0F3821;color:#fff;padding:8px}td{padding:6px;border-bottom:1px solid #ddd}</style></head>
-      <body>${(content.cloneNode(true) as HTMLElement).innerHTML}</body></html>`)
-    printWindow.document.close()
+      <body>${(content.cloneNode(true) as HTMLElement).innerHTML}</body></html>`
+    doc.close()
     setTimeout(() => printWindow.print(), 500)
     toast.success("Vista previa de PDF abierta.")
   }

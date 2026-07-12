@@ -41,7 +41,7 @@ export default function EvidenciasPage() {
     reader.readAsDataURL(file)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
 
     if (!title.trim()) {

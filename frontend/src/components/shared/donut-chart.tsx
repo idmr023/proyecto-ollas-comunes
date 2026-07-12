@@ -1,6 +1,7 @@
 "use client"
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"
+import { PieChart, Pie, Sector, ResponsiveContainer, Legend } from "recharts"
+import type { PieSectorShapeProps } from "recharts"
 
 interface DonutChartProps {
   data: { name: string; value: number; color: string }[]
@@ -8,6 +9,15 @@ interface DonutChartProps {
 }
 
 const renderLabel = ({ percent }: { percent?: number }) => `${((percent ?? 0) * 100).toFixed(0)}%`
+
+function renderShape(props: PieSectorShapeProps) {
+  const { payload, ...sectorProps } = props
+  return <Sector {...sectorProps} fill={(payload as { color?: string })?.color ?? "#82ca9d"} />
+}
+
+function renderLegendValue(value: string) {
+  return <span className="text-xs text-foreground">{value}</span>
+}
 
 export function DonutChart({ data, title }: DonutChartProps) {
   const total = data.reduce((s, d) => s + d.value, 0)
@@ -33,14 +43,9 @@ export function DonutChart({ data, title }: DonutChartProps) {
             dataKey="value"
             labelLine={false}
             label={renderLabel}
-          >
-            {data.map((entry, idx) => (
-              <Cell key={idx} fill={entry.color} />
-            ))}
-          </Pie>
-          <Legend
-            formatter={(value) => <span className="text-xs text-foreground">{value}</span>}
+            shape={renderShape}
           />
+          <Legend formatter={renderLegendValue} />
         </PieChart>
       </ResponsiveContainer>
     </div>

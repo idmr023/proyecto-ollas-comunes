@@ -46,7 +46,7 @@ export function BeneficiaryForm({ mode, initialData, ollas, healthConditions, on
   const [ollaId, setOllaId] = useState(initialData?.ollaId ?? ollas[0]?.id ?? "")
   const [healthIds, setHealthIds] = useState<number[]>(initialData?.healthConditionIds ?? [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
     onSubmit({ firstName, lastName, dni, birthDate, gender, priorityLevel, phone, address, ollaId, healthConditionIds: healthIds })
   }
