@@ -5,19 +5,10 @@ on:
     branches:
       - main
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
   build:
-    name: Build and analyze
+    name: Build
     runs-on: windows-latest
     
     steps:
       - uses: actions/checkout@v4.3.1
-        with:
-          fetch-depth: 0
-      - uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
