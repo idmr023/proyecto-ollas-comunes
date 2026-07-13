@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../config/entorno/entorno.dart';
 import '../errores/excepciones.dart';
 import '../offline/almacen_offline.dart';
@@ -35,6 +36,26 @@ class ClienteHttp {
     _dio.interceptors.add(
       InterceptorsWrapper(onRequest: _agregarToken, onError: _manejarError),
     );
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onResponse: (Response<dynamic> r, ResponseInterceptorHandler h) {
+            debugPrint(
+              '[API] ${r.requestOptions.method} ${r.requestOptions.uri} -> ${r.statusCode}',
+            );
+            h.next(r);
+          },
+          onError: (DioException e, ErrorInterceptorHandler h) {
+            debugPrint(
+              '[API] ${e.requestOptions.method} ${e.requestOptions.uri} -> '
+              'ERROR ${e.type.name} status=${e.response?.statusCode} '
+              'body=${e.response?.data}',
+            );
+            h.next(e);
+          },
+        ),
+      );
+    }
   }
 
   Future<void> _agregarToken(
@@ -186,6 +207,14 @@ class ClienteHttp {
     final String? mensaje = _mensajeServidor(error);
     if (mensaje != null) {
       return ExcepcionServidor(mensaje, codigoEstado: estado);
+    }
+    if (estado != null) {
+      // El cuerpo no es el JSON del backend (HTML de un proxy, 404 de Express…),
+      // asi que al menos exponemos el codigo para poder diagnosticarlo.
+      return ExcepcionServidor(
+        'El servidor respondió con un error inesperado (HTTP $estado).',
+        codigoEstado: estado,
+      );
     }
     return const ExcepcionDesconocida();
   }
