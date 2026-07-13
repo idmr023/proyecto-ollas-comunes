@@ -37,11 +37,28 @@ class _PaginaVerificacionState extends ConsumerState<PaginaVerificacion> {
         );
   }
 
+  /// El `tempToken` del login caduca a los pocos minutos. Cuando eso pasa,
+  /// reintentar aquí siempre vuelve a fallar: hay que rehacer el login.
+  bool _tokenExpirado(String mensaje) =>
+      mensaje.toLowerCase().contains('token temporal');
+
   Future<void> _reaccionarEstado(EstadoVerificacion estado) async {
     if (estado is VerificacionExito) {
       await context.router.replaceAll(<PageRouteInfo>[const HomeRoute()]);
     } else if (estado is VerificacionError) {
       ref.read(controllerVerificacionProvider.notifier).reiniciar();
+      if (_tokenExpirado(estado.mensaje)) {
+        await ModalError.mostrar(
+          context,
+          titulo: 'Sesión expirada',
+          mensaje:
+              'Tu sesión de verificación caducó. Inicia sesión de nuevo para pedir un código nuevo.',
+          textoReintentar: 'Volver a iniciar sesión',
+        );
+        if (!mounted) return;
+        await context.router.replaceAll(<PageRouteInfo>[const LoginRoute()]);
+        return;
+      }
       await ModalError.mostrar(context, mensaje: estado.mensaje);
     }
   }
