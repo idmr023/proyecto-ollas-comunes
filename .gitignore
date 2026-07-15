@@ -25,3 +25,9 @@ node_modules
 
 .codebase-memory/
 .vscode/
+
+# Clinic.js profiling
+.clinic/
+
+# Node.js trace logs
+node_trace.*.log
