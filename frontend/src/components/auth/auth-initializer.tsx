@@ -23,6 +23,7 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
             setAuth(res.user, stored.token!)
           } else {
             clearAuth()
+            setInitialized(true)
           }
         })
         .catch(() => {

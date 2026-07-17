@@ -22,6 +22,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             setAuth(res.user, stored.token)
           } else {
             clearAuth()
+            setInitialized(true)
             router.replace('/login')
           }
         } catch {
