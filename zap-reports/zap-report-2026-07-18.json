@@ -1,0 +1,3590 @@
+{
+  "timestamp": "2026-07-18 17:32:04",
+  "target": "https://proyecto-ollas-comunes.vercel.app",
+  "duration": "4m 5s",
+  "score": 0,
+  "grade": "F",
+  "alerts": {
+    "high": 0,
+    "medium": 49,
+    "low": 0,
+    "informational": 392
+  },
+  "alertsByType": {
+    "Re-examine Cache-control Directives": {
+      "count": 3,
+      "risk": "Informational",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json"
+    },
+    "Cross-Domain Misconfiguration": {
+      "count": 25,
+      "risk": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js"
+    },
+    "CSP: Failure to Define Directive with No Fallback": {
+      "count": 6,
+      "risk": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml"
+    },
+    "Retrieved from Cache": {
+      "count": 47,
+      "risk": "Informational",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js"
+    },
+    "CSP: script-src unsafe-inline": {
+      "count": 6,
+      "risk": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt"
+    },
+    "CSP: style-src unsafe-inline": {
+      "count": 6,
+      "risk": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt"
+    },
+    "CSP: script-src unsafe-eval": {
+      "count": 6,
+      "risk": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt"
+    },
+    "Modern Web Application": {
+      "count": 6,
+      "risk": "Informational",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt"
+    },
+    "User Agent Fuzzer": {
+      "count": 336,
+      "risk": "Informational",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/"
+    }
+  },
+  "allAlerts": [
+    {
+      "name": "Re-examine Cache-control Directives",
+      "risk": "Informational",
+      "confidence": "Low",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+      "pluginId": "10015"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Re-examine Cache-control Directives",
+      "risk": "Informational",
+      "confidence": "Low",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+      "pluginId": "10015"
+    },
+    {
+      "name": "Re-examine Cache-control Directives",
+      "risk": "Informational",
+      "confidence": "Low",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".",
+      "pluginId": "10015"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: Failure to Define Directive with No Fallback",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: script-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "CSP: style-src unsafe-inline",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "CSP: script-src unsafe-eval",
+      "risk": "Medium",
+      "confidence": "High",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.",
+      "pluginId": "10055"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Cross-Domain Misconfiguration",
+      "risk": "Medium",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).\nConfigure the \"Access-Control-Allow-Origin\" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.",
+      "pluginId": "10098"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Modern Web Application",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "This is an informational alert and so no changes are required.",
+      "pluginId": "10109"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "Retrieved from Cache",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:\nCache-Control: no-cache, no-store, must-revalidate, private\nPragma: no-cache\nExpires: 0\nThis configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+      "pluginId": "10050"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0_1zkemepb6kj.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/03~yq9q893hmn.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0tib1_lk7.fc1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0njf3_f7rz5p~.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0to9gtlltal78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0oec_e9red.k1.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/05wtretcr6p-9.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/160m-annmgxfl.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0e4x420451o78.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0ste45f57hhpv.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/turbopack-0n6qr7mx-dcli.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0hg.t5.zt~t6t.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0__7r1q~_wcom.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0aptlu3z1f6l8.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/0~h15wnn-~~.f.js",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/_next/static/chunks/01501wfsi27-t.css",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/robots.txt",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/sitemap.xml",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "solution": "",
+      "pluginId": "10104"
+    },
+    {
+      "name": "User Agent Fuzzer",
+      "risk": "Informational",
+      "confidence": "Medium",
+      "url": "https://proyecto-ollas-comunes.vercel.app/manifest.json",
+      "solution": "",
+      "pluginId": "10104"
+    }
+  ]
+}
