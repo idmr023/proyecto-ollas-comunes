@@ -18,73 +18,127 @@ config:
       name: "Fase 4: Sostenido (30s, 50 usuarios/seg constantes)"
   plugins:
     expect: {}
-  variables:
-    invalidEmail: "stress-test@example.com"
-    invalidPassword: "wrong-password-123"
+  payload:
+    path: "stress-test-data.csv"
+    fields:
+      - "email"
+      - "password"
+      - "otpCode"
+    order: "sequence"
   defaults:
     headers:
       Content-Type: "application/json"
 
 scenarios:
-  - name: "Health Check - endpoint raíz"
+  - name: "Health Checks (Páginas Públicas)"
     flow:
       - get:
           url: "/"
           expect:
             statusCode: 200
-
-  - name: "Health Check - API health"
-    flow:
       - get:
           url: "/api/health"
           expect:
             statusCode: 200
-
-  - name: "Health Check - Prisma"
-    flow:
       - get:
           url: "/api/health/prisma"
           expect:
             statusCode: 200
-
-  - name: "Health Check - Supabase"
-    flow:
       - get:
           url: "/api/health/supabase"
           expect:
             statusCode: [200, 500, 503]
 
-  - name: "Login inválido (carga en auth)"
+  - name: "Flujo Operativo de Negocio (Lideresa de Olla / Supervisor)"
     flow:
+      # 1. Login - Paso 1 (email + password)
       - post:
           url: "/api/auth/login"
           json:
-            email: "{{ invalidEmail }}"
-            password: "{{ invalidPassword }}"
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.tempToken"
+              as: "tempToken"
           expect:
-            statusCode: 401
+            statusCode: 200
 
-  - name: "Registro inválido (validación)"
-    flow:
+      # 2. Login - Paso 2 (OTP code bypass)
       - post:
-          url: "/api/auth/register"
+          url: "/api/auth/verify-otp"
           json:
-            email: ""
-            password: "123"
+            tempToken: "{{ tempToken }}"
+            code: "{{ otpCode }}"
+          capture:
+            - json: "$.token"
+              as: "jwtToken"
           expect:
-            statusCode: 400
+            statusCode: 200
 
-  - name: "Mezcla: health + login inválido"
-    weight: 3
-    flow:
+      # 3. Cargar Dashboard de la Olla/Municipio
       - get:
-          url: "/api/health"
-      - think: 1
+          url: "/api/mobile/dashboard"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          expect:
+            statusCode: 200
+
+      # 4. Consultar Ollas del Tenant y Capturar ID de la primera
       - get:
-          url: "/api/health/prisma"
-      - think: 1
+          url: "/api/beneficiaries/ollas"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          capture:
+            - json: "$.items[0].id"
+              as: "ollaId"
+          expect:
+            statusCode: 200
+
+      # 5. Insertar un Beneficiario Nuevo (Escritura, Cifrado DNI y Auditoría)
       - post:
-          url: "/api/auth/login"
+          url: "/api/beneficiaries"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
           json:
-            email: "{{ invalidEmail }}"
-            password: "{{ invalidPassword }}"
+            firstName: "Stress{{ $randomString(5) }}"
+            lastName: "Test{{ $randomString(5) }}"
+            birthDate: "1990-05-15"
+            dni: "{{ $randomNumber(10000000, 99999999) }}"
+            gender: "male"
+            ollaId: "{{ ollaId }}"
+            priorityLevel: "normal"
+            status: "active"
+            phone: "999888777"
+            address: "Av. Concurrencia 123"
+            healthConditionIds: []
+          capture:
+            - json: "$.item.id"
+              as: "beneficiaryId"
+          expect:
+            statusCode: 201
+
+      # 6. Consultar Inventario y Capturar ID del primer Suministro
+      - get:
+          url: "/api/mobile/inventory"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          capture:
+            - json: "$.items[0].supplyItemId"
+              as: "supplyItemId"
+          expect:
+            statusCode: 200
+
+      # 7. Crear Movimiento de Inventario Concurrente (Escritura e Stock trigger)
+      - post:
+          url: "/api/mobile/inventory/movements"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          json:
+            ollaId: "{{ ollaId }}"
+            supplyItemId: "{{ supplyItemId }}"
+            movementType: "in"
+            quantity: 10
+            notes: "Carga automatizada Artillery"
+          expect:
+            statusCode: 201
+

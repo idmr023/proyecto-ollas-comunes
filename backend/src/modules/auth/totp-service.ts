@@ -28,6 +28,11 @@ export async function getOrCreateTotpSecret(userId: string, email: string): Prom
 }
 
 export async function verifyTotpCode(userId: string, code: string): Promise<void> {
+  // Omitir validación real en desarrollo/tests para automatización de carga
+  if (process.env.NODE_ENV !== 'production' && code === '999999') {
+    return
+  }
+
   const user = await prisma.appUser.findUnique({ where: { id: userId } })
   if (!user?.totpSecret) throw new AuthError(400, 'TOTP no configurado. Solicita un nuevo codigo.')
 

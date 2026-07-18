@@ -3,6 +3,7 @@ import 'dotenv/config'
 import { app } from './app'
 import { getSupabaseConfigStatus } from './lib/supabase'
 import { isPrismaConfigured, prisma } from './lib/prisma'
+import { startPerformanceMonitoring } from './lib/metrics'
 
 const port = Number(process.env.PORT ?? 4000)
 const host = process.env.HOST ?? '0.0.0.0'
@@ -11,6 +12,9 @@ const publicUrl =
 
 app.listen(port, host, async () => {
   console.log(`SIGO-OLLAS backend listening on ${publicUrl}`)
+  
+  // Iniciar monitoreo de performance si estamos corriendo pruebas de estrés
+  startPerformanceMonitoring(5000)
   try {
     console.log('supabase config:', getSupabaseConfigStatus())
     console.log('prisma configured:', isPrismaConfigured())

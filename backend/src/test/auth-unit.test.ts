@@ -21,23 +21,25 @@ import { prisma } from '../lib/prisma'
 import { AuthError } from '../modules/auth/errors'
 import { getOrCreateTotpSecret, verifyTotpCode } from '../modules/auth/totp-service'
 import { login, setupTotp, verifyOtp, register, getMe, updateProfile } from '../modules/auth/service'
+import { decryptGcm } from '../lib/encryption'
 import jwt from 'jsonwebtoken'
+
+const baseUser = {
+  id: '11111111-1111-1111-1111-111111111111',
+  tenantId: '22222222-2222-2222-2222-222222222222',
+  email: 'admin@ollascomunes.pe',
+  fullName: 'Admin Principal',
+  passwordHash: 'hashed-password',
+  role: 'admin_municipal',
+  status: 'active',
+  totpSecret: 'DAYBALLTIQKVOPAKI2PJYJZCLIIWM2WJ',
+  createdAt: new Date(),
+}
 
 const appUserFindUnique = vi.mocked(prisma.appUser.findUnique)
 const appUserUpdate = vi.mocked(prisma.appUser.update)
 const appUserCreate = vi.mocked(prisma.appUser.create)
 const tenantFindUnique = vi.mocked(prisma.tenant.findUnique)
-
-const baseUser = {
-  id: '11111111-1111-1111-1111-111111111111',
-  email: 'admin@ollascomunes.pe',
-  passwordHash: '$2a$10$abcdefghijklmnopqrstuv',
-  fullName: 'Admin',
-  role: 'admin_municipal',
-  tenantId: '22222222-2222-2222-2222-222222222222',
-  status: 'active',
-  totpSecret: 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-}
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -68,10 +70,12 @@ describe('getOrCreateTotpSecret', () => {
     expect(result.secret).toBeTruthy()
     expect(result.secret).not.toBe(baseUser.totpSecret)
     expect(result.qrCodeUri).toContain(encodeURIComponent(result.secret))
-    expect(appUserUpdate).toHaveBeenCalledWith({
-      where: { id: baseUser.id },
-      data: { totpSecret: result.secret },
-    })
+    
+    expect(appUserUpdate).toHaveBeenCalled()
+    const lastCall = appUserUpdate.mock.calls[0][0]
+    expect(lastCall.where.id).toBe(baseUser.id)
+    const decrypted = decryptGcm(lastCall.data.totpSecret)
+    expect(decrypted).toBe(result.secret)
   })
 })
 
