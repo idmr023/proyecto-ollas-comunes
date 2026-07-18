@@ -23,9 +23,9 @@ El diseño de la suite de pruebas se acopló al stack moderno del proyecto (Next
 2.  **Bypass Seguro del Flujo Multifactor (MFA/TOTP):**
     *   *Problema:* El flujo de login del backend exige de forma obligatoria un código TOTP multifactor (Google Authenticator), lo cual bloquea la automatización convencional de inicio de sesión.
     *   *Solución:* Para simular la generación del código TOTP sin una aplicación móvil física, las pruebas automatizadas leen el secreto TOTP de la respuesta de inicio de sesión (en el setup inicial) o directamente del registro del usuario en la base de datos (`totpSecret` en la tabla `app_users`) y generan el token de 6 dígitos dinámicamente usando `otplib/functional`. Esto valida el flujo real del backend con un 100% de apego a la arquitectura de seguridad del sistema.
-3.  **Simulación y Aislamiento de APIs Externas (Gemini IA):**
-    *   *Problema:* Las sugerencias de menús consumen créditos y dependen de la API de Gemini (Google Generative AI), lo cual puede causar demoras de red y fallas de conexión en entornos locales de desarrollo.
-    *   *Solución:* Se configuró el test runner para inyectar una variable `GEMINI_API_KEY` vacía durante la prueba, obligando al backend a ejecutar su rama de contingencia local (*fallback offline*), respondiendo de forma instantánea con sugerencias preconfiguradas estructuradas sin romper la validación.
+3.  **Simulación y Aislamiento de APIs Externas (Groq IA):**
+    *   *Problema:* Las sugerencias de menús consumen créditos y dependen de la API de Groq, lo cual puede causar demoras de red y fallas de conexión en entornos locales de desarrollo.
+    *   *Solución:* Se configuró el test runner para inyectar una variable `GROQ_API_KEY` vacía durante la prueba, obligando al backend a ejecutar su rama de contingencia local (*fallback offline*), respondiendo de forma instantánea con sugerencias preconfiguradas estructuradas sin romper la validación.
 
 ---
 

@@ -348,14 +348,15 @@ export class MobileRepository {
       address: olla?.address || ""
     }
 
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = process.env.GROQ_API_KEY
+    const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
     if (!apiKey || apiKey.trim() === "") {
       // Return a structured warning fallback suggestion so the application doesn't crash if apiKey is not configured yet
       return [
         {
-          nombre: "Configurar API Key de Gemini (Offline)",
+          nombre: "Configurar API Key de Groq (Offline)",
           puntaje: 99,
-          ingredientes: ["Por favor, agregue su clave GEMINI_API_KEY en el archivo backend/.env para activar la generación inteligente."],
+          ingredientes: ["Por favor, agregue su clave GROQ_API_KEY en el archivo backend/.env para activar la generación inteligente."],
           recipeIngredients: []
         }
       ]
@@ -378,73 +379,63 @@ Instrucciones:
 2. Cada plato debe contener un puntaje de idoneidad nutritional (escala 1-100) basándose en las necesidades del padrón.
 3. Para cada plato sugerido, debes especificar exactamente qué insumos de los provistos en la lista de inventario utilizará y en qué cantidad (en la misma unidad de medida que figura en el inventario) para preparar raciones para ${totalBeneficiaries} personas.
 4. SOLO utiliza ingredientes que existan en el inventario provisto (usa sus supplyItemId). No sugieras insumos inexistentes.
-5. Devuelve la información estrictamente estructurada según el JSON schema requerido.
+5. Devuelve la información estrictamente estructurada en formato JSON según el siguiente esquema:
+{
+  "suggestions": [
+    {
+      "nombre": "Nombre del plato",
+      "puntaje": 85,
+      "justification": "Breve justificación nutricional",
+      "ingredientsNeeded": [
+        {
+          "supplyItemId": "ID del insumo",
+          "quantityNeeded": 5.5
+        }
+      ]
+    }
+  ]
+}
 `
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
+        "https://api.groq.com/openai/v1/chat/completions",
         {
           method: "POST",
           headers: {
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            contents: [
+            model: model,
+            messages: [
               {
-                parts: [
-                  {
-                    text: prompt
-                  }
-                ]
+                role: "system",
+                content: "Eres un nutricionista experto en gestión de ollas comunes en el Perú. Debes responder estrictamente en formato JSON con las sugerencias solicitadas."
+              },
+              {
+                role: "user",
+                content: prompt
               }
             ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: "OBJECT",
-                properties: {
-                  suggestions: {
-                    type: "ARRAY",
-                    items: {
-                      type: "OBJECT",
-                      properties: {
-                        nombre: { "type": "STRING" },
-                        puntaje: { "type": "INTEGER" },
-                        justification: { "type": "STRING" },
-                        ingredientsNeeded: {
-                          type: "ARRAY",
-                          items: {
-                            type: "OBJECT",
-                            properties: {
-                              supplyItemId: { "type": "STRING" },
-                              quantityNeeded: { "type": "NUMBER" }
-                            },
-                            required: ["supplyItemId", "quantityNeeded"]
-                          }
-                        }
-                      },
-                      required: ["nombre", "puntaje", "justification", "ingredientsNeeded"]
-                    }
-                  }
-                },
-                required: ["suggestions"]
-              }
-            }
+            response_format: {
+              type: "json_object"
+            },
+            temperature: 0.2
           })
         }
       )
 
       if (!response.ok) {
         const errText = await response.text()
-        console.error("Gemini API error status:", response.status, errText)
-        throw new Error(`Error en API de Gemini: ${response.statusText}`)
+        console.error("Groq API error status:", response.status, errText)
+        throw new Error(`Error en API de Groq: ${response.statusText}`)
       }
 
       const resData = await response.json() as any
-      const textContent = resData.candidates?.[0]?.content?.parts?.[0]?.text
+      const textContent = resData.choices?.[0]?.message?.content
       if (!textContent) {
-        throw new Error("No se obtuvo respuesta de Gemini")
+        throw new Error("No se obtuvo respuesta de Groq")
       }
 
       const parsed = JSON.parse(textContent) as {
@@ -473,7 +464,7 @@ Instrucciones:
         }
       })
     } catch (error) {
-      console.error("Error generating Gemini suggestions, falling back...", error)
+      console.error("Error generating Groq suggestions, falling back...", error)
       return [
         {
           nombre: "Seco de Pollo con Arroz (Offline)",

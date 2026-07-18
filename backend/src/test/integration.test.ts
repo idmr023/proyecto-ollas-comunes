@@ -1,5 +1,5 @@
 import 'dotenv/config'
-process.env.GEMINI_API_KEY = '' // Forzar modo offline para evitar timeouts en tests
+process.env.GROQ_API_KEY = '' // Forzar modo offline para evitar timeouts en tests
 import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
