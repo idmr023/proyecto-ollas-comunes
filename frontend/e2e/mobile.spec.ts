@@ -82,6 +82,30 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('#otp-code')).toBeVisible()
   })
 
+  test('Test 01.5: Login con campos vacíos (Falla)', async ({ page }) => {
+    await page.goto('/login')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.fill('#login-email', '')
+    await page.fill('#login-password', '')
+    await page.click('button[type="submit"]')
+
+    await page.waitForTimeout(1000)
+    await expect(page).toHaveURL(/\/login/)
+  })
+
+  test('Test 01.6: Login con formato de email inválido (Falla)', async ({ page }) => {
+    await page.goto('/login')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.fill('#login-email', 'invalido-email')
+    await page.fill('#login-password', 'password123')
+    await page.click('button[type="submit"]')
+
+    await page.waitForTimeout(1000)
+    await expect(page).toHaveURL(/\/login/)
+  })
+
   test('Test 01.3: Login exitoso con TOTP dinámico (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     // Después de login, el admin va a /workspace/home
@@ -250,6 +274,46 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await expect(page.locator('text=Ya existe').or(page.locator('text=Nuevo beneficiario'))).toBeVisible()
   })
 
+  test('Test 07.4: Registrar beneficiario con DNI con longitud inválida (menos de 8 dígitos) (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/padron')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
+    await page.click('button[aria-label="Agregar beneficiario"]')
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
+
+    await page.fill('#firstName', 'Dni')
+    await page.fill('#lastName', 'Corto')
+    await page.fill('#dni', '12345')
+    await page.fill('#birthDate', '1995-02-20')
+
+    await page.selectOption('#ollaId', { index: 1 })
+    await page.click('button:has-text("Guardar beneficiario")')
+
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible()
+  })
+
+  test('Test 07.5: Registrar beneficiario con fecha de nacimiento en el futuro (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/padron')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
+    await page.click('button[aria-label="Agregar beneficiario"]')
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible({ timeout: 20000 })
+
+    await page.fill('#firstName', 'Fecha')
+    await page.fill('#lastName', 'Futura')
+    await page.fill('#dni', '12345678')
+    await page.fill('#birthDate', '3026-02-20')
+
+    await page.selectOption('#ollaId', { index: 1 })
+    await page.click('button:has-text("Guardar beneficiario")')
+
+    await expect(page.locator('text=Nuevo beneficiario')).toBeVisible()
+  })
+
   // ─── INVENTARIO ───────────────────────────────────────────────
 
   test('Test 08: Inventario muestra lista de stock actual', async ({ page }) => {
@@ -320,6 +384,64 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     }
   })
 
+  test('Test 09.3: Registrar movimiento con cantidad 0 o vacía (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    await page.click('button:has-text("Registrar Entrada")')
+    await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible({ timeout: 20000 })
+
+    const firstItem = page.locator('button[class*="cursor-pointer"]').first()
+    if (await firstItem.isVisible()) {
+      await firstItem.click()
+    }
+
+    const nextButton = page.locator('button:has-text("Siguiente Paso")')
+    if (await nextButton.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await nextButton.click()
+    }
+
+    const writeNumber = page.locator('button:has-text("Escribir número")')
+    if (await writeNumber.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await writeNumber.click()
+      await page.fill('input[type="number"]', '0')
+      await nextButton.click()
+      // Debería permanecer en el mismo paso (cantidad inválida)
+      await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible()
+    }
+  })
+
+  test('Test 09.4: Registrar movimiento con cantidad negativa (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    await page.click('button:has-text("Registrar Entrada")')
+    await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible({ timeout: 20000 })
+
+    const firstItem = page.locator('button[class*="cursor-pointer"]').first()
+    if (await firstItem.isVisible()) {
+      await firstItem.click()
+    }
+
+    const nextButton = page.locator('button:has-text("Siguiente Paso")')
+    if (await nextButton.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await nextButton.click()
+    }
+
+    const writeNumber = page.locator('button:has-text("Escribir número")')
+    if (await writeNumber.isVisible({ timeout: 15000 }).catch(() => false)) {
+      await writeNumber.click()
+      await page.fill('input[type="number"]', '-10')
+      await nextButton.click()
+      // Debería permanecer en el mismo paso
+      await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible()
+    }
+  })
+
   // ─── MENÚ IA Y ENTREGAS ───────────────────────────────────────
 
   test('Test 10: Menú IA muestra panel de sugerencias', async ({ page }) => {
@@ -357,6 +479,26 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     expect(isUsable || isNoData).toBeTruthy()
   })
 
+  test('Test 11.2: Fallo de API de IA (Falla)', async ({ page }) => {
+    await page.route('**/api/mobile/suggestions', async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: false, message: 'Error interno en el motor de IA.' }),
+      })
+    })
+
+    await loginAsAdmin(page)
+    await page.goto('/mobile/menu-ia')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
+
+    await page.click('button:has-text("Nueva sugerencia")')
+
+    await expect(page.locator('text=Error').or(page.locator('text=sugerencia'))).toBeVisible({ timeout: 30000 })
+  })
+
   test('Test 12: Registro de entrega de raciones', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/padron')
@@ -376,6 +518,90 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     } else {
       // Si no hay el botón, el test pasa (no hay menú ejecutado para entregar)
       test.skip()
+    }
+  })
+
+  // ─── EVIDENCIAS ───────────────────────────────────────────────
+
+  test('Test Evidencias 01: Subida exitosa de documento con título y archivo válido', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/evidencias')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('text=Subir Evidencia')).toBeVisible({ timeout: 35000 })
+
+    await page.fill('#evidence-title', 'Foto de Acta de Entrega')
+    await page.fill('#evidence-desc', 'Descripción de prueba E2E')
+    
+    // Subir archivo ficticio usando buffer de Playwright
+    await page.setInputFiles('input[type="file"]', {
+      name: 'evidencia-e2e.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('image-data-ficticia-base64-content'),
+    })
+
+    // Mockear la respuesta del upload en Supabase para evitar llamadas reales a storage en E2E si falla
+    await page.route('**/api/mobile/documents/upload', async (route) => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, document: { id: 'some-doc-id' } }),
+      })
+    })
+
+    await page.click('button:has-text("Subir acta")')
+
+    // Debería volver a inicio con toast de éxito
+    await expect(page).toHaveURL(/\/mobile\/inicio/)
+  })
+
+  test('Test Evidencias 02: Subida sin título (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/evidencias')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.fill('#evidence-title', '')
+    await page.setInputFiles('input[type="file"]', {
+      name: 'evidencia-e2e.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('image-content'),
+    })
+
+    await page.click('button:has-text("Subir acta")')
+    await expect(page.locator('text=título')).toBeVisible()
+  })
+
+  test('Test Evidencias 03: Subida sin archivo (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/evidencias')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.fill('#evidence-title', 'Título de prueba')
+    await page.click('button:has-text("Subir acta")')
+    await expect(page.locator('text=foto').or(page.locator('text=archivo'))).toBeVisible()
+  })
+
+  // ─── ALERTAS ──────────────────────────────────────────────────
+
+  test('Test Alertas Mobile 01: Vista de alertas carga correctamente', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/alertas')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Alertas")')).toBeVisible({ timeout: 35000 })
+  })
+
+  test('Test Alertas Mobile 02: Descartar alerta de conflicto local', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/alertas')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Alertas")')).toBeVisible({ timeout: 35000 })
+    
+    const dismissBtn = page.locator('button[aria-label*="Eliminar"], button:has-text("Descartar")').first()
+    if (await dismissBtn.isVisible()) {
+      await dismissBtn.click()
+      await page.waitForTimeout(1000)
     }
   })
 

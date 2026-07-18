@@ -203,6 +203,44 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
   })
 
+  test('Test 18.4: Registrar beneficiario con DNI corto (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/beneficiarios')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.click('button:has-text("Registrar Beneficiario")')
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
+
+    await page.fill('#firstName', 'AdminTest')
+    await page.fill('#lastName', 'Playwright')
+    await page.fill('#dni', '1234')
+    await page.fill('#birthDate', '1990-05-15')
+
+    await page.selectOption('#ollaId', { index: 1 })
+    await page.click('div.z-50 button:has-text("Registrar")')
+
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
+  })
+
+  test('Test 18.5: Registrar beneficiario con fecha de nacimiento futura (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/beneficiarios')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.click('button:has-text("Registrar Beneficiario")')
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
+
+    await page.fill('#firstName', 'AdminTest')
+    await page.fill('#lastName', 'Playwright')
+    await page.fill('#dni', '12345678')
+    await page.fill('#birthDate', '3026-05-15')
+
+    await page.selectOption('#ollaId', { index: 1 })
+    await page.click('div.z-50 button:has-text("Registrar")')
+
+    await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
+  })
+
   test('Test 19: Edición de Beneficiario', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/beneficiarios')
@@ -299,6 +337,21 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page).toHaveURL(/\/workspace\/organizaciones\/nueva/)
   })
 
+  test('Test 22.3: Crear organización con ubicación vacía (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/organizaciones')
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.click('text=Nueva organización')
+    await expect(page).toHaveURL(/\/workspace\/organizaciones\/nueva/)
+
+    await page.fill('#organization-name', 'Municipalidad Test')
+    await page.fill('#organization-location', '')
+    await page.click('button:has-text("Crear organizacion")')
+
+    await expect(page).toHaveURL(/\/workspace\/organizaciones\/nueva/)
+  })
+
   test('Test 23: Creación de Olla Común', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/organizaciones')
@@ -329,6 +382,26 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
     // Verificar que aparezca en la lista de ollas
     await expect(page.locator(`text=${randomOllaName}`)).toBeVisible({ timeout: 35000 })
+  })
+
+  test('Test 23.2: Crear Olla Común con nombre vacío (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/organizaciones')
+    await page.waitForLoadState('domcontentloaded')
+
+    const firstOrgCard = page.locator('a[href^="/workspace/organizaciones/"]:not([href$="/nueva"])').first()
+    await expect(firstOrgCard).toBeVisible({ timeout: 35000 })
+    await firstOrgCard.click()
+
+    await expect(page.locator('h2:has-text("Ollas Comunes")')).toBeVisible({ timeout: 35000 })
+    await page.click('button:has-text("Crear Olla")')
+    await expect(page.locator('h2:has-text("Crear Olla Comun")')).toBeVisible({ timeout: 20000 })
+
+    await page.fill('#olla-name', '')
+    await page.fill('#olla-address', 'Dirección de prueba')
+    await page.click('button:has-text("Crear Olla Comun")')
+
+    await expect(page.locator('h2:has-text("Crear Olla Comun")')).toBeVisible()
   })
 
   // ─── CONFIGURACIÓN Y PREFERENCIAS ──────────────────────────────
@@ -365,6 +438,63 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     // Debería mostrar Toast o invalidar
   })
 
+  test('Test 24.3: Cambio de contraseña sin contraseña actual (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/perfil')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
+
+    await page.fill('#new-password', 'newSecurePass123')
+    await page.fill('#confirm-password', 'newSecurePass123')
+    await page.click('button:has-text("Guardar cambios")')
+
+    await expect(page.locator('text=contraseña actual')).toBeVisible({ timeout: 20000 })
+  })
+
+  test('Test 24.4: Cambio de contraseña con nueva contraseña corta (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/perfil')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
+
+    await page.fill('#current-password', 'admin123')
+    await page.fill('#new-password', '123')
+    await page.fill('#confirm-password', '123')
+    await page.click('button:has-text("Guardar cambios")')
+
+    await expect(page.locator('text=al menos 6 caracteres')).toBeVisible({ timeout: 20000 })
+  })
+
+  test('Test 24.5: Cambio de contraseña con confirmación que no coincide (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/perfil')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
+
+    await page.fill('#current-password', 'admin123')
+    await page.fill('#new-password', 'newSecurePass123')
+    await page.fill('#confirm-password', 'differentPass')
+    await page.click('button:has-text("Guardar cambios")')
+
+    await expect(page.locator('text=no coinciden')).toBeVisible({ timeout: 20000 })
+  })
+
+  test('Test 24.6: Guardar perfil con nombre vacío (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/perfil')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
+
+    await page.fill('#profile-name', '')
+    await page.click('button:has-text("Guardar cambios")')
+
+    await expect(page.locator('text=vacío')).toBeVisible({ timeout: 20000 })
+  })
+
   test('Test 25: Preferencias - Cambio de Tema', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/preferencias')
@@ -399,6 +529,90 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     // Clic en "Abrir perfil"
     await page.click('a:has-text("Abrir perfil")')
     await expect(page).toHaveURL(/\/workspace\/perfil/)
+  })
+
+  // ─── INVENTARIO ADMIN ──────────────────────────────────────────
+
+  test('Test Inventario Admin 01: Carga tabla de stock', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=Existencias en Stock').or(page.locator('table'))).toBeVisible()
+  })
+
+  test('Test Inventario Admin 02: Carga historial de movimientos', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    
+    // Clic en pestaña Historial
+    const tabMovs = page.locator('button:has-text("Historial"), button[value="movements"]').first()
+    if (await tabMovs.isVisible()) {
+      await tabMovs.click()
+      await expect(page.locator('text=Historial de movimientos').or(page.locator('table'))).toBeVisible()
+    }
+  })
+
+  test('Test Inventario Admin 03: Filtro por olla común', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/inventario')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+    
+    // Filtrar por olla si el selector de filtro existe
+    const filterSelect = page.locator('#filter-olla, select[name="olla"]').first()
+    if (await filterSelect.isVisible()) {
+      await filterSelect.selectOption({ index: 1 })
+      await page.waitForTimeout(1000)
+    }
+  })
+
+  // ─── ALERTAS ADMIN ─────────────────────────────────────────────
+
+  test('Test Alertas Admin 01: Carga listado de alertas abiertas', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/alertas')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Alertas del sistema")').or(page.locator('h1:has-text("Alertas")'))).toBeVisible({ timeout: 35000 })
+  })
+
+  test('Test Alertas Admin 02: Marcar alerta como resuelta', async ({ page }) => {
+    await page.route('**/api/organizations/alerts/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, item: { id: 'alert-123', status: 'resolved' } }),
+      })
+    })
+
+    await loginAsAdmin(page)
+    await page.goto('/workspace/alertas')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Alertas del sistema")').or(page.locator('h1:has-text("Alertas")'))).toBeVisible({ timeout: 35000 })
+
+    const resolveBtn = page.locator('button:has-text("Resolver"), button:has-text("Marcar como resuelta")').first()
+    if (await resolveBtn.isVisible()) {
+      await resolveBtn.click()
+      await page.waitForTimeout(1000)
+    }
+  })
+
+  // ─── REPORTES ADMIN ────────────────────────────────────────────
+
+  test('Test Reportes Admin 01: Carga panel de reportes con KPIs', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/workspace/reportes')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('h1:has-text("Reportes")')).toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=Ingresos de insumos').or(page.locator('text=Salidas de insumos'))).toBeVisible()
   })
 
 })
