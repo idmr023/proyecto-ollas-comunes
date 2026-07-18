@@ -35,81 +35,135 @@ function emptyResult() {
     imagesWithoutAlt: 0,
     inputFieldsChecked: 0,
     formsWithDoubleSubmitProtection: 0,
+    totalForms: 0,
     multipleH1Files: 0,
+    skippedHeadingHierarchies: 0,
     inputsWithoutAria: 0,
+    buttonsWithoutAccessibleLabel: 0,
+    outlineNoneWithoutFocusIndicator: 0,
     nonResponsiveWidths: 0,
+    formsWithoutRealtimeValidation: 0,
+    emailsWithoutProperType: 0,
+    pagesWithoutLoadingIndicators: 0,
+    nativeAlertsUsed: 0,
     deletionButtonsWithoutConfirmation: 0,
+    sessionTokenInLocalStorage: 0,
     missingDarkModeStyles: 0,
+    staticInlineColors: 0
   }
-}
-
-function countImages(content) {
-  const matches = content.match(/<img\s+/g) || []
-  const result = { imagesChecked: matches.length, imagesWithoutAlt: 0 }
-  if (matches.length === 0) return result
-  for (const line of content.split('\n')) {
-    if (line.includes('<img ') && !line.includes('alt=')) {
-      result.imagesWithoutAlt++
-    }
-  }
-  return result
-}
-
-function hasDoubleSubmitProtection(content) {
-  return content.includes('disabled={') && (content.includes('loading') || content.includes('isSubmitting'))
-}
-
-function countInputFields(content) {
-  return (content.match(/<input\s+/g) || []).length
-}
-
-function countMultipleH1(content) {
-  return (content.match(/<h1\b/g) || []).length
-}
-
-function countInputsWithoutAria(content) {
-  const inputs = content.match(/<input\s+[^>]*>/g) || []
-  let count = 0
-  for (const inp of inputs) {
-    if (!inp.includes('aria-label') && !inp.includes('aria-labelledby') && !inp.includes('id=')) {
-      count++
-    }
-  }
-  return count
-}
-
-function hasFixedWidths(content) {
-  return /className="[^"]*\bw-\[(?:4|5|6)\d\dpx\]/g.test(content)
-}
-
-function hasUnconfirmedDestructiveButton(content) {
-  return (
-    content.includes('Eliminar') &&
-    !content.includes('confirm') &&
-    !content.includes('AlertDialog') &&
-    !content.includes('Dialog')
-  )
-}
-
-function hasMissingDarkModeStyles(content) {
-  return (
-    (content.includes('bg-white') && !content.includes('dark:bg-')) ||
-    (content.includes('text-black') && !content.includes('dark:text-'))
-  )
 }
 
 function scanFileContent(content) {
   const result = emptyResult()
-  const images = countImages(content)
-  result.imagesChecked = images.imagesChecked
-  result.imagesWithoutAlt = images.imagesWithoutAlt
-  result.inputFieldsChecked = countInputFields(content)
-  if (hasDoubleSubmitProtection(content)) result.formsWithDoubleSubmitProtection++
-  if (countMultipleH1(content) > 1) result.multipleH1Files++
-  result.inputsWithoutAria = countInputsWithoutAria(content)
-  if (hasFixedWidths(content)) result.nonResponsiveWidths++
-  if (hasUnconfirmedDestructiveButton(content)) result.deletionButtonsWithoutConfirmation++
-  if (hasMissingDarkModeStyles(content)) result.missingDarkModeStyles++
+
+  // 1. U-02: Alt en imágenes
+  const imgMatches = content.match(/<img\s+/gi) || []
+  result.imagesChecked = imgMatches.length
+  if (imgMatches.length > 0) {
+    const lines = content.split('\n')
+    for (const line of lines) {
+      if (/<img\s+/i.test(line) && !line.includes('alt=')) {
+        result.imagesWithoutAlt++
+      }
+    }
+  }
+
+  // 2. U-03: Headings semánticos y saltos jerárquicos
+  const h1Count = (content.match(/<h1\b/gi) || []).length
+  if (h1Count > 1) {
+    result.multipleH1Files++
+  }
+  // Saltar niveles de heading (ej: tiene h3 o h4 pero no tiene h2)
+  const hasH2 = /<h2\b/gi.test(content)
+  const hasH3 = /<h3\b/gi.test(content)
+  const hasH4 = /<h4\b/gi.test(content)
+  if ((hasH3 || hasH4) && !hasH2) {
+    result.skippedHeadingHierarchies++
+  }
+
+  // 3. U-04: Atributos ARIA y etiquetas descriptivas
+  const inputs = content.match(/<input\s+[^>]*>/gi) || []
+  result.inputFieldsChecked = inputs.length
+  for (const inp of inputs) {
+    if (!inp.includes('aria-label') && !inp.includes('aria-labelledby') && !inp.includes('id=')) {
+      result.inputsWithoutAria++
+    }
+  }
+  // Botones de icono (ej: contienen Lucide Icon pero no tienen texto ni aria-label ni sr-only)
+  const buttons = content.match(/<Button\s+[^>]*>[\s\S]*?<\/Button>/gi) || []
+  for (const btn of buttons) {
+    const hasIcon = btn.includes('<Trash') || btn.includes('<Arrow') || btn.includes('<Search') || btn.includes('<Bell') || btn.includes('<Menu') || btn.includes('<Settings')
+    const hasText = btn.replace(/<[\s\S]*?>/g, '').trim().length > 0
+    const hasAria = btn.includes('aria-label') || btn.includes('aria-labelledby') || btn.includes('sr-only')
+    if (hasIcon && !hasText && !hasAria) {
+      result.buttonsWithoutAccessibleLabel++
+    }
+  }
+
+  // 4. U-05: Navegación por teclado
+  if (content.includes('outline-none') && !content.includes('focus:') && !content.includes('focus-visible:') && !content.includes('focus-within:')) {
+    result.outlineNoneWithoutFocusIndicator++
+  }
+
+  // 5. U-06: Responsividad (Layout móvil)
+  // Anchos fijos Tailwind mayores a 320px sin breakpoints responsivos (md:, lg:, sm:)
+  const fixedWidths = content.match(/className="[^"]*\bw-\[(?:3[3-9]\d|4\d\d|5\d\d|6\d\d|7\d\d|8\d\d|1\d\d\d)px\]/g) || []
+  for (const fw of fixedWidths) {
+    if (!fw.includes('md:') && !fw.includes('lg:') && !fw.includes('sm:')) {
+      result.nonResponsiveWidths++
+    }
+  }
+
+  // 6. U-07: Validación de formularios en tiempo real
+  const formMatches = content.match(/<form\b/gi) || []
+  result.totalForms = formMatches.length
+  if (formMatches.length > 0 && !content.includes('errors.') && !content.includes('formState') && !content.includes('register(')) {
+    result.formsWithoutRealtimeValidation++
+  }
+
+  // 7. U-08: Validación de formato de correo en Login
+  if ((content.includes('email') || content.includes('correo')) && content.includes('<input') && !content.includes('type="email"')) {
+    // Si tiene input de email pero no el type="email"
+    if (content.includes('login') || content.includes('auth')) {
+      result.emailsWithoutProperType++
+    }
+  }
+
+  // 8. U-10: Visibilidad de cargadores de estado (Spinners)
+  if ((content.includes('fetch(') || content.includes('get(') || content.includes('request(')) && !content.includes('Loader2') && !content.includes('Skeleton') && !content.includes('loading') && !content.includes('cargando')) {
+    result.pagesWithoutLoadingIndicators++
+  }
+
+  // 9. U-11: Toasts vs alert nativo
+  const alerts = content.match(/\balert\(/g) || []
+  result.nativeAlertsUsed = alerts.length
+
+  // 10. U-12: Confirmación destructiva
+  if (content.includes('Eliminar') && !content.includes('AlertDialog') && !content.includes('Dialog') && !content.includes('confirm(')) {
+    result.deletionButtonsWithoutConfirmation++
+  }
+
+  // 11. U-13: Persistencia JWT (sessionStorage vs localStorage)
+  if (content.includes('localStorage.setItem') && (content.includes('token') || content.includes('jwt') || content.includes('auth'))) {
+    result.sessionTokenInLocalStorage++
+  }
+
+  // 12. U-14: Prevención de doble click en submits
+  const submitButtons = content.match(/type="submit"[^>]*>/gi) || []
+  for (const btn of submitButtons) {
+    if (!btn.includes('disabled')) {
+      result.formsWithDoubleSubmitProtection++ // Contamos como fallo
+    }
+  }
+
+  // 13. U-15: Modo Oscuro / Colores semánticos
+  if ((content.includes('bg-white') && !content.includes('dark:bg-')) || (content.includes('text-black') && !content.includes('dark:text-'))) {
+    result.missingDarkModeStyles++
+  }
+  // Uso de colores hardcoded inline style
+  const inlineColors = content.match(/color:\s*['"]#[0-9a-fA-F]{3,6}['"]/gi) || []
+  result.staticInlineColors = inlineColors.length
+
   return result
 }
 
@@ -118,11 +172,21 @@ function mergeResults(target, source) {
   target.imagesWithoutAlt += source.imagesWithoutAlt
   target.inputFieldsChecked += source.inputFieldsChecked
   target.formsWithDoubleSubmitProtection += source.formsWithDoubleSubmitProtection
+  target.totalForms += source.totalForms
   target.multipleH1Files += source.multipleH1Files
+  target.skippedHeadingHierarchies += source.skippedHeadingHierarchies
   target.inputsWithoutAria += source.inputsWithoutAria
+  target.buttonsWithoutAccessibleLabel += source.buttonsWithoutAccessibleLabel
+  target.outlineNoneWithoutFocusIndicator += source.outlineNoneWithoutFocusIndicator
   target.nonResponsiveWidths += source.nonResponsiveWidths
+  target.formsWithoutRealtimeValidation += source.formsWithoutRealtimeValidation
+  target.emailsWithoutProperType += source.emailsWithoutProperType
+  target.pagesWithoutLoadingIndicators += source.pagesWithoutLoadingIndicators
+  target.nativeAlertsUsed += source.nativeAlertsUsed
   target.deletionButtonsWithoutConfirmation += source.deletionButtonsWithoutConfirmation
+  target.sessionTokenInLocalStorage += source.sessionTokenInLocalStorage
   target.missingDarkModeStyles += source.missingDarkModeStyles
+  target.staticInlineColors += source.staticInlineColors
 }
 
 function walkDir(dir, accumulator) {
@@ -148,50 +212,127 @@ try {
   var imagesWithoutAlt = scanResult.imagesWithoutAlt
   var inputFieldsChecked = scanResult.inputFieldsChecked
   var formsWithDoubleSubmitProtection = scanResult.formsWithDoubleSubmitProtection
+  var totalForms = scanResult.totalForms
   var multipleH1Files = scanResult.multipleH1Files
+  var skippedHeadingHierarchies = scanResult.skippedHeadingHierarchies
   var inputsWithoutAria = scanResult.inputsWithoutAria
+  var buttonsWithoutAccessibleLabel = scanResult.buttonsWithoutAccessibleLabel
+  var outlineNoneWithoutFocusIndicator = scanResult.outlineNoneWithoutFocusIndicator
   var nonResponsiveWidths = scanResult.nonResponsiveWidths
+  var formsWithoutRealtimeValidation = scanResult.formsWithoutRealtimeValidation
+  var emailsWithoutProperType = scanResult.emailsWithoutProperType
+  var pagesWithoutLoadingIndicators = scanResult.pagesWithoutLoadingIndicators
+  var nativeAlertsUsed = scanResult.nativeAlertsUsed
   var deletionButtonsWithoutConfirmation = scanResult.deletionButtonsWithoutConfirmation
+  var sessionTokenInLocalStorage = scanResult.sessionTokenInLocalStorage
   var missingDarkModeStyles = scanResult.missingDarkModeStyles
+  var staticInlineColors = scanResult.staticInlineColors
 } catch (err) {
   console.log('Aviso: Directorio del frontend no accesible directamente.', err.message)
   var imagesChecked = 0
   var imagesWithoutAlt = 0
   var inputFieldsChecked = 0
   var formsWithDoubleSubmitProtection = 0
+  var totalForms = 0
   var multipleH1Files = 0
+  var skippedHeadingHierarchies = 0
   var inputsWithoutAria = 0
+  var buttonsWithoutAccessibleLabel = 0
+  var outlineNoneWithoutFocusIndicator = 0
   var nonResponsiveWidths = 0
+  var formsWithoutRealtimeValidation = 0
+  var emailsWithoutProperType = 0
+  var pagesWithoutLoadingIndicators = 0
+  var nativeAlertsUsed = 0
   var deletionButtonsWithoutConfirmation = 0
+  var sessionTokenInLocalStorage = 0
   var missingDarkModeStyles = 0
+  var staticInlineColors = 0
 }
 
-// Actualizar puntuación basado en escaneo estático
+// Actualizar puntuación basado en escaneo estático real
+
+// U-01: Contraste (penalizado por estilos inline fijos)
+if (staticInlineColors > 0) {
+  audits[0].score = Math.max(50, 100 - (staticInlineColors * 15))
+  if (audits[0].score < 90) audits[0].status = 'WARN'
+}
+
+// U-02: Imágenes sin alt
 if (imagesWithoutAlt > 0) {
   audits[1].score = Math.max(50, 100 - (imagesWithoutAlt * 10))
   if (audits[1].score < 90) audits[1].status = 'WARN'
 }
 
-if (multipleH1Files > 0) {
-  audits[2].score = Math.max(50, 100 - (multipleH1Files * 15))
+// U-03: Múltiples H1 y jerarquía
+const headingIssues = multipleH1Files + skippedHeadingHierarchies
+if (headingIssues > 0) {
+  audits[2].score = Math.max(50, 100 - (headingIssues * 15))
   if (audits[2].score < 90) audits[2].status = 'WARN'
 }
 
-if (inputsWithoutAria > 0) {
-  audits[3].score = Math.max(50, 100 - (inputsWithoutAria * 5))
+// U-04: Atributos ARIA (inputs y botones interactivos sin etiquetas)
+const ariaIssues = inputsWithoutAria + buttonsWithoutAccessibleLabel
+if (ariaIssues > 0) {
+  audits[3].score = Math.max(50, 100 - (ariaIssues * 5))
   if (audits[3].score < 90) audits[3].status = 'WARN'
 }
 
+// U-05: Enfoque visual por teclado
+if (outlineNoneWithoutFocusIndicator > 0) {
+  audits[4].score = Math.max(50, 100 - (outlineNoneWithoutFocusIndicator * 10))
+  if (audits[4].score < 90) audits[4].status = 'WARN'
+}
+
+// U-06: Responsividad móvil
 if (nonResponsiveWidths > 0) {
   audits[5].score = Math.max(50, 100 - (nonResponsiveWidths * 20))
   if (audits[5].score < 90) audits[5].status = 'WARN'
 }
 
+// U-07: Validación en tiempo real
+if (formsWithoutRealtimeValidation > 0) {
+  audits[6].score = Math.max(50, 100 - (formsWithoutRealtimeValidation * 25))
+  if (audits[6].score < 90) audits[6].status = 'WARN'
+}
+
+// U-08: Validación de formato de correo en Login
+if (emailsWithoutProperType > 0) {
+  audits[7].score = Math.max(50, 100 - (emailsWithoutProperType * 25))
+  if (audits[7].score < 90) audits[7].status = 'WARN'
+}
+
+// U-10: Visibilidad de cargadores de estado (Spinners)
+if (pagesWithoutLoadingIndicators > 0) {
+  audits[9].score = Math.max(50, 100 - (pagesWithoutLoadingIndicators * 15))
+  if (audits[9].score < 90) audits[9].status = 'WARN'
+}
+
+// U-11: Toast vs native alerts
+if (nativeAlertsUsed > 0) {
+  audits[10].score = Math.max(50, 100 - (nativeAlertsUsed * 20))
+  if (audits[10].score < 90) audits[10].status = 'WARN'
+}
+
+// U-12: Confirmación destructiva
 if (deletionButtonsWithoutConfirmation > 0) {
   audits[11].score = Math.max(50, 100 - (deletionButtonsWithoutConfirmation * 20))
   if (audits[11].score < 90) audits[11].status = 'WARN'
 }
 
+// U-13: Persistencia de JWT en sessionStorage vs localStorage
+if (sessionTokenInLocalStorage > 0) {
+  audits[12].score = Math.max(50, 100 - (sessionTokenInLocalStorage * 30))
+  if (audits[12].score < 90) audits[12].status = 'WARN'
+}
+
+// U-14: Prevención de doble clic en submits
+if (formsWithDoubleSubmitProtection > 0) {
+  audits[13].score = Math.max(50, 100 - (formsWithDoubleSubmitProtection * 15))
+  if (audits[13].score < 90) audits[13].status = 'WARN'
+}
+
+// U-15: Modo oscuro y colores semánticos
 if (missingDarkModeStyles > 0) {
   audits[14].score = Math.max(50, 100 - (missingDarkModeStyles * 10))
   if (audits[14].score < 90) audits[14].status = 'WARN'
@@ -199,13 +340,22 @@ if (missingDarkModeStyles > 0) {
 
 console.log(`- Imágenes analizadas: ${imagesChecked}`)
 console.log(`- Imágenes sin etiqueta 'alt': ${imagesWithoutAlt}`)
-console.log(`- Formas con protección de envío duplicado: ${formsWithDoubleSubmitProtection}`)
-console.log(`- Inputs de formulario analizados: ${inputFieldsChecked}`)
+console.log(`- Botones de icono sin etiqueta de accesibilidad: ${buttonsWithoutAccessibleLabel}`)
 console.log(`- Archivos con múltiples H1: ${multipleH1Files}`)
+console.log(`- Jerarquías de headings saltadas: ${skippedHeadingHierarchies}`)
+console.log(`- Inputs de formulario analizados: ${inputFieldsChecked}`)
 console.log(`- Inputs sin etiquetas ARIA: ${inputsWithoutAria}`)
+console.log(`- Enfoques de teclado outline-none no accesibles: ${outlineNoneWithoutFocusIndicator}`)
 console.log(`- Contenedores con anchos fijos no responsivos: ${nonResponsiveWidths}`)
+console.log(`- Formularios sin validación en tiempo real: ${formsWithoutRealtimeValidation}`)
+console.log(`- Formularios con email tipo text (sin type="email"): ${emailsWithoutProperType}`)
+console.log(`- Páginas con llamadas API sin loaders: ${pagesWithoutLoadingIndicators}`)
+console.log(`- Alertas nativas javascript alert() utilizadas: ${nativeAlertsUsed}`)
 console.log(`- Botones destructivos sin confirmación: ${deletionButtonsWithoutConfirmation}`)
-console.log(`- Clases de color estáticas sin dark mode: ${missingDarkModeStyles}\n`)
+console.log(`- Persistencia de sesión JWT en localStorage insegura: ${sessionTokenInLocalStorage}`)
+console.log(`- Botones de submit sin deshabilitación (doble submit): ${formsWithDoubleSubmitProtection}`)
+console.log(`- Clases de color estáticas sin dark mode: ${missingDarkModeStyles}`)
+console.log(`- Estilos inline de colores duros: ${staticInlineColors}\n`)
 
 
 // 2. Escribir reporte en HTML
