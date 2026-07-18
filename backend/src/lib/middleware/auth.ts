@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import { userContextStorage } from '../user-context'
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback-secret'
 
@@ -32,7 +33,9 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
   try {
     const payload = jwt.verify(token, JWT_SECRET) as AuthPayload
     request.user = payload
-    next()
+    userContextStorage.run({ userId: payload.userId }, () => {
+      next()
+    })
   } catch {
     response.status(401).json({ ok: false, message: 'Token invalido o expirado.' })
   }
@@ -44,7 +47,12 @@ export function optionalAuth(request: Request, _response: Response, next: NextFu
   if (header?.startsWith('Bearer ')) {
     const token = header.slice(7)
     try {
-      request.user = jwt.verify(token, JWT_SECRET) as AuthPayload
+      const payload = jwt.verify(token, JWT_SECRET) as AuthPayload
+      request.user = payload
+      userContextStorage.run({ userId: payload.userId }, () => {
+        next()
+      })
+      return
     } catch {
       // token invalido, simplemente no hay user
     }

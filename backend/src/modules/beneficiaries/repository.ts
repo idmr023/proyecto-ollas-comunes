@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma'
 import { BeneficiaryPayload, BeneficiaryRecord, QueryFilters } from './types'
+import { encryptDeterministic, decryptDeterministic } from '../../lib/encryption'
 
 export class BeneficiaryRepository {
   async findAll(tenantId: string, filters: QueryFilters): Promise<BeneficiaryRecord[]> {
@@ -17,10 +18,13 @@ export class BeneficiaryRepository {
 
     if (filters.query) {
       const search = filters.query.trim()
+      const isNumeric = /^\d+$/.test(search)
+      const searchEncryptedDni = encryptDeterministic(search)
+
       where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
-        { dni: { contains: search, mode: 'insensitive' } },
+        ...(isNumeric ? [{ dni: searchEncryptedDni }] : []),
       ]
     }
 
@@ -35,7 +39,7 @@ export class BeneficiaryRepository {
       orderBy: { lastName: 'asc' },
     })
 
-    return rows.map(this.toRecord)
+    return rows.map(this.toRecord.bind(this))
   }
 
   async findById(id: string, tenantId: string): Promise<BeneficiaryRecord | null> {
@@ -53,8 +57,9 @@ export class BeneficiaryRepository {
   }
 
   async findByDni(dni: string, tenantId: string): Promise<BeneficiaryRecord | null> {
+    const encryptedDni = encryptDeterministic(dni)
     const row = await prisma.beneficiary.findFirst({
-      where: { dni, tenantId },
+      where: { dni: encryptedDni, tenantId },
     })
 
     return row ? this.toRecord(row) : null
@@ -68,7 +73,7 @@ export class BeneficiaryRepository {
         data: {
           tenantId: fields.tenantId,
           ollaId: fields.ollaId ?? null,
-          dni: fields.dni ?? null,
+          dni: fields.dni ? encryptDeterministic(fields.dni) : null,
           firstName: fields.firstName,
           lastName: fields.lastName,
           gender: fields.gender ?? 'not_specified',
@@ -107,7 +112,7 @@ export class BeneficiaryRepository {
         where: { id },
         data: {
           ollaId: fields.ollaId ?? null,
-          dni: fields.dni ?? null,
+          dni: fields.dni ? encryptDeterministic(fields.dni) : null,
           firstName: fields.firstName,
           lastName: fields.lastName,
           gender: fields.gender ?? 'not_specified',
@@ -165,7 +170,7 @@ export class BeneficiaryRepository {
       id: row.id,
       tenantId: row.tenantId,
       ollaId: row.ollaId,
-      dni: row.dni,
+      dni: row.dni ? decryptDeterministic(row.dni) : null,
       firstName: row.firstName,
       lastName: row.lastName,
       gender: row.gender,

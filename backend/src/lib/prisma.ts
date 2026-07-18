@@ -25,14 +25,57 @@ function createPrismaClient(): PrismaClient {
 
   const adapter = new PrismaPg(pool)
 
-  return new PrismaClient({
+  const client = new PrismaClient({
     adapter,
     log:
       process.env.NODE_ENV === 'development'
         ? ['query', 'warn', 'error']
         : ['warn', 'error'],
   })
+
+  return extendPrismaClient(client) as unknown as PrismaClient
 }
+
+function extendPrismaClient(client: PrismaClient) {
+  return client.$extends({
+    query: {
+      $allOperations: async ({ model, operation, args, query }) => {
+        // Evitar recursión si ya configuramos el contexto
+        if (args && (args as any).__contextSet) {
+          const { __contextSet, ...cleanArgs } = args as any
+          return query(cleanArgs)
+        }
+
+        const mutations = [
+          'create',
+          'update',
+          'delete',
+          'createMany',
+          'updateMany',
+          'deleteMany',
+          'upsert',
+        ]
+
+        if (model && mutations.includes(operation)) {
+          const userId = userContextStorage.getStore()?.userId
+          if (userId) {
+            return client.$transaction(async (tx) => {
+              await tx.$executeRawUnsafe(
+                `SELECT set_config('app.current_user_id', '${userId}', true)`,
+              )
+              const modifiedArgs = { ...args, __contextSet: true }
+              const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
+              return (tx as any)[modelKey][operation](modifiedArgs)
+            })
+          }
+        }
+        return query(args)
+      },
+    },
+  })
+}
+
+import { userContextStorage } from './user-context'
 
 export const prisma: PrismaClient =
   globalForPrisma.prisma ?? createPrismaClient()
