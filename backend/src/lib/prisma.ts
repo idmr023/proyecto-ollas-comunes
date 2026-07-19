@@ -15,9 +15,11 @@ function createPrismaClient(): PrismaClient {
     )
   }
 
+  const isLocal = connectionString.includes('127.0.0.1') || connectionString.includes('localhost')
+
   const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: isLocal ? false : { rejectUnauthorized: false },
     max: 10, // Limit connections to avoid Supabase limits
     idleTimeoutMillis: 30000, // Close idle connections after 30s
     connectionTimeoutMillis: 2000,
@@ -36,14 +38,15 @@ function createPrismaClient(): PrismaClient {
   return extendPrismaClient(client) as unknown as PrismaClient
 }
 
+const processedArgs = new WeakSet<object>()
+
 function extendPrismaClient(client: PrismaClient) {
   return client.$extends({
     query: {
       $allOperations: async ({ model, operation, args, query }) => {
-        // Evitar recursión si ya configuramos el contexto
-        if (args && (args as any).__contextSet) {
-          const { __contextSet, ...cleanArgs } = args as any
-          return query(cleanArgs)
+        if (processedArgs.has(args as object)) {
+          processedArgs.delete(args as object)
+          return query(args)
         }
 
         const mutations = [
@@ -63,9 +66,9 @@ function extendPrismaClient(client: PrismaClient) {
               await tx.$executeRawUnsafe(
                 `SELECT set_config('app.current_user_id', '${userId}', true)`,
               )
-              const modifiedArgs = { ...args, __contextSet: true }
               const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
-              return (tx as any)[modelKey][operation](modifiedArgs)
+              processedArgs.add(args as object)
+              return (tx as any)[modelKey][operation](args)
             })
           }
         }

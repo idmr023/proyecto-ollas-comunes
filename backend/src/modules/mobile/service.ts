@@ -132,8 +132,13 @@ export async function registerMealDelivery(tenantId: string, userId: string, pay
 
   const data = payload as Record<string, unknown>
   const beneficiaryIds = Array.isArray(data.beneficiaryIds) ? (data.beneficiaryIds as string[]) : []
-  const totalRations = Number(data.totalRations) || beneficiaryIds.length
   const dishName = (data.dishName as string) ?? undefined
+
+  if (beneficiaryIds.length === 0) {
+    throw Object.assign(new Error("La lista de beneficiarios no puede estar vacía."), { statusCode: 400 })
+  }
+
+  const totalRations = Number(data.totalRations) || beneficiaryIds.length
 
   if (totalRations <= 0) {
     throw Object.assign(new Error("La cantidad de raciones debe ser mayor a 0."), { statusCode: 400 })

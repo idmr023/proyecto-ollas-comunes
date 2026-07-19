@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: mobile.spec.ts >> SIGO-Ollas Mobile E2E Tests (15 escenarios) >> Test 06: Búsqueda de beneficiarios filtra resultados
-- Location: e2e\mobile.spec.ts:155:7
+- Name: mobile.spec.ts >> SIGO-Ollas Mobile E2E Tests (15 escenarios) >> Test 07.1: Formulario de nuevo beneficiario valida obligatorios (Falla)
+- Location: e2e\mobile.spec.ts:194:7
 
 # Error details
 
@@ -15,12 +15,12 @@
 Error: expect(page).toHaveURL(expected) failed
 
 Expected pattern: /\/workspace\/home|\/mobile\/inicio/
-Received string:  "https://proyecto-ollas-comunes.vercel.app/login/otp?email=admin%40ollascomunes.pe&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNzg5NGUxZC0xZTFlLTQxYjItYWMxYy02YzBlODkwY2E1YjAiLCJlbWFpbCI6ImFkbWluQG9sbGFzY29tdW5lcy5wZSIsInNlY3JldCI6IjNDNks3WlNKSU1NNEJRU1hXSTRIN0pSVlozR0xSS1FMIiwicHVycG9zZSI6Im1mYSIsImlhdCI6MTc4MTkxOTkyOSwiZXhwIjoxNzgxOTIwMjI5fQ.kJ-LaVF3K3MNCo9dST6ef_El2fHNkvD8n3oHins0D08"
+Received string:  "https://proyecto-ollas-comunes.vercel.app/login/otp/?email=admin%40ollascomunes.pe"
 Timeout: 45000ms
 
 Call log:
   - Expect "toHaveURL" with timeout 45000ms
-    92 × unexpected value "https://proyecto-ollas-comunes.vercel.app/login/otp?email=admin%40ollascomunes.pe&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzNzg5NGUxZC0xZTFlLTQxYjItYWMxYy02YzBlODkwY2E1YjAiLCJlbWFpbCI6ImFkbWluQG9sbGFzY29tdW5lcy5wZSIsInNlY3JldCI6IjNDNks3WlNKSU1NNEJRU1hXSTRIN0pSVlozR0xSS1FMIiwicHVycG9zZSI6Im1mYSIsImlhdCI6MTc4MTkxOTkyOSwiZXhwIjoxNzgxOTIwMjI5fQ.kJ-LaVF3K3MNCo9dST6ef_El2fHNkvD8n3oHins0D08"
+    92 × unexpected value "https://proyecto-ollas-comunes.vercel.app/login/otp/?email=admin%40ollascomunes.pe"
 
 ```
 
@@ -31,8 +31,8 @@ Call log:
   - paragraph: Ingresa el código de 6 dígitos de tu app de autenticación
   - button "Pegar código"
   - paragraph: admin@ollascomunes.pe
-  - text: Código de verificación 3 9 2 4 6 1
-  - textbox "Código de verificación": "392461"
+  - text: Código de verificación 8 7 6 4 5 0
+  - textbox "Código de verificación": "876450"
   - paragraph: 6 dígitos numéricos
   - button "Verificar código"
 - region "Notifications alt+T"
@@ -127,61 +127,61 @@ Call log:
   82  |     await expect(page.locator('#otp-code')).toBeVisible()
   83  |   })
   84  | 
-  85  |   test('Test 01.3: Login exitoso con TOTP dinámico (Éxito)', async ({ page }) => {
-  86  |     await loginAsAdmin(page)
-  87  |     // Después de login, el admin va a /workspace/home
-  88  |     // Verificamos que ya no está en /login
-  89  |     await expect(page).not.toHaveURL(/\/login/)
-  90  |   })
-  91  | 
-  92  |   test('Test 01.4: Redirección automática de ruta móvil protegida sin autenticación (Falla)', async ({ page }) => {
-  93  |     // Intentar ir directo a /mobile/inicio
-  94  |     await page.goto('/mobile/inicio')
-  95  |     await page.waitForLoadState('domcontentloaded')
-  96  |     // Debería redirigir a login
-  97  |     await expect(page).toHaveURL(/\/login/)
-  98  |   })
-  99  | 
-  100 |   // ─── DASHBOARD Y NAVEGACIÓN ───────────────────────────────────
-  101 | 
-  102 |   test('Test 02: Dashboard muestra información correcta de la Olla', async ({ page }) => {
-  103 |     await loginAsAdmin(page)
-  104 |     await page.goto('/mobile/inicio')
-  105 |     await page.waitForLoadState('domcontentloaded')
-  106 | 
-  107 |     // El saludo debe aparecer
-  108 |     await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
-  109 |   })
-  110 | 
-  111 |   test('Test 03: Barra de navegación inferior cambia de vista', async ({ page }) => {
-  112 |     await loginAsAdmin(page)
-  113 |     await page.goto('/mobile/inicio')
-  114 |     await page.waitForLoadState('domcontentloaded')
+  85  |   test('Test 01.5: Login con campos vacíos (Falla)', async ({ page }) => {
+  86  |     await page.goto('/login')
+  87  |     await page.waitForLoadState('domcontentloaded')
+  88  | 
+  89  |     await page.fill('#login-email', '')
+  90  |     await page.fill('#login-password', '')
+  91  |     await page.click('button[type="submit"]')
+  92  | 
+  93  |     await page.waitForTimeout(1000)
+  94  |     await expect(page).toHaveURL(/\/login/)
+  95  |   })
+  96  | 
+  97  |   test('Test 01.6: Login con formato de email inválido (Falla)', async ({ page }) => {
+  98  |     await page.goto('/login')
+  99  |     await page.waitForLoadState('domcontentloaded')
+  100 | 
+  101 |     await page.fill('#login-email', 'invalido-email')
+  102 |     await page.fill('#login-password', 'password123')
+  103 |     await page.click('button[type="submit"]')
+  104 | 
+  105 |     await page.waitForTimeout(1000)
+  106 |     await expect(page).toHaveURL(/\/login/)
+  107 |   })
+  108 | 
+  109 |   test('Test 01.3: Login exitoso con TOTP dinámico (Éxito)', async ({ page }) => {
+  110 |     await loginAsAdmin(page)
+  111 |     // Después de login, el admin va a /workspace/home
+  112 |     // Verificamos que ya no está en /login
+  113 |     await expect(page).not.toHaveURL(/\/login/)
+  114 |   })
   115 | 
-  116 |     // Ir a Inventario
-  117 |     await page.click('a[href="/mobile/inventario"]')
-  118 |     await expect(page).toHaveURL(/\/mobile\/inventario/)
-  119 | 
-  120 |     // Ir a Padrón
-  121 |     await page.click('a[href="/mobile/padron"]')
-  122 |     await expect(page).toHaveURL(/\/mobile\/padron/)
+  116 |   test('Test 01.4: Redirección automática de ruta móvil protegida sin autenticación (Falla)', async ({ page }) => {
+  117 |     // Intentar ir directo a /mobile/inicio
+  118 |     await page.goto('/mobile/inicio')
+  119 |     await page.waitForLoadState('domcontentloaded')
+  120 |     // Debería redirigir a login
+  121 |     await expect(page).toHaveURL(/\/login/)
+  122 |   })
   123 | 
-  124 |     // Ir a Alertas
-  125 |     await page.click('a[href="/mobile/alertas"]')
-  126 |     await expect(page).toHaveURL(/\/mobile\/alertas/)
-  127 |   })
-  128 | 
-  129 |   test('Test 04: Botón de Salir cierra la sesión', async ({ page }) => {
-  130 |     await loginAsAdmin(page)
-  131 |     await page.goto('/mobile/inicio')
-  132 |     await page.waitForLoadState('domcontentloaded')
-  133 | 
-  134 |     // Esperar que el contenido cargue
-  135 |     await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
-  136 | 
-  137 |     // Click en botón Salir de la BottomNav
-  138 |     await page.click('button:has-text("Salir")')
+  124 |   // ─── DASHBOARD Y NAVEGACIÓN ───────────────────────────────────
+  125 | 
+  126 |   test('Test 02: Dashboard muestra información correcta de la Olla', async ({ page }) => {
+  127 |     await loginAsAdmin(page)
+  128 |     await page.goto('/mobile/inicio')
+  129 |     await page.waitForLoadState('domcontentloaded')
+  130 | 
+  131 |     // El saludo debe aparecer
+  132 |     await expect(page.locator('text=¡Hola,')).toBeVisible({ timeout: 35000 })
+  133 |   })
+  134 | 
+  135 |   test('Test 03: Barra de navegación inferior cambia de vista', async ({ page }) => {
+  136 |     await loginAsAdmin(page)
+  137 |     await page.goto('/mobile/inicio')
+  138 |     await page.waitForLoadState('domcontentloaded')
   139 | 
-  140 |     // Debería redirigir a login (clearAuth + useEffect en layout)
-  141 |     await expect(page).toHaveURL(/\/login/, { timeout: 35000 })
+  140 |     // Ir a Inventario
+  141 |     await page.click('a[href="/mobile/inventario"]')
 ```

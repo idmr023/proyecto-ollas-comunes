@@ -156,7 +156,7 @@ describe('registerMealDelivery / runMenuPlanExecution', () => {
   it('registerMealDelivery delegates to repository', async () => {
     repo.getUserOlla.mockResolvedValue({ id: 'o1' })
     repo.createMealDelivery.mockResolvedValue({ id: 'd1' })
-    const result = await registerMealDelivery('t1', 'u1', { beneficiaryId: 'b1', totalRations: 5 })
+    const result = await registerMealDelivery('t1', 'u1', { beneficiaryIds: ['b1'], totalRations: 5 })
     expect(result.id).toBe('d1')
     expect(repo.createMealDelivery).toHaveBeenCalled()
   })
