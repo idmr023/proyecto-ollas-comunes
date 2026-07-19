@@ -51,20 +51,20 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.waitForTimeout(1000) // esperar propagación del evento offline
 
     // 4. Verificar que el banner offline esté presente
-    await expect(page.locator('text=Sin conexión — Modo offline activo')).toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=Sin conexión — Modo offline')).toBeVisible({ timeout: 35000 })
 
     // 5. Generar DNI aleatorio y registrar un beneficiario offline
     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
     await page.click('button:has-text("Registrar Beneficiario")')
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
-    await page.fill('#firstName', 'OfflineTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', randomDni)
-    await page.fill('#birthDate', '1995-08-25')
+    await page.fill('#beneficiary-firstName', 'OfflineTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', randomDni)
+    await page.fill('#beneficiary-birthDate', '1995-08-25')
 
     // Seleccionar olla común (primer option después del placeholder)
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
 
     // Confirmar registro (se guardará en la cola IndexedDB)
     await page.click('div.z-50 button:has-text("Registrar")')
@@ -73,14 +73,14 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
 
     // 6. Verificar que el banner ahora indica que hay un cambio guardado localmente
-    await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 35000 })
 
     // 7. Simular reconexión de red (modo online)
     await context.setOffline(false)
     await page.waitForTimeout(4000) // esperar a que se active el trigger y ocurra la recarga automática
 
     // 8. El banner de sincronizando/offline debería desaparecer tras la recarga y la sincronización exitosa
-    await expect(page.locator('text=Sin conexión — Modo offline activo')).not.toBeVisible({ timeout: 45000 })
+    await expect(page.locator('text=Sin conexión — Modo offline')).not.toBeVisible({ timeout: 45000 })
 
     // 9. Verificar en la base de datos Postgres real que el beneficiario haya sido persistido por la sincronización
     const dbBeneficiary = await prisma.beneficiary.findUnique({
@@ -235,7 +235,7 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
 
     // Debe volver al panel de inventario y mostrar toast/banner offline con 1 cambio guardado
     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
-    await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 20000 })
 
     // 6. Simular reconexión
     await context.setOffline(false)
@@ -308,26 +308,26 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
     await page.click('button:has-text("Registrar Beneficiario")')
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
-    await page.fill('#firstName', 'DuplicadoTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', duplicateDni)
-    await page.fill('#birthDate', '1992-06-12')
+    await page.fill('#beneficiary-firstName', 'DuplicadoTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', duplicateDni)
+    await page.fill('#beneficiary-birthDate', '1992-06-12')
 
     // Seleccionar olla común (primer option después del placeholder)
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
 
     await page.click('div.z-50 button:has-text("Registrar")')
 
     // El modal debería cerrarse e inyectar el cambio localmente
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
-    await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 35000 })
 
     // 6. Simular reconexión (esta mutación fallará con 409 debido al DNI duplicado)
     await context.setOffline(false)
     await page.waitForTimeout(4000) // esperar sync, fallo y recarga automática
 
     // 7. Debería mostrarse la alerta visual de conflictos en pantalla
-    await expect(page.locator('text=conflicto(s) de sincronización')).toBeVisible({ timeout: 45000 })
+    await expect(page.locator('text=Conflictos de sincronización')).toBeVisible({ timeout: 45000 })
 
     // 8. Hacer clic en "Revisar" para abrir el panel detallado
     await page.click('button:has-text("Revisar")')
@@ -337,7 +337,7 @@ test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
 
     // 9. Descartar el conflicto para limpiar la UI
     await page.click('button:has-text("Descartar todo")')
-    await expect(page.locator('text=conflicto(s) de sincronización')).not.toBeVisible({ timeout: 35000 })
+    await expect(page.locator('text=Conflictos de sincronización')).not.toBeVisible({ timeout: 35000 })
 
     // Limpieza
     await prisma.beneficiary.delete({

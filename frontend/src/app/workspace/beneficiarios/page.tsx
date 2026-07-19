@@ -25,7 +25,7 @@ const beneficiarySchema = z.object({
   firstName: z.string().trim().min(1, 'El nombre es obligatorio.'),
   lastName: z.string().trim().min(1, 'Los apellidos son obligatorios.'),
   birthDate: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria.'),
-  dni: z.string().trim().min(1, 'El DNI es obligatorio.').max(20, 'El DNI no puede exceder 20 caracteres.'),
+  dni: z.string().trim().regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 digitos.'),
   ollaId: z.string().trim().min(1, 'La olla común es obligatoria.'),
 })
 

@@ -12,160 +12,20 @@
 # Error details
 
 ```
-Error: expect(locator).toBeVisible() failed
+PrismaClientKnownRequestError: 
+Invalid `prisma.inventoryMovement.delete()` invocation in
+D:\Repositories\proyecto-ollas-comunes\frontend\e2e\offline.spec.ts:256:44
 
-Locator: locator('text=(1 guardado(s) local)')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for locator('text=(1 guardado(s) local)')
-
-```
-
-```yaml
-- text: Sin conexión — Modo offline (1 local)
-- button "Minimizar"
-- main:
-  - heading "Inventario" [level=1]
-  - paragraph: Gestiona tus insumos
-  - heading "👇 Stock actual en almacén:" [level=2]
-  - list:
-    - listitem:
-      - text: 🧅
-      - paragraph: Cebolla roja
-      - text: ⚠️ Perecible 1.06 kg
-    - listitem:
-      - text: 🍚
-      - paragraph: Arroz
-      - text: 📦 Almacenable 53.73 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Maiz cancha
-      - text: 📦 Almacenable 15 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Manteca vegetal
-      - text: 📦 Almacenable 34 kg
-    - listitem:
-      - text: 🥔
-      - paragraph: Papa blanca
-      - text: ⚠️ Perecible 30.8 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Zanahoria
-      - text: ⚠️ Perecible 3.79 kg
-    - listitem:
-      - text: 🍗
-      - paragraph: Pollo
-      - text: ⚠️ Perecible 9.8 kg
-    - listitem:
-      - text: 💧
-      - paragraph: Agua
-      - text: 📦 Almacenable 49.25 lt
-    - listitem:
-      - text: 📦
-      - paragraph: Tomate
-      - text: ⚠️ Perecible 9.92 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Huevo
-      - text: ⚠️ Perecible 112.28 un
-    - listitem:
-      - text: 🍲
-      - paragraph: Lenteja
-      - text: 📦 Almacenable 15.8 kg
-    - listitem:
-      - text: 🛢️
-      - paragraph: Aceite vegetal
-      - text: 📦 Almacenable 3.99 lt
-    - listitem:
-      - text: 📦
-      - paragraph: Arveja
-      - text: ⚠️ Perecible 5.99 kg
-    - listitem:
-      - text: 🐟
-      - paragraph: Conserva de atun
-      - text: 📦 Almacenable 28 un
-    - listitem:
-      - text: 📦
-      - paragraph: Arveja enlatada
-      - text: 📦 Almacenable 140 un
-    - listitem:
-      - text: 🍝
-      - paragraph: Fideos
-      - text: 📦 Almacenable 24 kg
-    - listitem:
-      - text: 🔥
-      - paragraph: Gas GLP
-      - text: 📦 Almacenable 1 un
-    - listitem:
-      - text: 🍯
-      - paragraph: Azucar
-      - text: 📦 Almacenable 6 kg
-    - listitem:
-      - text: 🧂
-      - paragraph: Sal
-      - text: 📦 Almacenable 5 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Apio
-      - text: ⚠️ Perecible 3 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Ajo
-      - text: ⚠️ Perecible 2 kg
-    - listitem:
-      - text: 📦
-      - paragraph: Zapallo
-      - text: ⚠️ Perecible 11 kg
-    - listitem:
-      - text: 🫘
-      - paragraph: Frejol
-      - text: 📦 Almacenable 16 kg
-    - listitem:
-      - text: 🥛
-      - paragraph: Leche evaporada
-      - text: 📦 Almacenable 5 un
-  - button "Registrar Entrada"
-  - button "Registrar Salida"
-- navigation:
-  - link "Inicio":
-    - /url: /mobile/inicio/
-  - link "Inventario":
-    - /url: /mobile/inventario/
-  - link "Padrón":
-    - /url: /mobile/padron/
-  - link "Alertas":
-    - /url: /mobile/alertas/
-  - button "Salir"
-- region "Notifications alt+T"
-- alert
+  253 
+  254 // Limpieza
+  255 if (dbMovement) {
+→ 256   await prisma.inventoryMovement.delete(
+Invalid input value: invalid input syntax for type uuid: ""
 ```
 
 # Test source
 
 ```ts
-  138 |     })
-  139 |     if (!menuPlan) {
-  140 |       menuPlan = await prisma.menuPlan.create({
-  141 |         data: {
-  142 |           ollaId: firstOlla.id,
-  143 |           operationDate,
-  144 |           dishName: 'Tallarines con salsa',
-  145 |           plannedServings: 50,
-  146 |           status: 'approved',
-  147 |           suggestedByType: 'user',
-  148 |           createdBy: (await prisma.appUser.findFirst())?.id
-  149 |         }
-  150 |       })
-  151 |     }
-  152 | 
-  153 |     // 2. Iniciar sesión online
-  154 |     await loginAsAdmin(page)
-  155 | 
   156 |     // 3. Ir a la vista móvil del padrón para cargar la caché local
   157 |     await page.goto('/mobile/padron')
   158 |     await page.waitForLoadState('domcontentloaded')
@@ -248,8 +108,7 @@ Call log:
   235 | 
   236 |     // Debe volver al panel de inventario y mostrar toast/banner offline con 1 cambio guardado
   237 |     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
-> 238 |     await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 20000 })
-      |                                                              ^ Error: expect(locator).toBeVisible() failed
+  238 |     await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 20000 })
   239 | 
   240 |     // 6. Simular reconexión
   241 |     await context.setOffline(false)
@@ -267,7 +126,8 @@ Call log:
   253 | 
   254 |     // Limpieza
   255 |     if (dbMovement) {
-  256 |       await prisma.inventoryMovement.delete({
+> 256 |       await prisma.inventoryMovement.delete({
+      |                                            ^ PrismaClientKnownRequestError: 
   257 |         where: { id: dbMovement.id }
   258 |       })
   259 |       // Descontar del stock para no perturbar otros tests
@@ -322,26 +182,26 @@ Call log:
   308 |     await page.click('button:has-text("Registrar Beneficiario")')
   309 |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
   310 | 
-  311 |     await page.fill('#firstName', 'DuplicadoTest')
-  312 |     await page.fill('#lastName', 'Playwright')
-  313 |     await page.fill('#dni', duplicateDni)
-  314 |     await page.fill('#birthDate', '1992-06-12')
+  311 |     await page.fill('#beneficiary-firstName', 'DuplicadoTest')
+  312 |     await page.fill('#beneficiary-lastName', 'Playwright')
+  313 |     await page.fill('#beneficiary-dni', duplicateDni)
+  314 |     await page.fill('#beneficiary-birthDate', '1992-06-12')
   315 | 
   316 |     // Seleccionar olla común (primer option después del placeholder)
-  317 |     await page.selectOption('#ollaId', { index: 1 })
+  317 |     await page.selectOption('div.z-50 select', { index: 1 })
   318 | 
   319 |     await page.click('div.z-50 button:has-text("Registrar")')
   320 | 
   321 |     // El modal debería cerrarse e inyectar el cambio localmente
   322 |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
-  323 |     await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 35000 })
+  323 |     await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 35000 })
   324 | 
   325 |     // 6. Simular reconexión (esta mutación fallará con 409 debido al DNI duplicado)
   326 |     await context.setOffline(false)
   327 |     await page.waitForTimeout(4000) // esperar sync, fallo y recarga automática
   328 | 
   329 |     // 7. Debería mostrarse la alerta visual de conflictos en pantalla
-  330 |     await expect(page.locator('text=conflicto(s) de sincronización')).toBeVisible({ timeout: 45000 })
+  330 |     await expect(page.locator('text=Conflictos de sincronización')).toBeVisible({ timeout: 45000 })
   331 | 
   332 |     // 8. Hacer clic en "Revisar" para abrir el panel detallado
   333 |     await page.click('button:has-text("Revisar")')
@@ -350,4 +210,14 @@ Call log:
   336 |     await expect(page.locator('text=Ya existe un beneficiario con ese DNI')).toBeVisible({ timeout: 20000 })
   337 | 
   338 |     // 9. Descartar el conflicto para limpiar la UI
+  339 |     await page.click('button:has-text("Descartar todo")')
+  340 |     await expect(page.locator('text=Conflictos de sincronización')).not.toBeVisible({ timeout: 35000 })
+  341 | 
+  342 |     // Limpieza
+  343 |     await prisma.beneficiary.delete({
+  344 |       where: { id: preBeneficiary.id }
+  345 |     })
+  346 |   })
+  347 | })
+  348 | 
 ```

@@ -20,9 +20,9 @@ function createPrismaClient(): PrismaClient {
   const pool = new Pool({
     connectionString,
     ssl: isLocal ? false : { rejectUnauthorized: false },
-    max: 10, // Limit connections to avoid Supabase limits
-    idleTimeoutMillis: 30000, // Close idle connections after 30s
-    connectionTimeoutMillis: 2000,
+    max: parseInt(process.env.DB_POOL_MAX ?? '', 10) || 50,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
   })
 
   const adapter = new PrismaPg(pool)

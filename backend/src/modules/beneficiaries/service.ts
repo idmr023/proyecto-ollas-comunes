@@ -107,6 +107,10 @@ function parsePayload(payload: unknown): BeneficiaryPayload {
     maxLengthMessage: 'El DNI no puede exceder 20 caracteres.',
   })
 
+  if (!/^\d{8}$/.test(dni)) {
+    throw new BeneficiaryServiceError(400, 'El DNI debe contener exactamente 8 digitos.')
+  }
+
   const gender = enumValue(data, 'gender', 'not_specified', VALID_GENDERS, 'Genero no valido.')
   const ollaId = requireString(data, 'ollaId', {
     required: true,

@@ -99,7 +99,7 @@ scenarios:
             firstName: "Stress{{ $randomString(5) }}"
             lastName: "Test{{ $randomString(5) }}"
             birthDate: "1990-05-15"
-            dni: "{{ $randomNumber(10000000, 99999999) }}"
+            dni: "{{ $randomNumber(99999999, 10000000) }}"
             gender: "male"
             ollaId: "{{ ollaId }}"
             priorityLevel: "normal"

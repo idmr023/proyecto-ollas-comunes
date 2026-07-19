@@ -12,263 +12,9 @@
 # Error details
 
 ```
-Error: expect(locator).toBeVisible() failed
+Error: expect(received).not.toBeNull()
 
-Locator: locator('text=Sin conexión — Modo offline activo')
-Expected: visible
-Timeout: 35000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 35000ms
-  - waiting for locator('text=Sin conexión — Modo offline activo')
-
-```
-
-```yaml
-- text: Sin conexión — Modo offline
-- button "Minimizar"
-- list:
-  - listitem:
-    - button "OC Ollas Comunes Panel de gestión"
-- text: Principal
-- list:
-  - listitem:
-    - link "Inicio":
-      - /url: /workspace/home/
-  - listitem:
-    - link "Organizaciones":
-      - /url: /workspace/organizaciones/
-  - listitem:
-    - link "Beneficiarios":
-      - /url: /workspace/beneficiarios/
-  - listitem:
-    - link "Inventario":
-      - /url: /workspace/inventario/
-- text: Gestión
-- list:
-  - listitem:
-    - link "Alertas":
-      - /url: /workspace/alertas/
-  - listitem:
-    - link "Configuración":
-      - /url: /workspace/configuracion/
-- list:
-  - listitem:
-    - button "AP Admin Principal admin@ollascomunes.pe"
-- button "Toggle Sidebar"
-- main:
-  - button "Toggle Sidebar"
-  - text: Ollas Comunes Plataforma de gestion comunitaria
-  - heading "Beneficiarios" [level=1]
-  - paragraph: Padrón y seguimiento de beneficiarios.
-  - text: Buscar
-  - textbox "Buscar":
-    - /placeholder: DNI, nombres o apellidos...
-  - text: Olla Común
-  - combobox "Olla Común":
-    - option "Todas" [selected]
-    - option "Olla Común Los Olivos"
-    - option "Olla Común Villa Maria"
-  - text: Condición de Salud
-  - combobox "Condición de Salud":
-    - option "Todas" [selected]
-    - option "Adulto mayor"
-    - option "Anemia"
-    - option "Diabetes"
-    - option "Gestante"
-    - option "Hipertension"
-  - button "+ Registrar Beneficiario"
-  - table:
-    - rowgroup:
-      - row "DNI Nombre Completo Edad Olla Asignada Prioridad Estado Condiciones Acciones":
-        - columnheader "DNI"
-        - columnheader "Nombre Completo"
-        - columnheader "Edad"
-        - columnheader "Olla Asignada"
-        - columnheader "Prioridad"
-        - columnheader "Estado"
-        - columnheader "Condiciones"
-        - columnheader "Acciones"
-    - rowgroup:
-      - row "70020001 Elena Flores 74 años Olla Común Los Olivos Alto Activo Adulto mayor Hipertension Editar Eliminar":
-        - cell "70020001"
-        - cell "Elena Flores"
-        - cell "74 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Adulto mayor Hipertension"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70020003 Patricia Gomez 29 años Olla Común Los Olivos Alto Activo Gestante Editar Eliminar":
-        - cell "70020003"
-        - cell "Patricia Gomez"
-        - cell "29 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Gestante"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010002 Mateo Huaman 9 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "70010002"
-        - cell "Mateo Huaman"
-        - cell "9 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70020002 Miguel Lopez 67 años Olla Común Los Olivos Alto Activo Adulto mayor Diabetes Editar Eliminar":
-        - cell "70020002"
-        - cell "Miguel Lopez"
-        - cell "67 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Adulto mayor Diabetes"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010003 Rosa Mamani 34 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "70010003"
-        - cell "Rosa Mamani"
-        - cell "34 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "72365187 Ivan Daniel Manrique 0 años Olla Común Los Olivos Alto Activo Diabetes Editar Eliminar":
-        - cell "72365187"
-        - cell "Ivan Daniel Manrique"
-        - cell "0 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Diabetes"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70020005 Tomas Nina 7 años Olla Común Los Olivos Normal Activo Anemia Editar Eliminar":
-        - cell "70020005"
-        - cell "Tomas Nina"
-        - cell "7 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "Anemia"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010004 Carlos Paredes 37 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "70010004"
-        - cell "Carlos Paredes"
-        - cell "37 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "42508606 Original Playwright 36 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "42508606"
-        - cell "Original Playwright"
-        - cell "36 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "57780561 RacionTest Playwright 36 años Olla Común Los Olivos Normal Activo — Editar Eliminar":
-        - cell "57780561"
-        - cell "RacionTest Playwright"
-        - cell "36 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "87654321 Beneficiario Prueba Vitest 30 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "87654321"
-        - cell "Beneficiario Prueba Vitest"
-        - cell "30 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010001 Lucia Quispe 8 años Olla Común Villa Maria Normal Activo — Editar Eliminar":
-        - cell "70010001"
-        - cell "Lucia Quispe"
-        - cell "8 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "—"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010006 Jose Ramos 63 años Olla Común Villa Maria Normal Activo Adulto mayor Editar Eliminar":
-        - cell "70010006"
-        - cell "Jose Ramos"
-        - cell "63 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Normal"
-        - cell "Activo"
-        - cell "Adulto mayor"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "71860722 Francesco Riva 0 años Olla Común Los Olivos Alto Activo Diabetes Anemia Editar Eliminar":
-        - cell "71860722"
-        - cell "Francesco Riva"
-        - cell "0 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Diabetes Anemia"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70010005 Andrea Salazar 25 años Olla Común Villa Maria Alto Activo Gestante Editar Eliminar":
-        - cell "70010005"
-        - cell "Andrea Salazar"
-        - cell "25 años"
-        - cell "Olla Común Villa Maria"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Gestante"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-      - row "70020004 Diana Vargas 38 años Olla Común Los Olivos Alto Activo Anemia Diabetes Editar Eliminar":
-        - cell "70020004"
-        - cell "Diana Vargas"
-        - cell "38 años"
-        - cell "Olla Común Los Olivos"
-        - cell "Alto"
-        - cell "Activo"
-        - cell "Anemia Diabetes"
-        - cell "Editar Eliminar":
-          - button "Editar"
-          - button "Eliminar"
-- region "Notifications alt+T"
-- alert
+Received: null
 ```
 
 # Test source
@@ -327,21 +73,20 @@ Call log:
   51  |     await page.waitForTimeout(1000) // esperar propagación del evento offline
   52  | 
   53  |     // 4. Verificar que el banner offline esté presente
-> 54  |     await expect(page.locator('text=Sin conexión — Modo offline activo')).toBeVisible({ timeout: 35000 })
-      |                                                                           ^ Error: expect(locator).toBeVisible() failed
+  54  |     await expect(page.locator('text=Sin conexión — Modo offline')).toBeVisible({ timeout: 35000 })
   55  | 
   56  |     // 5. Generar DNI aleatorio y registrar un beneficiario offline
   57  |     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
   58  |     await page.click('button:has-text("Registrar Beneficiario")')
   59  |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
   60  | 
-  61  |     await page.fill('#firstName', 'OfflineTest')
-  62  |     await page.fill('#lastName', 'Playwright')
-  63  |     await page.fill('#dni', randomDni)
-  64  |     await page.fill('#birthDate', '1995-08-25')
+  61  |     await page.fill('#beneficiary-firstName', 'OfflineTest')
+  62  |     await page.fill('#beneficiary-lastName', 'Playwright')
+  63  |     await page.fill('#beneficiary-dni', randomDni)
+  64  |     await page.fill('#beneficiary-birthDate', '1995-08-25')
   65  | 
   66  |     // Seleccionar olla común (primer option después del placeholder)
-  67  |     await page.selectOption('#ollaId', { index: 1 })
+  67  |     await page.selectOption('div.z-50 select', { index: 1 })
   68  | 
   69  |     // Confirmar registro (se guardará en la cola IndexedDB)
   70  |     await page.click('div.z-50 button:has-text("Registrar")')
@@ -350,21 +95,22 @@ Call log:
   73  |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
   74  | 
   75  |     // 6. Verificar que el banner ahora indica que hay un cambio guardado localmente
-  76  |     await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 35000 })
+  76  |     await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 35000 })
   77  | 
   78  |     // 7. Simular reconexión de red (modo online)
   79  |     await context.setOffline(false)
   80  |     await page.waitForTimeout(4000) // esperar a que se active el trigger y ocurra la recarga automática
   81  | 
   82  |     // 8. El banner de sincronizando/offline debería desaparecer tras la recarga y la sincronización exitosa
-  83  |     await expect(page.locator('text=Sin conexión — Modo offline activo')).not.toBeVisible({ timeout: 45000 })
+  83  |     await expect(page.locator('text=Sin conexión — Modo offline')).not.toBeVisible({ timeout: 45000 })
   84  | 
   85  |     // 9. Verificar en la base de datos Postgres real que el beneficiario haya sido persistido por la sincronización
   86  |     const dbBeneficiary = await prisma.beneficiary.findUnique({
   87  |       where: { dni: randomDni }
   88  |     })
   89  | 
-  90  |     expect(dbBeneficiary).not.toBeNull()
+> 90  |     expect(dbBeneficiary).not.toBeNull()
+      |                               ^ Error: expect(received).not.toBeNull()
   91  |     expect(dbBeneficiary?.firstName).toBe('OfflineTest')
   92  | 
   93  |     // Limpieza: eliminar el beneficiario de pruebas de la base de datos
@@ -429,4 +175,40 @@ Call log:
   152 | 
   153 |     // 2. Iniciar sesión online
   154 |     await loginAsAdmin(page)
+  155 | 
+  156 |     // 3. Ir a la vista móvil del padrón para cargar la caché local
+  157 |     await page.goto('/mobile/padron')
+  158 |     await page.waitForLoadState('domcontentloaded')
+  159 |     await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
+  160 |     await page.waitForTimeout(2000) // permitir que IndexedDB guarde la caché de beneficiarios
+  161 | 
+  162 |     // 4. Simular desconexión
+  163 |     await context.setOffline(true)
+  164 |     await page.waitForTimeout(1000)
+  165 | 
+  166 |     // 5. Activar modo entrega e ingresar la entrega offline
+  167 |     await page.click('button:has-text("Registrar Entrega de Ración")')
+  168 |     await expect(page.locator('h1:has-text("Entregar Raciones")')).toBeVisible({ timeout: 20000 })
+  169 | 
+  170 |     // Seleccionar nuestro beneficiario de prueba
+  171 |     await page.fill('input[placeholder="Buscar por nombre o DNI…"]', testDni)
+  172 |     await page.waitForTimeout(500)
+  173 |     await page.click(`text=${testDni}`) // hacer clic en la tarjeta
+  174 | 
+  175 |     // Confirmar entrega (esto encola la mutación offline e inyecta hasEatenToday = true)
+  176 |     await page.click('button:has-text("Confirmar")')
+  177 | 
+  178 |     // Verificamos toast de éxito offline y redirección a inicio
+  179 |     await expect(page).toHaveURL(/\/mobile\/inicio/, { timeout: 35000 })
+  180 | 
+  181 |     // 6. Simular reconexión
+  182 |     await context.setOffline(false)
+  183 |     await page.waitForTimeout(4000) // esperar sincronización y recarga automática
+  184 | 
+  185 |     // 7. Verificar en la base de datos Postgres real que se haya creado la entrega (MealDeliveryDetail)
+  186 |     const deliveryDetail = await prisma.mealDeliveryDetail.findFirst({
+  187 |       where: { beneficiaryId: b.id }
+  188 |     })
+  189 |     expect(deliveryDetail).not.toBeNull()
+  190 | 
 ```

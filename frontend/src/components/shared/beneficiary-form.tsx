@@ -62,19 +62,19 @@ export function BeneficiaryForm({ mode, initialData, ollas, healthConditions, on
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <label htmlFor="beneficiary-firstName" className="text-xs font-medium text-muted-foreground">Nombre</label>
-            <input id="beneficiary-firstName" value={firstName} onChange={e => setFirstName(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="Nombre" required />
+            <input id="beneficiary-firstName" value={firstName} onChange={e => setFirstName(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="Nombre" />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="beneficiary-lastName" className="text-xs font-medium text-muted-foreground">Apellido</label>
-            <input id="beneficiary-lastName" value={lastName} onChange={e => setLastName(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="Apellido" required />
+            <input id="beneficiary-lastName" value={lastName} onChange={e => setLastName(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="Apellido" />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="beneficiary-dni" className="text-xs font-medium text-muted-foreground">DNI</label>
-            <input id="beneficiary-dni" value={dni} onChange={e => setDni(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="00000000" required />
+            <input id="beneficiary-dni" value={dni} onChange={e => setDni(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" placeholder="00000000" />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="beneficiary-birthDate" className="text-xs font-medium text-muted-foreground">Fecha de Nacimiento</label>
-            <input id="beneficiary-birthDate" type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" required />
+            <input id="beneficiary-birthDate" type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="h-10 rounded-xl border border-input bg-transparent px-3 text-sm" />
           </div>
         </div>
       </div>

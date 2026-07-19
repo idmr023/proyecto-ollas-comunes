@@ -12,84 +12,27 @@
 # Error details
 
 ```
-DriverAdapterError: unrecognized configuration parameter "app.encryption_key"
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: page.click: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for locator('button:has-text("Confirmar")')
+
 ```
 
 # Test source
 
 ```ts
-  12  | 
-  13  |   await page.goto('/login')
-  14  |   await page.waitForLoadState('domcontentloaded')
-  15  | 
-  16  |   await page.fill('#login-email', TEST_EMAIL)
-  17  |   await page.fill('#login-password', TEST_PASSWORD)
-  18  |   await page.click('button[type="submit"]')
-  19  | 
-  20  |   await expect(page.locator('#otp-code')).toBeVisible({ timeout: 45000 })
-  21  | 
-  22  |   const user = await prisma.appUser.findUnique({ where: { email: TEST_EMAIL } })
-  23  |   const secret = user?.totpSecret
-  24  |   if (!secret) throw new Error('Secreto TOTP no configurado para el usuario de pruebas')
-  25  | 
-  26  |   const code = await generate({ secret })
-  27  | 
-  28  |   await page.fill('#otp-code', code)
-  29  |   await page.click('button[type="submit"]')
-  30  | 
-  31  |   await expect(page).toHaveURL(/\/workspace\/home/, { timeout: 45000 })
-  32  | }
-  33  | 
-  34  | test.describe('SIGO-Ollas Offline-First PWA E2E Tests', () => {
-  35  | 
-  36  |   test.afterAll(async () => {
-  37  |     await prisma.$disconnect()
-  38  |   })
-  39  | 
-  40  |   test('Test Offline: Registro offline con sincronización automática', async ({ page, context }) => {
-  41  |     // 1. Iniciar sesión online
-  42  |     await loginAsAdmin(page)
-  43  | 
-  44  |     // 2. Navegar a beneficiarios para cargar la caché inicial
-  45  |     await page.goto('/workspace/beneficiarios')
-  46  |     await page.waitForLoadState('domcontentloaded')
-  47  |     await expect(page.locator('h1:has-text("Beneficiarios")')).toBeVisible({ timeout: 35000 })
-  48  | 
-  49  |     // 3. Simular desconexión completa (modo offline)
-  50  |     await context.setOffline(true)
-  51  |     await page.waitForTimeout(1000) // esperar propagación del evento offline
-  52  | 
-  53  |     // 4. Verificar que el banner offline esté presente
-  54  |     await expect(page.locator('text=Sin conexión — Modo offline activo')).toBeVisible({ timeout: 35000 })
-  55  | 
-  56  |     // 5. Generar DNI aleatorio y registrar un beneficiario offline
-  57  |     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
-  58  |     await page.click('button:has-text("Registrar Beneficiario")')
-  59  |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
-  60  | 
-  61  |     await page.fill('#firstName', 'OfflineTest')
-  62  |     await page.fill('#lastName', 'Playwright')
-  63  |     await page.fill('#dni', randomDni)
-  64  |     await page.fill('#birthDate', '1995-08-25')
-  65  | 
-  66  |     // Seleccionar olla común (primer option después del placeholder)
-  67  |     await page.selectOption('#ollaId', { index: 1 })
-  68  | 
-  69  |     // Confirmar registro (se guardará en la cola IndexedDB)
-  70  |     await page.click('div.z-50 button:has-text("Registrar")')
-  71  | 
-  72  |     // El modal debería cerrarse e inyectar el cambio localmente
-  73  |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).not.toBeVisible({ timeout: 35000 })
-  74  | 
-  75  |     // 6. Verificar que el banner ahora indica que hay un cambio guardado localmente
-  76  |     await expect(page.locator('text=(1 guardado(s) local)')).toBeVisible({ timeout: 35000 })
+  76  |     await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 35000 })
   77  | 
   78  |     // 7. Simular reconexión de red (modo online)
   79  |     await context.setOffline(false)
   80  |     await page.waitForTimeout(4000) // esperar a que se active el trigger y ocurra la recarga automática
   81  | 
   82  |     // 8. El banner de sincronizando/offline debería desaparecer tras la recarga y la sincronización exitosa
-  83  |     await expect(page.locator('text=Sin conexión — Modo offline activo')).not.toBeVisible({ timeout: 45000 })
+  83  |     await expect(page.locator('text=Sin conexión — Modo offline')).not.toBeVisible({ timeout: 45000 })
   84  | 
   85  |     // 9. Verificar en la base de datos Postgres real que el beneficiario haya sido persistido por la sincronización
   86  |     const dbBeneficiary = await prisma.beneficiary.findUnique({
@@ -118,8 +61,7 @@ DriverAdapterError: unrecognized configuration parameter "app.encryption_key"
   109 |     })
   110 |     if (!firstOlla) throw new Error('No hay ollas activas en base de datos para las pruebas')
   111 | 
-> 112 |     const b = await prisma.beneficiary.create({
-      |               ^ DriverAdapterError: unrecognized configuration parameter "app.encryption_key"
+  112 |     const b = await prisma.beneficiary.create({
   113 |       data: {
   114 |         firstName: 'RacionTest',
   115 |         lastName: 'Playwright',
@@ -183,7 +125,8 @@ DriverAdapterError: unrecognized configuration parameter "app.encryption_key"
   173 |     await page.click(`text=${testDni}`) // hacer clic en la tarjeta
   174 | 
   175 |     // Confirmar entrega (esto encola la mutación offline e inyecta hasEatenToday = true)
-  176 |     await page.click('button:has-text("Confirmar")')
+> 176 |     await page.click('button:has-text("Confirmar")')
+      |                ^ Error: page.click: Test timeout of 60000ms exceeded.
   177 | 
   178 |     // Verificamos toast de éxito offline y redirección a inicio
   179 |     await expect(page).toHaveURL(/\/mobile\/inicio/, { timeout: 35000 })
@@ -220,4 +163,68 @@ DriverAdapterError: unrecognized configuration parameter "app.encryption_key"
   210 |     // 3. Cargar la vista de inventario móvil para cachear
   211 |     await page.goto('/mobile/inventario')
   212 |     await page.waitForLoadState('domcontentloaded')
+  213 |     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+  214 |     await page.waitForTimeout(2000) // esperar caché
+  215 | 
+  216 |     // 4. Simular desconexión
+  217 |     await context.setOffline(true)
+  218 |     await page.waitForTimeout(1000)
+  219 | 
+  220 |     // 5. Realizar el movimiento de Entrada
+  221 |     await page.click('button:has-text("Registrar Entrada")')
+  222 |     await expect(page.locator('h1:has-text("Registrar Entrada")')).toBeVisible({ timeout: 20000 })
+  223 | 
+  224 |     // Buscar y seleccionar el insumo
+  225 |     await page.fill('input[placeholder="Buscar por nombre..."]', firstItem.name)
+  226 |     await page.click(`text=${firstItem.name}`)
+  227 | 
+  228 |     // Llenar cantidad
+  229 |     await page.click('button:has-text("Escribir número")')
+  230 |     await page.fill('input[type="number"]', '15')
+  231 |     await page.click('button:has-text("Siguiente Paso")')
+  232 | 
+  233 |     // Guardar
+  234 |     await page.click('button:has-text("Guardar Registro")')
+  235 | 
+  236 |     // Debe volver al panel de inventario y mostrar toast/banner offline con 1 cambio guardado
+  237 |     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
+  238 |     await expect(page.locator('text=(1 local)')).toBeVisible({ timeout: 20000 })
+  239 | 
+  240 |     // 6. Simular reconexión
+  241 |     await context.setOffline(false)
+  242 |     await page.waitForTimeout(4000)
+  243 | 
+  244 |     // 7. Verificar en la base de datos Postgres real que el movimiento de inventario fue creado
+  245 |     const dbMovement = await prisma.inventoryMovement.findFirst({
+  246 |       where: {
+  247 |         supplyItemId: firstItem.id,
+  248 |         quantity: 15,
+  249 |         movementType: 'in'
+  250 |       }
+  251 |     })
+  252 |     expect(dbMovement).not.toBeNull()
+  253 | 
+  254 |     // Limpieza
+  255 |     if (dbMovement) {
+  256 |       await prisma.inventoryMovement.delete({
+  257 |         where: { id: dbMovement.id }
+  258 |       })
+  259 |       // Descontar del stock para no perturbar otros tests
+  260 |       const olla = await prisma.ollaComun.findFirst({
+  261 |         where: { id: dbMovement.ollaId }
+  262 |       })
+  263 |       if (olla) {
+  264 |         const stock = await prisma.inventoryStock.findUnique({
+  265 |           where: { ollaId_supplyItemId: { ollaId: olla.id, supplyItemId: firstItem.id } }
+  266 |         })
+  267 |         if (stock) {
+  268 |           await prisma.inventoryStock.update({
+  269 |             where: { ollaId_supplyItemId: { ollaId: olla.id, supplyItemId: firstItem.id } },
+  270 |             data: { quantity: Math.max(0, Number(stock.quantity) - 15) }
+  271 |           })
+  272 |         }
+  273 |       }
+  274 |     }
+  275 |   })
+  276 | 
 ```

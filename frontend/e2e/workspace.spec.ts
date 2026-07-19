@@ -158,13 +158,13 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Rellenar campos obligatorios
-    await page.fill('#firstName', 'AdminTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', randomDni)
-    await page.fill('#birthDate', '1990-05-15')
+    await page.fill('#beneficiary-firstName', 'AdminTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', randomDni)
+    await page.fill('#beneficiary-birthDate', '1990-05-15')
 
     // Seleccionar olla común (primer option después del placeholder)
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
 
     // Guardar
     await page.click('div.z-50 button:has-text("Registrar")')
@@ -187,13 +187,13 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Rellenar campos, ingresando letras en DNI
-    await page.fill('#firstName', 'AdminTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', 'dni-letras-invalido')
-    await page.fill('#birthDate', '1990-05-15')
+    await page.fill('#beneficiary-firstName', 'AdminTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', 'dni-letras-invalido')
+    await page.fill('#beneficiary-birthDate', '1990-05-15')
 
     // Seleccionar olla común
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
 
     // Intentar guardar
     await page.click('div.z-50 button:has-text("Registrar")')
@@ -210,12 +210,12 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Registrar Beneficiario")')
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
-    await page.fill('#firstName', 'AdminTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', '1234')
-    await page.fill('#birthDate', '1990-05-15')
+    await page.fill('#beneficiary-firstName', 'AdminTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', '1234')
+    await page.fill('#beneficiary-birthDate', '1990-05-15')
 
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
     await page.click('div.z-50 button:has-text("Registrar")')
 
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
@@ -229,12 +229,12 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.click('button:has-text("Registrar Beneficiario")')
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
-    await page.fill('#firstName', 'AdminTest')
-    await page.fill('#lastName', 'Playwright')
-    await page.fill('#dni', '12345678')
-    await page.fill('#birthDate', '3026-05-15')
+    await page.fill('#beneficiary-firstName', 'AdminTest')
+    await page.fill('#beneficiary-lastName', 'Playwright')
+    await page.fill('#beneficiary-dni', '12345678')
+    await page.fill('#beneficiary-birthDate', '3026-05-15')
 
-    await page.selectOption('#ollaId', { index: 1 })
+    await page.selectOption('div.z-50 select', { index: 1 })
     await page.click('div.z-50 button:has-text("Registrar")')
 
     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible()
@@ -257,7 +257,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await expect(page.locator('h2:has-text("Editar Beneficiario")')).toBeVisible({ timeout: 20000 })
 
     // Modificar nombre
-    await page.fill('#firstName', 'AdminTestModificado')
+    await page.fill('#beneficiary-firstName', 'AdminTestModificado')
 
     // Guardar
     await page.click('button:has-text("Actualizar")')
@@ -405,39 +405,24 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
 
   // ─── CONFIGURACIÓN Y PREFERENCIAS ──────────────────────────────
 
-  test('Test 24.1: Mi Perfil - Edición de Datos (Mock) (Éxito)', async ({ page }) => {
+  test('Test 24.1: Mi Perfil - Edición de Datos (Éxito)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/perfil')
     await page.waitForLoadState('domcontentloaded')
 
     await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
 
-    // Modificar datos
+    // Modificar nombre (el email es de solo lectura)
     await page.fill('#profile-name', 'Admin Test Playwright Modificado')
-    await page.fill('#profile-email', 'admin-modificado@ollascomunes.pe')
 
     // Guardar
     await page.click('button:has-text("Guardar cambios")')
 
-    // Validar mensaje de éxito de mock
-    await expect(page.locator('text=Datos actualizados correctamente.')).toBeVisible({ timeout: 20000 })
+    // Validar mensaje de éxito
+    await expect(page.locator('text=Perfil actualizado correctamente.')).toBeVisible({ timeout: 20000 })
   })
 
-  test('Test 24.2: Edición de perfil con correo inválido (Falla)', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/workspace/perfil')
-    await page.waitForLoadState('domcontentloaded')
-
-    await expect(page.locator('h1:has-text("Mi perfil")')).toBeVisible({ timeout: 35000 })
-
-    // Rellenar email inválido
-    await page.fill('#profile-email', 'email-invalido')
-    await page.click('button:has-text("Guardar cambios")')
-
-    // Debería mostrar Toast o invalidar
-  })
-
-  test('Test 24.3: Cambio de contraseña sin contraseña actual (Falla)', async ({ page }) => {
+  test('Test 24.2: Cambio de contraseña sin contraseña actual (Falla)', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/workspace/perfil')
     await page.waitForLoadState('domcontentloaded')
