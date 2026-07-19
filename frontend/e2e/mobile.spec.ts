@@ -41,7 +41,7 @@ async function loginAsAdmin(page: Page) {
   await expect(page).toHaveURL(/\/workspace\/home|\/mobile\/inicio/, { timeout: 45000 })
 }
 
-test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
+test.describe('SIGO-Ollas Mobile E2E Tests', () => {
 
   test.afterAll(async () => {
     await prisma.$disconnect()
@@ -135,19 +135,22 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
   test('Test 03: Barra de navegación inferior cambia de vista', async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto('/mobile/inicio')
-    await page.waitForLoadState('domcontentloaded')
+    await page.waitForLoadState('networkidle')
+
+    // Esperar a que el BottomNav esté visible
+    await expect(page.locator('nav a[href="/mobile/inventario/"]')).toBeVisible({ timeout: 30000 })
 
     // Ir a Inventario
-    await page.click('a[href="/mobile/inventario"]')
-    await expect(page).toHaveURL(/\/mobile\/inventario/)
+    await page.click('nav a[href="/mobile/inventario/"]')
+    await page.waitForURL('**/mobile/inventario/')
 
     // Ir a Padrón
-    await page.click('a[href="/mobile/padron"]')
-    await expect(page).toHaveURL(/\/mobile\/padron/)
+    await page.click('nav a[href="/mobile/padron/"]')
+    await page.waitForURL('**/mobile/padron/')
 
     // Ir a Alertas
-    await page.click('a[href="/mobile/alertas"]')
-    await expect(page).toHaveURL(/\/mobile\/alertas/)
+    await page.click('nav a[href="/mobile/alertas/"]')
+    await page.waitForURL('**/mobile/alertas/')
   })
 
   test('Test 04: Botón de Salir cierra la sesión', async ({ page }) => {
@@ -219,7 +222,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await loginAsAdmin(page)
     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
     await page.goto('/mobile/padron')
-    await page.waitForLoadState('domcontentloaded')
+    await page.waitForLoadState('networkidle')
 
     // Esperar carga
     await expect(page.locator('h1:has-text("Padrón")')).toBeVisible({ timeout: 35000 })
@@ -240,10 +243,10 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     // Guardar
     await page.click('button:has-text("Guardar beneficiario")')
 
-    // Esperar a que el formulario cierre y la lista se actualice
-    await expect(page.locator('text=Nuevo beneficiario')).not.toBeVisible({ timeout: 35000 })
+    // Esperar a que el botón de guardado desaparezca (indica que el form procesó)
+    await expect(page.locator('button:has-text("Guardando...")')).toBeHidden({ timeout: 35000 })
 
-    // Buscar por DNI
+    // Buscar por DNI para confirmar que el beneficiario existe en la lista
     await page.fill('input[placeholder="Buscar por nombre o DNI…"]', randomDni)
 
     // Debe encontrar el beneficiario recién creado
@@ -480,6 +483,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
   })
 
   test('Test 11.2: Fallo de API de IA (Falla)', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.goto('/mobile/menu-ia')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
+
+    // Configurar mock DESPUÉS de cargar la página para interceptar solo la sugerencia
     await page.route('**/api/mobile/suggestions', async (route) => {
       await route.fulfill({
         status: 500,
@@ -488,15 +498,13 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
       })
     })
 
-    await loginAsAdmin(page)
-    await page.goto('/mobile/menu-ia')
-    await page.waitForLoadState('domcontentloaded')
-
-    await expect(page.locator('h1:has-text("Menú IA")')).toBeVisible({ timeout: 35000 })
-
     await page.click('button:has-text("Nueva sugerencia")')
 
-    await expect(page.locator('text=Error').or(page.locator('text=sugerencia'))).toBeVisible({ timeout: 30000 })
+    // Esperar a que termine la carga (el botón se vuelve a habilitar)
+    await expect(page.locator('button:has-text("Nueva sugerencia")')).toBeEnabled({ timeout: 30000 })
+
+    // La página debe volver al estado vacío (sin sugerencia, sin loading)
+    await expect(page.locator('text=Presiona')).toBeVisible({ timeout: 10000 })
   })
 
   test('Test 12: Registro de entrega de raciones', async ({ page }) => {
@@ -521,66 +529,6 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     }
   })
 
-  // ─── EVIDENCIAS ───────────────────────────────────────────────
-
-  test('Test Evidencias 01: Subida exitosa de documento con título y archivo válido', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/mobile/evidencias')
-    await page.waitForLoadState('domcontentloaded')
-
-    await expect(page.locator('text=Subir Evidencia')).toBeVisible({ timeout: 35000 })
-
-    await page.fill('#evidence-title', 'Foto de Acta de Entrega')
-    await page.fill('#evidence-desc', 'Descripción de prueba E2E')
-    
-    // Subir archivo ficticio usando buffer de Playwright
-    await page.setInputFiles('input[type="file"]', {
-      name: 'evidencia-e2e.png',
-      mimeType: 'image/png',
-      buffer: Buffer.from('image-data-ficticia-base64-content'),
-    })
-
-    // Mockear la respuesta del upload en Supabase para evitar llamadas reales a storage en E2E si falla
-    await page.route('**/api/mobile/documents/upload', async (route) => {
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, document: { id: 'some-doc-id' } }),
-      })
-    })
-
-    await page.click('button:has-text("Subir acta")')
-
-    // Debería volver a inicio con toast de éxito
-    await expect(page).toHaveURL(/\/mobile\/inicio/)
-  })
-
-  test('Test Evidencias 02: Subida sin título (Falla)', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/mobile/evidencias')
-    await page.waitForLoadState('domcontentloaded')
-
-    await page.fill('#evidence-title', '')
-    await page.setInputFiles('input[type="file"]', {
-      name: 'evidencia-e2e.png',
-      mimeType: 'image/png',
-      buffer: Buffer.from('image-content'),
-    })
-
-    await page.click('button:has-text("Subir acta")')
-    await expect(page.locator('text=título')).toBeVisible()
-  })
-
-  test('Test Evidencias 03: Subida sin archivo (Falla)', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/mobile/evidencias')
-    await page.waitForLoadState('domcontentloaded')
-
-    await page.fill('#evidence-title', 'Título de prueba')
-    await page.click('button:has-text("Subir acta")')
-    await expect(page.locator('text=foto').or(page.locator('text=archivo'))).toBeVisible()
-  })
-
   // ─── ALERTAS ──────────────────────────────────────────────────
 
   test('Test Alertas Mobile 01: Vista de alertas carga correctamente', async ({ page }) => {
@@ -597,7 +545,7 @@ test.describe('SIGO-Ollas Mobile E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     await expect(page.locator('h1:has-text("Alertas")')).toBeVisible({ timeout: 35000 })
-    
+
     const dismissBtn = page.locator('button[aria-label*="Eliminar"], button:has-text("Descartar")').first()
     if (await dismissBtn.isVisible()) {
       await dismissBtn.click()

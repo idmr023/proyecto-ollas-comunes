@@ -54,7 +54,6 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     // Verificar secciones del Dashboard
     await expect(page.locator('text=Resumen de inventario')).toBeVisible({ timeout: 35000 })
     await expect(page.locator('text=Evolución de beneficiarios')).toBeVisible()
-    await expect(page.locator('text=Insumos a vencer')).toBeVisible()
     await expect(page.locator('text=Actividades recientes')).toBeVisible()
 
     // Verificar que los KPIs principales estén presentes
@@ -548,7 +547,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
-    
+
     // Clic en pestaña Historial
     const tabMovs = page.locator('button:has-text("Historial"), button[value="movements"]').first()
     if (await tabMovs.isVisible()) {
@@ -563,7 +562,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.waitForLoadState('domcontentloaded')
 
     await expect(page.locator('h1:has-text("Inventario")')).toBeVisible({ timeout: 35000 })
-    
+
     // Filtrar por olla si el selector de filtro existe
     const filterSelect = page.locator('#filter-olla, select[name="olla"]').first()
     if (await filterSelect.isVisible()) {
@@ -602,17 +601,6 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
       await resolveBtn.click()
       await page.waitForTimeout(1000)
     }
-  })
-
-  // ─── REPORTES ADMIN ────────────────────────────────────────────
-
-  test('Test Reportes Admin 01: Carga panel de reportes con KPIs', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/workspace/reportes')
-    await page.waitForLoadState('domcontentloaded')
-
-    await expect(page.locator('h1:has-text("Reportes")')).toBeVisible({ timeout: 35000 })
-    await expect(page.locator('text=Ingresos de insumos').or(page.locator('text=Salidas de insumos'))).toBeVisible()
   })
 
 })

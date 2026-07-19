@@ -14,6 +14,7 @@ let testTenantId: string = ''
 let testBeneficiaryId: string = ''
 let testInsumoId: string = ''
 let testOllaId: string = ''
+const testDni = String(80000000 + Math.floor(Math.random() * 10000000))
 
 async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
   // 1. Iniciar login
@@ -129,7 +130,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
-        dni: '87654321',
+        dni: testDni,
         birthDate: '1995-08-10',
         gender: 'female',
         ollaId: testOllaId,
@@ -142,7 +143,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
     const body = (await res.json()) as any
     expect(body.ok).toBe(true)
     expect(body.item).toBeDefined()
-    expect(body.item.dni).toBe('87654321')
+    expect(body.item.dni).toBe(testDni)
     testBeneficiaryId = body.item.id
   })
 
@@ -156,7 +157,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Otro',
         lastName: 'Beneficiario',
-        dni: '87654321', // DNI ya creado en F-01
+        dni: testDni, // DNI ya creado en F-01
         birthDate: '1990-01-01',
         gender: 'male',
         ollaId: testOllaId,
@@ -180,7 +181,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
-        dni: '87654321',
+        dni: testDni,
         birthDate: '1995-08-10',
         gender: 'female',
         ollaId: testOllaId,
@@ -207,7 +208,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
-        dni: '87654321',
+        dni: testDni,
         birthDate: '1995-08-10',
         gender: 'female',
         ollaId: testOllaId,
@@ -633,7 +634,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
-        dni: '87654321',
+        dni: testDni,
         birthDate: '1995-08-10',
         gender: 'female',
         ollaId: testOllaId,
@@ -653,7 +654,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
       body: JSON.stringify({
         firstName: 'Beneficiario',
         lastName: 'Prueba Vitest',
-        dni: '87654321',
+        dni: testDni,
         birthDate: '1995-08-10',
         gender: 'female',
         ollaId: testOllaId,

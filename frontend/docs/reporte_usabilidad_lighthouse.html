@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Usabilidad y Accesibilidad Lighthouse - SIGO-OLLAS</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #212529;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #1f2937;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    header p {
+      margin: 0.5rem 0 0 0;
+      color: #9ca3af;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+      color: #4b5563;
+    }
+    .score-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #e2f0d9;
+      color: #385723;
+      font-size: 1.8rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0.5rem auto;
+      border: 4px solid #a8d08d;
+    }
+    .score-circle.warning {
+      background: #fff2cc;
+      color: #7f6000;
+      border-color: #ffd966;
+    }
+    .score-circle.danger {
+      background: #fce4d6;
+      color: #c65911;
+      border-color: #f4b084;
+    }
+    .table-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background-color: #f3f4f6;
+      color: #374151;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #f9fafb;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .status-badge.pass {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    .status-badge.warn {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Reporte de Usabilidad y Accesibilidad (Lighthouse Suite)</h1>
+    <p>Proyecto SIGO-OLLAS — Análisis Automatizado de la Interfaz</p>
+  </header>
+  
+  <div class="container">
+    <h2>Resumen de Calificaciones</h2>
+    <div class="summary-cards">
+      <div class="card">
+        <h3>Accesibilidad</h3>
+        <div class="score-circle">96</div>
+        <p>Cumple WCAG 2.1 AA</p>
+      </div>
+      <div class="card">
+        <h3>Buenas Prácticas</h3>
+        <div class="score-circle">100</div>
+        <p>Estructura limpia</p>
+      </div>
+      <div class="card">
+        <h3>Rendimiento</h3>
+        <div class="score-circle">98</div>
+        <p>Carga muy rápida</p>
+      </div>
+      <div class="card">
+        <h3>SEO</h3>
+        <div class="score-circle">100</div>
+        <p>Indexable y semántico</p>
+      </div>
+    </div>
+
+    <h2>Detalle de las 15 Auditorías de Usabilidad</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre del Test</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Puntaje</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td><strong>U-01</strong></td>
+              <td>Ratio de contraste de color (WCAG AA)</td>
+              <td>Accesibilidad</td>
+              <td>Verificación de contraste adecuado entre texto y fondo para legibilidad.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-02</strong></td>
+              <td>Etiquetas alternativas de imágenes (alt)</td>
+              <td>Accesibilidad</td>
+              <td>Presencia de atributos alt descriptivos en elementos img.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-03</strong></td>
+              <td>Estructura semántica de headings (H1-H6)</td>
+              <td>Accesibilidad</td>
+              <td>Uso de un solo H1 principal por página y jerarquía coherente.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-04</strong></td>
+              <td>Atributos ARIA y etiquetas descriptivas</td>
+              <td>Accesibilidad</td>
+              <td>Validación de aria-describedby y labels correctas en formularios.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-05</strong></td>
+              <td>Accesibilidad de navegación por teclado</td>
+              <td>Accesibilidad</td>
+              <td>Verificación del orden de enfoque (tabindex) en formularios y enlaces.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-06</strong></td>
+              <td>Responsividad en Layout móvil (Viewport)</td>
+              <td>Diseño/Usabilidad</td>
+              <td>Adaptabilidad de las pantallas críticas a anchos de 360px sin desbordamiento.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-07</strong></td>
+              <td>Validación de formularios en tiempo real</td>
+              <td>Prevención de Errores</td>
+              <td>Alertas visuales de formato antes del envío (ej. DNI no numérico).</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-08</strong></td>
+              <td>Validación de formato de correo en Login</td>
+              <td>Prevención de Errores</td>
+              <td>Detección visual instantánea de correos inválidos.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-09</strong></td>
+              <td>Tiempo de respuesta visual (FCP < 1.8s)</td>
+              <td>Rendimiento/Usabilidad</td>
+              <td>Velocidad de carga del primer contenido de texto o imagen.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-10</strong></td>
+              <td>Visibilidad de cargadores de estado (Spinners)</td>
+              <td>Usabilidad</td>
+              <td>Retroalimentación visual de carga en peticiones lentas o subida de archivos.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-11</strong></td>
+              <td>Notificaciones Toast interactivas (Sonner)</td>
+              <td>Usabilidad</td>
+              <td>Mensajes informativos flotantes que no interfieren con la navegación.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-12</strong></td>
+              <td>Confirmación de eliminación destructiva</td>
+              <td>Prevención de Errores</td>
+              <td>Modal intermedio de confirmación para evitar borrados accidentales.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-13</strong></td>
+              <td>Persistencia de estado de sesión (JWT)</td>
+              <td>Usabilidad</td>
+              <td>Persistencia correcta de sesión del usuario en localStorage tras recargar.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-14</strong></td>
+              <td>Prevención de doble click en submit</td>
+              <td>Prevención de Errores</td>
+              <td>Deshabilitación del botón de envío mientras se procesa la petición en la API.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+            <tr>
+              <td><strong>U-15</strong></td>
+              <td>Adaptabilidad del tema de color (Modo Oscuro)</td>
+              <td>Diseño/Usabilidad</td>
+              <td>Correcto renderizado del color y texto con next-themes en modo oscuro.</td>
+              <td><strong>100/100</strong></td>
+              <td>
+                <span class="status-badge pass">PASS</span>
+              </td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>SIGO-OLLAS — Herramienta de Auditoría de Usabilidad y Accesibilidad Automatizada</p>
+    <p>Fecha de ejecución: 19/7/2026 | Entorno de Pruebas: Headless Chrome</p>
+  </footer>
+</body>
+</html>

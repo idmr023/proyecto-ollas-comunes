@@ -157,6 +157,8 @@ enum AlertType {
   unusual_consumption
   missing_daily_report
   high_priority_beneficiary
+  new_beneficiary
+  sync_conflict
 
   @@map("alerts_alert_type_check")
 }

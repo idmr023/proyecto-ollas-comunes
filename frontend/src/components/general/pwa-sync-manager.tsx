@@ -11,7 +11,7 @@ const LS_FAILED_COUNT = 'pwa-failed-mutation-count'
 
 function getAuthHeaders(): Record<string, string> {
   try {
-    const raw = localStorage.getItem('auth-storage')
+    const raw = sessionStorage.getItem('auth-storage')
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed.state?.token) {
@@ -24,7 +24,7 @@ function getAuthHeaders(): Record<string, string> {
 
 function getAuthToken(): string | null {
   try {
-    const raw = localStorage.getItem('auth-storage')
+    const raw = sessionStorage.getItem('auth-storage')
     if (raw) {
       const parsed = JSON.parse(raw)
       return parsed.state?.token ?? null

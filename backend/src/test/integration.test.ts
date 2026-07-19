@@ -124,16 +124,19 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
 
   it('I-05: Aislamiento RLS en BD (Aislamiento de Tenants)', async () => {
     // Creamos un beneficiario para el Tenant actual
-    const ben = await prisma.beneficiary.create({
-      data: {
-        firstName: 'Inquilino A',
-        lastName: 'Prueba',
-        dni: '12345670',
-        birthDate: new Date('1990-01-01'),
-        gender: 'male',
-        tenantId: testTenantId,
-        priorityLevel: 'normal'
-      }
+    const ben = await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SELECT set_config('app.encryption_key', 'test-key', true)`)
+      return tx.beneficiary.create({
+        data: {
+          firstName: 'Inquilino A',
+          lastName: 'Prueba',
+          dni: '12345670',
+          birthDate: new Date('1990-01-01'),
+          gender: 'male',
+          tenantId: testTenantId,
+          priorityLevel: 'normal'
+        }
+      })
     })
 
     // Intentamos buscarlo usando el repositorio simulando otro tenant
@@ -148,7 +151,10 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(found).toBeNull()
 
     // Limpieza
-    await prisma.beneficiary.delete({ where: { id: ben.id } })
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SELECT set_config('app.encryption_key', 'test-key', true)`)
+      return tx.beneficiary.delete({ where: { id: ben.id } })
+    })
   })
 
   it('I-06: Rate Limiting de seguridad en Auth', async () => {
@@ -205,17 +211,20 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     const [initialCountObj] = await prisma.$queryRawUnsafe<any>('SELECT count(*)::int FROM audit_logs')
     const initialCount = initialCountObj.count ?? 0
 
-    // 2. Crear beneficiario
-    const tempBen = await prisma.beneficiary.create({
-      data: {
-        firstName: 'Auditoria',
-        lastName: 'Prueba',
-        dni: '99999901',
-        birthDate: new Date('1990-01-01'),
-        gender: 'female',
-        tenantId: testTenantId,
-        priorityLevel: 'normal'
-      }
+    // 2. Crear beneficiario (envuelto en transacción para setear GUC de BD)
+    const tempBen = await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SELECT set_config('app.encryption_key', 'test-key', true)`)
+      return tx.beneficiary.create({
+        data: {
+          firstName: 'Auditoria',
+          lastName: 'Prueba',
+          dni: '99999901',
+          birthDate: new Date('1990-01-01'),
+          gender: 'female',
+          tenantId: testTenantId,
+          priorityLevel: 'normal'
+        }
+      })
     })
 
     // 3. Obtener conteo final
@@ -225,7 +234,10 @@ describe('Suite 2: Pruebas Automáticas de Interoperabilidad (15 Casos)', () => 
     expect(finalCount).toBeGreaterThanOrEqual(initialCount)
 
     // Limpieza
-    await prisma.beneficiary.delete({ where: { id: tempBen.id } })
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SELECT set_config('app.encryption_key', 'test-key', true)`)
+      return tx.beneficiary.delete({ where: { id: tempBen.id } })
+    })
   })
 
   it('I-10: Cifrado y Hash de contraseñas (bcrypt)', async () => {

@@ -6,7 +6,7 @@ const apiBaseUrl =
 
 function getAuthHeaders(): Record<string, string> {
   try {
-    const raw = localStorage.getItem('auth-storage')
+    const raw = sessionStorage.getItem('auth-storage')
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed.state?.token) {
@@ -32,9 +32,9 @@ function buildRequestHeaders(init?: RequestInit): Record<string, string> {
 
 function handleUnauthorized() {
   try {
-    const store = JSON.parse(localStorage.getItem('auth-storage') ?? '{}')
+    const store = JSON.parse(sessionStorage.getItem('auth-storage') ?? '{}')
     if (store.state?.isAuthenticated) {
-      localStorage.removeItem('auth-storage')
+      sessionStorage.removeItem('auth-storage')
       window.location.href = '/login'
     }
   } catch {}
