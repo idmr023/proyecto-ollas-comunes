@@ -138,19 +138,19 @@ test.describe('SIGO-Ollas Mobile E2E Tests', () => {
     await page.waitForLoadState('networkidle')
 
     // Esperar a que el BottomNav esté visible
-    await expect(page.locator('nav a[href="/mobile/inventario/"]')).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('nav a[href="/mobile/inventario"]')).toBeVisible({ timeout: 30000 })
 
     // Ir a Inventario
-    await page.click('nav a[href="/mobile/inventario/"]')
-    await page.waitForURL('**/mobile/inventario/')
+    await page.click('nav a[href="/mobile/inventario"]')
+    await page.waitForURL('**/mobile/inventario')
 
     // Ir a Padrón
-    await page.click('nav a[href="/mobile/padron/"]')
-    await page.waitForURL('**/mobile/padron/')
+    await page.click('nav a[href="/mobile/padron"]')
+    await page.waitForURL('**/mobile/padron')
 
     // Ir a Alertas
-    await page.click('nav a[href="/mobile/alertas/"]')
-    await page.waitForURL('**/mobile/alertas/')
+    await page.click('nav a[href="/mobile/alertas"]')
+    await page.waitForURL('**/mobile/alertas')
   })
 
   test('Test 04: Botón de Salir cierra la sesión', async ({ page }) => {
