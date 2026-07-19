@@ -409,31 +409,37 @@ cd backend && npm test
 ```
  RUN  v4.1.9 D:/Repositories/proyecto-ollas-comunes/backend
 
- ✓ src/test/functional.test.ts (35 tests)            998ms
- ✓ src/test/integration.test.ts (38 tests)          7692ms
- ✓ src/test/auth-unit.test.ts (30 tests)             865ms
+ ✓ src/test/functional.test.ts (35 tests)            975ms
+ ✓ src/test/integration.test.ts (38 tests)          7686ms
+ ✓ src/test/auth-unit.test.ts (30 tests)             863ms
  ✓ src/test/unit-pure.test.ts (39 tests)              31ms
- ✓ src/test/beneficiaries-unit.test.ts (31 tests)    31ms
- ✓ src/test/organizations-unit.test.ts (31 tests)    13ms
+ ✓ src/test/beneficiaries-unit.test.ts (31 tests)    29ms
+ ✓ src/test/organizations-unit.test.ts (31 tests)    14ms
  ✓ src/test/mobile-unit.test.ts (19 tests)           13ms
- ✓ src/test/notifications-unit.test.ts (8 tests)     11ms
+ ✓ src/test/notifications-unit.test.ts (8 tests)     10ms
  ✓ src/test/cors.test.ts (5 tests)                    5ms
 
- Test Files  0 failed | 9 passed (9)
-      Tests  236 passed | 0 failed | 0 skipped (236)
-   Start at  18:19:43
-   Duration  12.79s (transform 274ms, setup 55ms, import 1.59s, tests 9.66s)
+ Test Files  9 passed (9)
+      Tests  236 passed (236)
+   Start at  19:07:45
+   Duration  12.63s (transform 293ms, setup 61ms, import 1.60s, tests 9.63s)
 ```
 
-[INSERTAR CAPTURA: Terminal mostrando la salida completa de `npm test`]
+> **Nota:** Los mensajes `prisma:error` en stdout/stderr son salidas esperadas de tests que validan manejo de errores (F-05, I-08, F-10). No indican fallos — son parte de los tests negativos que verifican que la aplicación maneja correctamente entradas inválidas.
 
 ### 4.3 Capturas de Ejecución
 
-[INSERTAR CAPTURA 1: Terminal con el resultado de `npm test` mostrando los 9 archivos de test, 236 passed, 0 failed, 0 skipped]
+**Captura 1:** Captura de pantalla de la terminal mostrando el comando `npm test` ejecutado y la salida completa con los 9 archivos de test, indicando `236 passed (236)` y `0 failed`.
 
-[INSERTAR CAPTURA 2: Salida detallada de Vitest mostrando el desglose por archivo con conteos de tests]
+[INSERTAR CAPTURA: Captura de pantalla de PowerShell/terminal mostrando la ejecución completa de `npm test` con resultado final "Tests 236 passed (236)"]
 
-[INSERTAR CAPTURA 3: Resultados de tests funcionales e de integración con DB local Docker (ollas-test-db)]
+**Captura 2:** Captura de pantalla de la terminal mostrando el desglose detallado por archivo de test con los conteos de tests y tiempos de ejecución (functional 975ms, integration 7686ms, auth-unit 863ms, etc.).
+
+[INSERTAR CAPTURA: Captura de pantalla de la sección con las líneas "✓ src/test/functional.test.ts (35 tests) ... ✓ src/test/cors.test.ts (5 tests)"]
+
+**Captura 3:** Captura de pantalla de la terminal mostrando la conexión exitosa a la base de datos local Docker (`ollas-test-db`) y los tests funcionales/integración pasando (los tests que antes estaban skipped ahora aparecen con ✓).
+
+[INSERTAR CAPTURA: Captura de pantalla donde se vean los tests de functional.test.ts e integration.test.ts con ✓ (pasados) en lugar de ⏭️ (skipped)]
 
 ---
 

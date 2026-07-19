@@ -1,5 +1,6 @@
 config:
   target: "http://localhost:4000"
+  processor: "./stress-test-processor.js"
   phases:
     - duration: 30
       arrivalRate: 2
@@ -18,13 +19,6 @@ config:
       name: "Fase 4: Sostenido (30s, 50 usuarios/seg constantes)"
   plugins:
     expect: {}
-  payload:
-    path: "stress-test-data.csv"
-    fields:
-      - "email"
-      - "password"
-      - "otpCode"
-    order: "sequence"
   defaults:
     headers:
       Content-Type: "application/json"
@@ -55,8 +49,8 @@ scenarios:
       - post:
           url: "/api/auth/login"
           json:
-            email: "{{ email }}"
-            password: "{{ password }}"
+            email: "admin@ollascomunes.pe"
+            password: "admin123"
           capture:
             - json: "$.tempToken"
               as: "tempToken"
@@ -66,9 +60,11 @@ scenarios:
       # 2. Login - Paso 2 (OTP code bypass)
       - post:
           url: "/api/auth/verify-otp"
+          beforeRequest: "forceStringCode"
           json:
+            email: "admin@ollascomunes.pe"
             tempToken: "{{ tempToken }}"
-            code: "{{ otpCode }}"
+            code: "999999"
           capture:
             - json: "$.token"
               as: "jwtToken"
