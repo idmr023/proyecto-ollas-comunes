@@ -1,0 +1,23 @@
+=== Sensitive Files ===
+  /.env -> HTTP 000
+  /.git/config -> HTTP 000
+  /.git/HEAD -> HTTP 000
+  /robots.txt -> HTTP 000
+  /sitemap.xml -> HTTP 000
+  /.well-known/security.txt -> HTTP 000
+  /api/docs -> HTTP 000
+  /debug -> HTTP 000
+  /health -> HTTP 000
+  /api/health -> HTTP 000
+
+=== JWT Test (invalid token) ===
+  
+HTTP_CODE:000
+
+=== HTTP Methods ===
+  PUT /api/auth/login -> HTTP 000
+  DELETE /api/auth/login -> HTTP 000
+  PATCH /api/auth/login -> HTTP 000
+
+=== Content-Type Validation ===
+  text/plain -> HTTP 000

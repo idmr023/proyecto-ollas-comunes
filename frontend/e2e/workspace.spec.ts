@@ -433,7 +433,7 @@ test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
     await page.fill('#confirm-password', 'newSecurePass123')
     await page.click('button:has-text("Guardar cambios")')
 
-    await expect(page.locator('text=contraseña actual')).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-sonner-toast]:has-text("contraseña actual")')).toBeVisible({ timeout: 20000 })
   })
 
   test('Test 24.4: Cambio de contraseña con nueva contraseña corta (Falla)', async ({ page }) => {

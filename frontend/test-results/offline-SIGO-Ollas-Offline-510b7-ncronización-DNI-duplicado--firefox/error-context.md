@@ -32,7 +32,7 @@ Call log:
   - paragraph: Estos cambios no pudieron guardarse en el servidor debido a reglas de negocio (ej. DNI repetido).
   - button "Descartar todo"
   - text: Registrar Beneficiario
-  - paragraph: "DuplicadoTest Playwright (DNI: 67338950)"
+  - paragraph: "DuplicadoTest Playwright (DNI: 96919308)"
   - paragraph: Ya existe un beneficiario con ese DNI en esta organizacion.
   - button
   - button "Close"

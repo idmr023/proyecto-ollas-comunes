@@ -1,0 +1,35 @@
+- Nikto v2.6.0
+---------------------------------------------------------------------------
++ Target IP:          216.198.79.3
++ Target Hostname:    proyecto-ollas-comunes.vercel.app
++ Target Port:        443
+---------------------------------------------------------------------------
++ SSL Info:           Subject:  /CN=*.vercel.app
+                      CN:       *.vercel.app
+                      SAN:      *.vercel.app
+                      Ciphers:  TLS_AES_128_GCM_SHA256
+                      Issuer:   /C=US/O=Google Trust Services/CN=WR1
++ Platform:           Unknown
++ Start Time:         2026-07-19 20:25:05 (GMT0)
+---------------------------------------------------------------------------
++ Server: Vercel
++ Multiple IPs found: 216.198.79.3, 64.29.17.3
++ ERROR: Failed to check for updates: 403
++ [999986] /: Retrieved access-control-allow-origin header: *.
++ [999100] /: Uncommon header(s) 'x-matched-path' found, with contents: /.
++ [999100] /: Uncommon header(s) 'x-vercel-id' found, with contents: gru1::lcfrd-1784492706410-d13f234cc18a.
++ [999100] /: Uncommon header(s) 'x-vercel-cache' found, with contents: HIT.
++ [999100] /: Uncommon header(s) 'content-disposition' found, with contents: inline.
++ [999979] /: IP address found in the 'x-vercel-id' header. The IP is "1::d". See: https://portswigger.net/kb/issues/00600300_private-ip-addresses-disclosed
++ [999100] /server-status: Uncommon header(s) 'refresh' found, with contents: 0;url=/server-status/.
++ [999100] /cgi-bin/: Uncommon header(s) 'x-vercel-mitigated' found, with contents: deny.
++ No CGI Directories found (use '-C all' to force check all possible dirs). CGI tests skipped.
++ [999992] /: Server is using a wildcard certificate: *.vercel.app. See: https://en.wikipedia.org/wiki/Wildcard_certificate
++ ERROR: *** Error limit (20) reached for host, giving up. Last error: opening stream: ssl connect failed. ***
++ ERROR: *** Consider using mitmproxy to avoid TLS fingerprinting. ***
+- STATUS: Completed 98 requests (~3% complete, ~17.5 minutes left): currently in plugin 'Site Files'
+- STATUS: Running average: Not enough data.
++ Scan terminated: 20 errors and 9 items reported on the remote host
++ End Time:           2026-07-19 20:25:32 (GMT0) (27 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested

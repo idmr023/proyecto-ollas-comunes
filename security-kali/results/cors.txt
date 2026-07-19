@@ -1,0 +1,4 @@
+=== CORS Policy ===
+  Origin: https://evil.com -> REJECTED
+  Origin: https://proyecto-ollas-comunes.vercel.app -> REJECTED
+  Origin: null -> REJECTED
