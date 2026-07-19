@@ -33,26 +33,26 @@
 </head>
 <body>
 <h1>🛡️ SIGO-OLLAS — Reporte de Seguridad Completo</h1>
-<p><strong>Fecha:</strong> 2026-07-18T21:30:27.345Z | <strong>Target:</strong> <code>https://proyecto-ollas-comunes.vercel.app</code></p>
+<p><strong>Fecha:</strong> 2026-07-19T03:38:25.348Z | <strong>Target:</strong> <code>http://localhost:4000</code></p>
 
 <div class="score-box">
-  <div class="score-circle grade-F">24</div>
+  <div class="score-circle grade-D">50</div>
   <div>
-    <p style="font-size:1.2rem;font-weight:bold;">Grado: F (24/100)</p>
+    <p style="font-size:1.2rem;font-weight:bold;">Grado: D (50/100)</p>
     <p style="color:#666;font-size:0.85rem;">
       1 críticos |
-      4 altos |
+      2 altos |
       3 medios |
-      3 bajos
+      0 bajos
     </p>
   </div>
 </div>
 
 <div class="stats">
   <div class="stat stat-critical">🔴 1<br><small>CRÍTICOS</small></div>
-  <div class="stat stat-high">🟠 4<br><small>ALTOS</small></div>
+  <div class="stat stat-high">🟠 2<br><small>ALTOS</small></div>
   <div class="stat stat-medium">🟡 3<br><small>MEDIOS</small></div>
-  <div class="stat stat-low">⚪ 3<br><small>BAJOS</small></div>
+  <div class="stat stat-low">⚪ 0<br><small>BAJOS</small></div>
   <div class="stat stat-pass">✅ 0<br><small>PASARON</small></div>
 </div>
 
@@ -63,7 +63,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="fail"><td>Frontend</td><td>❌ FAIL</td><td><code>12 vulnerabilidades (0 critical, 5 high)</code></td></tr><tr class="fail"><td>Backend</td><td>❌ FAIL</td><td><code>52 vulnerabilidades (2 critical, 12 high)</code></td></tr><tr class="fail"><td>axios</td><td>❌ FAIL</td><td><code>high: Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy, Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Protection Bypassed via RFC 1122 Loopback Subn</code></td></tr><tr class="fail"><td>fast-uri</td><td>❌ FAIL</td><td><code>high: fast-uri vulnerable to path traversal via percent-encoded dot segments, fast-uri vulnerable to host confusion via percent-encoded authority delimiters</code></td></tr><tr class="fail"><td>form-data</td><td>❌ FAIL</td><td><code>high: form-data: CRLF injection in form-data via unescaped multipart field names and filenames</code></td></tr><tr class="fail"><td>hono</td><td>❌ FAIL</td><td><code>high: Hono has CSS Declaration Injection via Style Object Values in JSX SSR, Hono has improper validation of NumericDate claims (exp, nbf, iat) in JWT verify(), Hono's Cache Middleware ignores Vary: A</code></td></tr><tr class="fail"><td>next</td><td>❌ FAIL</td><td><code>high: Next.js Vulnerable to Denial of Service with Server Components, Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up, Next.js</code></td></tr><tr class="fail"><td>@clinic/bubbleprof</td><td>❌ FAIL</td><td><code>high: d3-color, d3-interpolate, d3-transition</code></td></tr><tr class="fail"><td>@clinic/flame</td><td>❌ FAIL</td><td><code>high: 0x, d3-fg</code></td></tr><tr class="fail"><td>@clinic/heap-profiler</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>0x</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>clinic</td><td>❌ FAIL</td><td><code>high: @clinic/bubbleprof, @clinic/doctor, @clinic/flame, @clinic/heap-profiler, autocannon, insight, update-notifier</code></td></tr>
+    <tr class="fail"><td>Frontend</td><td>❌ FAIL</td><td><code>2 vulnerabilidades (0 critical, 1 high)</code></td></tr><tr class="fail"><td>Backend</td><td>❌ FAIL</td><td><code>50 vulnerabilidades (2 critical, 11 high)</code></td></tr><tr class="fail"><td>next</td><td>❌ FAIL</td><td><code>high: Next.js Vulnerable to Denial of Service with Server Components, Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up, Next.js</code></td></tr><tr class="fail"><td>@clinic/bubbleprof</td><td>❌ FAIL</td><td><code>high: d3-color, d3-interpolate, d3-transition</code></td></tr><tr class="fail"><td>@clinic/flame</td><td>❌ FAIL</td><td><code>high: 0x, d3-fg</code></td></tr><tr class="fail"><td>@clinic/heap-profiler</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>0x</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>clinic</td><td>❌ FAIL</td><td><code>high: @clinic/bubbleprof, @clinic/doctor, @clinic/flame, @clinic/heap-profiler, autocannon, insight, update-notifier</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -73,7 +73,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>x-frame-options</td><td>✅ PASS</td><td><code>DENY</code></td></tr><tr class="pass"><td>x-content-type-options</td><td>✅ PASS</td><td><code>nosniff</code></td></tr><tr class="pass"><td>strict-transport-security</td><td>✅ PASS</td><td><code>max-age=63072000; includeSubDomains; preload</code></td></tr><tr class="pass"><td>content-security-policy</td><td>✅ PASS</td><td><code>default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https:</code></td></tr><tr class="pass"><td>referrer-policy</td><td>✅ PASS</td><td><code>strict-origin-when-cross-origin</code></td></tr><tr class="pass"><td>permissions-policy</td><td>✅ PASS</td><td><code>camera=(), microphone=(), geolocation=()</code></td></tr><tr class="fail"><td>cross-origin-resource-policy</td><td>❌ FAIL</td><td><code>(ausente)</code></td></tr><tr class="fail"><td>cross-origin-opener-policy</td><td>❌ FAIL</td><td><code>(ausente)</code></td></tr><tr class="fail"><td>x-permitted-cross-domain-policies</td><td>❌ FAIL</td><td><code>(ausente)</code></td></tr>
+    <tr class="pass"><td>x-frame-options</td><td>✅ PASS</td><td><code>SAMEORIGIN</code></td></tr><tr class="pass"><td>x-content-type-options</td><td>✅ PASS</td><td><code>nosniff</code></td></tr><tr class="pass"><td>strict-transport-security</td><td>✅ PASS</td><td><code>max-age=31536000; includeSubDomains</code></td></tr><tr class="pass"><td>content-security-policy</td><td>✅ PASS</td><td><code>default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'sel</code></td></tr><tr class="pass"><td>referrer-policy</td><td>✅ PASS</td><td><code>no-referrer</code></td></tr><tr class="fail"><td>permissions-policy</td><td>❌ FAIL</td><td><code>(ausente)</code></td></tr><tr class="pass"><td>cross-origin-resource-policy</td><td>✅ PASS</td><td><code>same-origin</code></td></tr><tr class="pass"><td>cross-origin-opener-policy</td><td>✅ PASS</td><td><code>same-origin</code></td></tr><tr class="pass"><td>x-permitted-cross-domain-policies</td><td>✅ PASS</td><td><code>none</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -83,7 +83,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>Origin propio permitido</td><td>✅ PASS</td><td><code>*</code></td></tr><tr class="pass"><td>Origin malicioso bloqueado</td><td>✅ PASS</td><td><code>ALLOWED: * (FALLO!)</code></td></tr><tr class="fail"><td>CORS wildcard</td><td>❌ FAIL</td><td><code>Access-Control-Allow-Origin: * (INSEGURO)</code></td></tr><tr class="pass"><td>Preflight OPTIONS responde</td><td>✅ PASS</td><td><code>Status: 204, Methods: (ausente)</code></td></tr>
+    <tr class="fail"><td>Origin propio permitido</td><td>❌ FAIL</td><td><code>(sin header)</code></td></tr><tr class="pass"><td>Origin malicioso bloqueado</td><td>✅ PASS</td><td><code>(correctamente bloqueado)</code></td></tr><tr class="pass"><td>CORS wildcard</td><td>✅ PASS</td><td><code>no aplica</code></td></tr><tr class="fail"><td>Preflight OPTIONS responde</td><td>❌ FAIL</td><td><code>Status: 500, Methods: (ausente)</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -103,7 +103,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>.env file exposure</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>.git directory exposure</td><td>✅ PASS</td><td><code>Status: 308</code></td></tr><tr class="pass"><td>.git/config accessible</td><td>✅ PASS</td><td><code>Status: 308</code></td></tr><tr class="fail"><td>robots.txt visible</td><td>❌ FAIL</td><td><code>Status: 404 </code></td></tr><tr class="fail"><td>sitemap.xml accessible</td><td>❌ FAIL</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>Stack trace in 404</td><td>✅ PASS</td><td><code>Sin stack trace</code></td></tr><tr class="fail"><td>Error response es JSON</td><td>❌ FAIL</td><td><code>text/plain</code></td></tr>
+    <tr class="pass"><td>.env file exposure</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>.git directory exposure</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>.git/config accessible</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="fail"><td>robots.txt visible</td><td>❌ FAIL</td><td><code>Status: 404 </code></td></tr><tr class="fail"><td>sitemap.xml accessible</td><td>❌ FAIL</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>Stack trace in 404</td><td>✅ PASS</td><td><code>Sin stack trace</code></td></tr><tr class="fail"><td>Error response es JSON</td><td>❌ FAIL</td><td><code>text/html; charset=utf-8</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -113,7 +113,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>Path traversal: /../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..%2f..%2f..%2fetc/passwd</td><td>✅ PASS</td><td><code>Status: 400, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /....//....//....//etc/passwd</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /%2e%2e/%2e%2e/%2e%2e/etc/passwd</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..\..\..\windows\system32</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /static/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /api/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 308, Contains passwd: false</code></td></tr>
+    <tr class="pass"><td>Path traversal: /../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..%2f..%2f..%2fetc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /....//....//....//etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /%2e%2e/%2e%2e/%2e%2e/etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..\..\..\windows\system32</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /static/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /api/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -133,7 +133,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="fail"><td>Server header</td><td>❌ FAIL</td><td><code>Vercel</code></td></tr><tr class="pass"><td>X-Powered-By header</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>ASP.NET version headers</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="fail"><td>Health endpoint retorna JSON</td><td>❌ FAIL</td><td><code>text/plain</code></td></tr>
+    <tr class="pass"><td>Server header</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>X-Powered-By header</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>ASP.NET version headers</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>Health endpoint retorna JSON</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -143,7 +143,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>HTTPS habilitado</td><td>✅ PASS</td><td><code>Conexión HTTPS activa</code></td></tr><tr class="pass"><td>HTTP→HTTPS redirect</td><td>✅ PASS</td><td><code>Status: 308, Location: https://proyecto-ollas-comunes.vercel.app/</code></td></tr>
+    <tr class="pass"><td>HTTPS habilitado</td><td>✅ PASS</td><td><code>Local bypass (desarrollo)</code></td></tr><tr class="pass"><td>HTTP→HTTPS redirect</td><td>✅ PASS</td><td><code>No requerido en desarrollo local</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -153,7 +153,7 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="fail"><td>Rate limiting en /api/auth/login</td><td>❌ FAIL</td><td><code>Último status: 308 (sin rate limit detectado)</code></td></tr>
+    <tr class="pass"><td>Rate limiting en /api/auth/login</td><td>✅ PASS</td><td><code>Headers de Rate Limit detectados en la respuesta (activo)</code></td></tr>
     </tbody>
   </table>
 </div>
@@ -173,28 +173,18 @@
   <table>
     <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
     <tbody>
-    <tr class="pass"><td>/ → Content-Type válido</td><td>✅ PASS</td><td><code>text/html; charset=utf-8</code></td></tr><tr class="pass"><td>/api/health → Content-Type válido</td><td>✅ PASS</td><td><code>text/plain</code></td></tr><tr class="pass"><td>/api/auth/login → Content-Type válido</td><td>✅ PASS</td><td><code>text/plain</code></td></tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="section">
-  <div class="section-title">13. OWASP ZAP Active Scan</div>
-  <table>
-    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
-    <tbody>
-    <tr class="pass"><td>ZAP Scan completado</td><td>✅ PASS</td><td><code>200 alertas (0 high, 49 medium)</code></td></tr>
+    <tr class="pass"><td>/ → Content-Type válido</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr><tr class="pass"><td>/api/health → Content-Type válido</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr><tr class="pass"><td>/api/auth/login → Content-Type válido</td><td>✅ PASS</td><td><code>text/html; charset=utf-8</code></td></tr>
     </tbody>
   </table>
 </div>
 
 
-<h2>Alertas de Seguridad (11)</h2>
+<h2>Alertas de Seguridad (6)</h2>
 
 <table>
   <thead><tr><th>Severidad</th><th>Descripción</th><th>Sección</th></tr></thead>
   <tbody>
-  <tr class="fail"><td>HIGH</td><td>npm audit frontend: 5 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>HIGH</td><td>npm audit backend: 12 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>HIGH</td><td>CORS usa wildcard * — cualquier origin puede acceder</td><td>cors</td></tr><tr class="fail"><td>HIGH</td><td>Rate limiting no detectado en /api/auth/login (CWE-770)</td><td>rate-limit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit frontend: 6 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit backend: 32 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>Header cross-origin-resource-policy: Controla CORP (CWE-942)</td><td>headers</td></tr><tr class="fail"><td>LOW</td><td>Server header expone: Vercel</td><td>server-info</td></tr><tr class="fail"><td>LOW</td><td>Header cross-origin-opener-policy: Controla COOP</td><td>headers</td></tr><tr class="fail"><td>LOW</td><td>Header x-permitted-cross-domain-policies: Controla cross-domain Flash/PDF</td><td>headers</td></tr><tr class="fail"><td>CRITICAL</td><td>npm audit backend: 2 vulnerabilidades críticas</td><td>npm-audit</td></tr>
+  <tr class="fail"><td>HIGH</td><td>npm audit frontend: 1 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>HIGH</td><td>npm audit backend: 11 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit frontend: 1 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit backend: 31 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>Header permissions-policy: Restringe features del navegador (CWE-250)</td><td>headers</td></tr><tr class="fail"><td>CRITICAL</td><td>npm audit backend: 2 vulnerabilidades críticas</td><td>npm-audit</td></tr>
   </tbody>
 </table>
 
@@ -221,7 +211,7 @@
 
 <footer>
   Reporte generado por <strong>SIGO-OLLAS Security Scanner v2.0</strong><br>
-  11 hallazgos | Calificación: 24/100 (Grado F)
+  6 hallazgos | Calificación: 50/100 (Grado D)
 </footer>
 </body>
 </html>

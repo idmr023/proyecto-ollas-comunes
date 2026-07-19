@@ -1,0 +1,8 @@
+# Security Headers — SIGO-OLLAS
+# https://vercel.com/docs/headers
+
+/*
+  Cross-Origin-Resource-Policy: same-origin
+  Cross-Origin-Opener-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()

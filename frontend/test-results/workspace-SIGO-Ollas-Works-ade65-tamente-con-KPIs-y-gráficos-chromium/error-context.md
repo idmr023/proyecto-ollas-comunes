@@ -12,31 +12,110 @@
 # Error details
 
 ```
-Error: expect(page).toHaveURL(expected) failed
+Error: expect(locator).toBeVisible() failed
 
-Expected pattern: /\/workspace\/home/
-Received string:  "http://localhost:3000/login/otp/?email=admin%40ollascomunes.pe"
-Timeout: 45000ms
+Locator: locator('text=Insumos a vencer')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
 
 Call log:
-  - Expect "toHaveURL" with timeout 45000ms
-    92 × unexpected value "http://localhost:3000/login/otp/?email=admin%40ollascomunes.pe"
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for locator('text=Insumos a vencer')
 
 ```
 
 ```yaml
+- list:
+  - listitem:
+    - button "OC Ollas Comunes Panel de gestión"
+- text: Principal
+- list:
+  - listitem:
+    - link "Inicio":
+      - /url: /workspace/home/
+  - listitem:
+    - link "Organizaciones":
+      - /url: /workspace/organizaciones/
+  - listitem:
+    - link "Beneficiarios":
+      - /url: /workspace/beneficiarios/
+  - listitem:
+    - link "Inventario":
+      - /url: /workspace/inventario/
+- text: Gestión
+- list:
+  - listitem:
+    - link "Alertas":
+      - /url: /workspace/alertas/
+  - listitem:
+    - link "Configuración":
+      - /url: /workspace/configuracion/
+- list:
+  - listitem:
+    - button "OC admin@ollascomunes.pe"
+- button "Toggle Sidebar"
 - main:
-  - button
-  - heading "Bienvenido de vuelta" [level=1]
-  - paragraph: Ingresa el código de 6 dígitos de tu app de autenticación
-  - button "Pegar código"
-  - paragraph: admin@ollascomunes.pe
-  - text: Código de verificación 9 1 3 1 3 6
-  - textbox "Código de verificación": "913136"
-  - paragraph: 6 dígitos numéricos
-  - button "Verificar código"
+  - button "Toggle Sidebar"
+  - text: Ollas Comunes Plataforma de gestion comunitaria
+  - heading "¡Bienvenido!" [level=1]
+  - paragraph: Resumen general del sistema
+  - text: Últimos 30 días
+  - button "Exportar reporte"
+  - text: Organizaciones
+  - paragraph: "10"
+  - text: +12% vs mes anterior Ollas comunes
+  - paragraph: "10"
+  - text: +8% vs mes anterior Beneficiarios
+  - paragraph: "480"
+  - text: +23% vs mes anterior Insumos
+  - paragraph: "5"
+  - text: "-5% vs mes anterior"
+  - heading "Resumen de inventario" [level=3]
+  - img
+  - text: Stock adecuado 60% Stock bajo 25% Stock crítico 15%
+  - heading "Evolución de beneficiarios" [level=3]
+  - text: Mensual
+  - img
+  - heading "Insumos críticos y bajo stock" [level=3]
+  - text: A
+  - paragraph: Arroz
+  - paragraph: Olla Integración 1392
+  - paragraph: ⚠ Sin stock
+  - paragraph: 0 kg
+  - text: A
+  - paragraph: Arroz
+  - paragraph: Olla Integración 1446
+  - paragraph: ⚠ Sin stock
+  - paragraph: 0 kg
+  - text: A
+  - paragraph: Arroz
+  - paragraph: Olla Test
+  - paragraph: ⚠ Sin stock
+  - paragraph: 0 kg
+  - heading "Actividades recientes" [level=3]
+  - paragraph: "Nuevo beneficiario registrado: Prioridad Temp (DNI: F031784425119115)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Stock insuficiente para: Arroz — Se intentó descontar 0.1 kg pero solo había 0 kg"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: Entrega Temporal (DNI: F141784425118986)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Insumo agotado: Arroz — Se registró una salida que dejó el stock en 0."
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Intento de registro fallido: Beneficiario con DNI 87654321 ya está registrado."
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: Beneficiario Prueba Vitest (DNI: 87654321)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: Stress32K2p TestYSCqm (DNI: 71451701)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: StressXY92S Testosshy (DNI: 96158405)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: StressDtylq TestNpq2p (DNI: 50832103)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
+  - paragraph: "Nuevo beneficiario registrado: Stress0bhNJ TestQBWiV (DNI: 49780343)"
+  - paragraph: Olla Integración 1392 • Hace 2 h
 - region "Notifications alt+T"
-- alert
+- alert: Ollas Comunes
 ```
 
 # Test source
@@ -81,8 +160,7 @@ Call log:
   37  |   await page.click('button[type="submit"]')
   38  | 
   39  |   // Esperar redirección al Workspace Home
-> 40  |   await expect(page).toHaveURL(/\/workspace\/home/, { timeout: 45000 })
-      |                      ^ Error: expect(page).toHaveURL(expected) failed
+  40  |   await expect(page).toHaveURL(/\/workspace\/home/, { timeout: 45000 })
   41  | }
   42  | 
   43  | test.describe('SIGO-Ollas Workspace Admin E2E Tests (15 escenarios)', () => {
@@ -99,7 +177,8 @@ Call log:
   54  |     // Verificar secciones del Dashboard
   55  |     await expect(page.locator('text=Resumen de inventario')).toBeVisible({ timeout: 35000 })
   56  |     await expect(page.locator('text=Evolución de beneficiarios')).toBeVisible()
-  57  |     await expect(page.locator('text=Insumos a vencer')).toBeVisible()
+> 57  |     await expect(page.locator('text=Insumos a vencer')).toBeVisible()
+      |                                                         ^ Error: expect(locator).toBeVisible() failed
   58  |     await expect(page.locator('text=Actividades recientes')).toBeVisible()
   59  | 
   60  |     // Verificar que los KPIs principales estén presentes
@@ -183,4 +262,21 @@ Call log:
   138 | 
   139 |     // Abrir modal
   140 |     await page.click('button:has-text("Registrar Beneficiario")')
+  141 |     await expect(page.locator('h2:has-text("Registrar Beneficiario")')).toBeVisible({ timeout: 20000 })
+  142 | 
+  143 |     // Intentar guardar sin completar datos obligatorios
+  144 |     await page.click('div.z-50 button:has-text("Registrar")')
+  145 | 
+  146 |     // Validar toast de error (los mensajes se unen en uno solo)
+  147 |     await expect(page.locator('text=El nombre es obligatorio.')).toBeVisible()
+  148 |   })
+  149 | 
+  150 |   test('Test 18.2: Registro Exitoso de Beneficiario (Éxito)', async ({ page }) => {
+  151 |     await loginAsAdmin(page)
+  152 |     const randomDni = Math.floor(10000000 + Math.random() * 90000000).toString()
+  153 | 
+  154 |     await page.goto('/workspace/beneficiarios')
+  155 |     await page.waitForLoadState('domcontentloaded')
+  156 | 
+  157 |     // Abrir formulario
 ```
