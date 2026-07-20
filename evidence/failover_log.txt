@@ -1,0 +1,43 @@
+=============================================
+ TEST FAILOVER - 2026-07-20 09:13:12
+=============================================
+
+[1/6] Insertando dato PRE-failover en primary
+=============================================
+ PROMOCION DE REPLICA - 2026-07-20 09:13:35
+=============================================
+
+[1/5] Estado pre-promocion:
+pg_is_in_recovery = t (esperado: t)
+
+[2/5] Ejecutando pg_ctl promote
+waiting for server to promote.... done
+server promoted
+Tiempo de promocion: 2.117 segundos
+
+[3/5] Estado post-promocion:
+pg_is_in_recovery = f (esperado: f)
+
+[4/5] Verificando datos replicados (incluyendo PRE-FAILOVER):
+Conteo post-promocion: 5
+ id |   dni    |        full_name        | priority_level |         created_at         
+----+----------+-------------------------+----------------+----------------------------
+  5 | 70000001 | PRE-FAILOVER-1784556778 |              1 | 2026-07-20 14:12:58.435304
+(1 row)
+
+
+[5/5] Insertando dato POST-failover:
+INSERT 0 1
+ id |   dni    |        full_name         | priority_level |         created_at         
+----+----------+--------------------------+----------------+----------------------------
+ 38 | 80000001 | POST-FAILOVER-1784556817 |              1 | 2026-07-20 14:13:37.280404
+(1 row)
+
+
+=============================================
+ METRICAS FINALES
+=============================================
+RTO failover: 2.117 segundos
+Datos pre-failover preservados: SI
+Nuevas escrituras funcionales: SI
+Tiempo total del test: 2026-07-20 09:13:37

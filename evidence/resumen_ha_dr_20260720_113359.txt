@@ -1,0 +1,10 @@
+=== RESUMEN PRUEBAS HA/DR ===
+Fecha: 2026-07-20 11:33:59
+Pasadas: 13
+Fallidas: 1
+Advertencias: 3
+RTO failover: 2.117s
+Backup time: 0.152s
+Restore time: 0.053s
+Vitest exit code: 0
+================================

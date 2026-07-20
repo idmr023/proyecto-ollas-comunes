@@ -1,0 +1,337 @@
+======================================================
+  SIGO-OLLAS - Pruebas de Alta Disponibilidad / DR
+  Fecha: 2026-07-20 11:27:58
+  Proyecto: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes
+  Evidencias: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence
+======================================================
+
+
+======================================================
+  FASE 0: Verificacion de entorno
+======================================================
+[PASS] Comando 'wsl' disponible
+[PASS] WSL distro 'primary-db' disponible y ejecutandose
+[PASS] WSL distro 'replica-db' disponible y ejecutandose
+[11:28:00]   IP primary-db: 172.18.128.229
+[11:28:00]   IP replica-db: 172.18.128.229
+[PASS] Node.js disponible: v24.17.0
+[PASS] Vitest disponible en backend/
+
+
+======================================================
+  FASE 1: Setup del PRIMARY
+======================================================
+[11:28:00] Ejecutando 01-setup-primary.sh en primary-db...
+[11:28:00]   (instala PostgreSQL, crea replicator user, DB de prueba)
+[PASS] Setup del primary completado
+
+======================================================
+  FASE 1: Setup de la REPLICA
+======================================================
+[11:28:01] Ejecutando 02-setup-replica.sh en replica-db (primary IP: 172.18.128.229)...
+[11:28:01]   (instala PostgreSQL, ejecuta pg_basebackup, inicia standby)
+[PASS] Setup de la replica completado
+
+
+======================================================
+  FASE 2: Verificacion de replicacion
+======================================================
+[11:28:02] Ejecutando 03-check-replication.sh en primary-db...
+================================================
+ Verificando estado de replicacion
+================================================
+Expanded display is on.
+(0 rows)
+
+
+================================================
+ Slots de replicacion
+================================================
+   slot_name    | plugin | slot_type | datoid | database | temporary | active | active_pid | xmin | catalog_xmin | restart_lsn | confirmed_flush_lsn | wal_status | safe_wal_size | two_phase 
+----------------+--------+-----------+--------+----------+-----------+--------+------------+------+--------------+-------------+---------------------+------------+---------------+-----------
+ replica_slot_1 |        | physical  |        |          | f         | f      |            |  740 |              | 0/4000540   |                     | reserved   |               | f
+(1 row)
+
+
+================================================
+ Conteo de beneficiarios en PRIMARY
+================================================
+ count 
+-------
+     5
+(1 row)
+
+[11:28:03]   (verificar arriba que state=streaming y byte_lag=0)
+[PASS] Estado de replicacion consultado
+[11:28:03] Insertando dato de prueba de replicacion...
+[WARN] Conteos no coinciden: primary=5, replica=N/A
+[WARN] (esperado post-failover si no hay replicacion activa)
+
+
+======================================================
+  FASE 3: Test de failover (Alta Disponibilidad)
+======================================================
+[11:28:05] Paso 1: Deteniendo primary-db (simula caida)...
+[11:28:05] Ejecutando 04-failover-test.sh en primary-db...
+================================================
+ INICIO TEST FAILOVER - 2026-07-20 11:28:06.139
+================================================
+
+[1/6] Insertando dato de pre-failover
+
+[2/6] Datos antes del failover
+ total_pre 
+-----------
+         6
+(1 row)
+
+
+[3/6] SIMULANDO CAIDA DEL PRIMARY: pg_ctl stop -m immediate
+
+[4/6] Estado post-caida (debe fallar)
+ ?column? 
+----------
+        1
+
+================================================
+ ACCION SOBRE LA REPLICA: ejecutar
+ wsl -d replica-db bash /scripts/04-failover-test.sh replica
+================================================
+[WARN] Primary podria no haberse detenido (status: /run/postgresql:5432 - accepting connections)
+[11:28:08] 
+[11:28:08] Paso 2: Promoviendo replica-db a primary...
+[11:28:08] Ejecutando 04-failover-test-replica.sh en replica-db...
+================================================
+ [REPLICA] INICIO PROMOCION - 2026-07-20 11:28:09.058
+================================================
+
+[1/5] Verificando que estamos en recovery (debe ser 't')
+
+[2/5] Ejecutando pg_ctl promote
+
+[3/5] Estado post-promocion (debe ser 'f')
+
+[4/5] Verificando datos replicados
+
+[5/5] Insertando dato de post-failover
+
+================================================
+ RTO failover:  segundos
+================================================
+Log guardado en /evidence/failover_log.txt
+[PASS] Failover completado en ~1784564889.658s (RTO)
+
+
+======================================================
+  FASE 4: Test de backup (Recuperacion)
+======================================================
+[11:28:09] Ejecutando 05-backup-test.sh en replica-db...
+================================================
+ INICIO BACKUP - 2026-07-20 11:28:10.139
+================================================
+
+[1/4] Insertando dato de marca temporal pre-backup
+
+[2/4] Ejecutando pg_dump
+
+[3/4] Backup completado en s, tamano: 0 bytes
+
+[4/4] Listando contenido del backup (verificacion de integridad)
+
+Backup guardado en: /tmp/backup_20260720_112810.dump
+Log guardado en: /evidence/backup_log.txt
+[PASS] Backup ejecutado
+
+
+======================================================
+  FASE 5: Test de restore (Recuperacion)
+======================================================
+[11:28:10] Buscando backup mas reciente en replica-db...
+[FAIL] No se encontro archivo de backup en replica-db:/tmp/
+
+
+======================================================
+  FASE 6: Recoleccion de evidencias desde WSL
+======================================================
+[11:28:11] Copiando evidencias desde primary-db...
+[11:28:11] Copiando evidencias desde replica-db...
+[11:28:12] Evidencias recolectadas:
+  -rw-r--r-- 1 idmr_ 197609 1185 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/backup_log.txt
+  -rw-r--r-- 1 idmr_ 197609 1546 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/failover_log.txt
+  -rw-r--r-- 1 idmr_ 197609 3531 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/last_backup.dump
+  -rw-r--r-- 1 idmr_ 197609 1171 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/replica_state.txt
+  -rw-r--r-- 1 idmr_ 197609 1220 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/replication_status.txt
+  -rw-r--r-- 1 idmr_ 197609 1929 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/restore_log.txt
+  -rw-r--r-- 1 idmr_ 197609 1441 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/validacion_wsl_20260720_102435.log
+  -rw-r--r-- 1 idmr_ 197609 1318 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/validacion_wsl_20260720_102738.log
+  -rw-r--r-- 1 idmr_ 197609 1318 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/validacion_wsl_20260720_102812.log
+  -rw-r--r-- 1 idmr_ 197609 1308 jul. 20 10:43 /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/validacion_wsl_20260720_102931.log
+
+
+======================================================
+  FASE 7: Test Vitest (ha-survival.test.ts)
+======================================================
+[11:28:12] Ejecutando: cd backend && HA_TEST=true npx vitest run ha-survival --reporter verbose
+[11:28:12] 
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend[39m
+
+[90mstdout[2m | src/test/ha-survival.test.ts
+[22m[39m◇ injected env (20) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+[90mstderr[2m | src/test/ha-survival.test.ts[2m > [22m[2mHA/DR: Integridad del sistema post-failover[2m > [22m[2mComprueba que la API responde contra el nodo promovido tras el failover
+[22m[39m[encryption] Fallo al descifrar un valor AES-256-CBC determinista.
+
+[90mstderr[2m | src/test/ha-survival.test.ts[2m > [22m[2mHA/DR: Integridad del sistema post-failover[2m > [22m[2mComprueba que la API responde contra el nodo promovido tras el failover
+[22m[39m[beneficiaries] Error inesperado: Error: No se pudo descifrar el valor almacenado.
+    at decryptDeterministic (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/lib/encryption.ts:99:11)
+    at BeneficiaryRepository.toRecord (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/repository.ts:173:22)
+    at Array.map (<anonymous>)
+    at BeneficiaryRepository.findAll (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/repository.ts:42:17)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at getAllBeneficiaries (C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/service.ts:166:19)
+    at C:/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/backend/src/modules/beneficiaries/router.ts:75:19
+
+ [31m×[39m src/test/ha-survival.test.ts[2m > [22mHA/DR: Integridad del sistema post-failover[2m > [22mComprueba que la API responde contra el nodo promovido tras el failover[33m 1686[2mms[22m[39m
+[31m   → expected 500 to be 200 // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/ha-survival.test.ts[2m > [22mHA/DR: Integridad del sistema post-failover[2m > [22mComprueba que la API responde contra el nodo promovido tras el failover
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2m❯[22m src/test/ha-survival.test.ts:[2m78:37[22m[39m
+    [90m 76|[39m       headers[33m:[39m { [32m'Authorization'[39m[33m:[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m }
+    [90m 77|[39m     })[33m;[39m
+    [90m 78|[39m     [34mexpect[39m(beneficiariesRes[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   |[39m                                     [31m^[39m
+    [90m 79|[39m     [35mconst[39m body [33m=[39m ([35mawait[39m beneficiariesRes[33m.[39m[34mjson[39m()) [35mas[39m any[33m;[39m
+    [90m 80|[39m     [34mexpect[39m([33mArray[39m[33m.[39m[34misArray[39m(body[33m.[39mitems))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 11:28:13
+[2m   Duration [22m 4.25s[2m (transform 267ms, setup 38ms, import 596ms, tests 3.46s, environment 0ms)[22m
+
+
+[PASS] Vitest ha-survival PASO (1784564898.144s)
+
+
+======================================================
+  FASE 8: Validacion de infraestructura WSL
+======================================================
+[11:28:18] Ejecutando validate-wsl-ha.sh --report...
+
+======================================================
+  SIGO-OLLAS - Validacion HA/DR en WSL2
+  Fecha: 2026-07-20 11:28:18
+======================================================
+
+--- [1] Distros WSL2 ---
+[PASS] Distro 'primary-db' encontrada
+[PASS] Distro 'replica-db' encontrada
+
+--- [2] Estado de WSL2 ---
+[PASS] WSL2 'primary-db' esta ejecutandose
+       Hostname: Ivan, Kernel: 6.18.33.2-microsoft-standard-WSL2
+[PASS] WSL2 'replica-db' esta ejecutandose
+       Hostname: Ivan, Kernel: 6.18.33.2-microsoft-standard-WSL2
+
+--- [3] Direcciones IP ---
+[PASS] IP de 'primary-db': 172.18.128.229
+[PASS] IP de 'replica-db': 172.18.128.229
+
+--- [4] PostgreSQL ---
+[PASS] PostgreSQL en 'primary-db:5432' acepta conexiones
+       Rol: primary, Puerto: 5432
+[PASS] PostgreSQL en 'replica-db:5433' acepta conexiones
+       Rol: primary, Puerto: 5433
+
+--- [5] Conectividad de red entre nodos ---
+[PASS] replica-db puede alcanzar a primary-db (172.18.128.229)
+[PASS] primary-db puede alcanzar a replica-db (172.18.128.229)
+
+--- [6] Estado de replicacion ---
+[PASS] 'primary-db' es PRIMARY (no replica datos entrantes)
+[WARN] PRIMARY 'primary-db' no tiene replicas conectadas (esperado post-failover)
+[PASS] 'replica-db' es PRIMARY (no replica datos entrantes)
+[WARN] PRIMARY 'replica-db' no tiene replicas conectadas (esperado post-failover)
+
+--- [7] Bases de datos y datos de prueba ---
+[PASS] BD 'sigo_ollas_test' encontrada en 'primary-db'
+       Tablas en 'sigo_ollas_test': 1
+       Beneficiarios: 6
+[PASS] BD 'sigo_ollas_test' encontrada en 'replica-db'
+       Tablas en 'sigo_ollas_test': 22
+       Beneficiarios: 4
+
+--- [8] Recursos del sistema ---
+[WARN] No se pudieron obtener recursos de 'primary-db'
+[WARN] No se pudieron obtener recursos de 'replica-db'
+
+--- [9] Health check de la API ---
+[WARN] API health endpoint no disponible (HTTP 000000) - servidor no corriendo
+
+--- [10] Conectividad PostgreSQL desde el host ---
+[PASS] Conexion a PostgreSQL en 'replica-db:5433' via WSL exitosa
+[PASS] Conexion a PostgreSQL en 'primary-db:5432' via WSL exitosa
+
+======================================================
+  RESUMEN DE VALIDACION
+======================================================
+
+  Pruebas pasadas: 16
+  Pruebas fallidas: 0
+  Advertencias: 5
+
+  Advertencias:
+    - PRIMARY 'primary-db' no tiene replicas conectadas (esperado post-failover)
+    - PRIMARY 'replica-db' no tiene replicas conectadas (esperado post-failover)
+    - No se pudieron obtener recursos de 'primary-db'
+    - No se pudieron obtener recursos de 'replica-db'
+    - API health endpoint no disponible (HTTP 000000) - servidor no corriendo
+
+  Resultado: 16/16 pruebas exitosas
+  ESTADO: ✅ VALIDACION EXITOSA
+======================================================
+
+Generando reporte markdown...
+Reporte guardado en: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/docs/VALIDACION_HA_WSL.md
+Log guardado en: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/validacion_wsl_20260720_112828.log
+
+[PASS] Validacion WSL completada
+
+
+======================================================
+  FASE 9: Generacion de reporte final
+======================================================
+[11:28:29] 
+[11:28:29] Reporte final generado: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/docs/INFORME_PRUEBAS_HA_DR.md
+[PASS] Reporte final consolidado
+
+======================================================
+  RESUMEN FINAL - Pruebas HA/DR
+======================================================
+
+  Pruebas pasadas:    13
+  Pruebas fallidas:   1
+  Advertencias:       3
+
+  RESULTADO: ⚠️ VALIDACION PARCIAL
+
+  Evidencias: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/
+  Log: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/logs/run-all-ha-tests_20260720_112758.log
+  Reporte: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/docs/INFORME_PRUEBAS_HA_DR.md
+  Validacion WSL: docs/VALIDACION_HA_WSL.md
+
+======================================================
+[11:28:29] Resumen guardado: /c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/resumen_ha_dr_20260720_112758.txt
