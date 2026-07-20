@@ -77,6 +77,35 @@ async function main() {
     },
   })
 
+  // Categoría e insumo: `functional.test.ts` los crea si faltan, pero recurre a
+  // `categoryId: 1` cuando no hay ninguna categoría, y ese id no existe en una
+  // base recién creada. Sembrarlos evita la violación de clave foránea.
+  const categoria = await prisma.supplyCategory.upsert({
+    where: { name: 'Abarrotes' },
+    update: {},
+    create: { name: 'Abarrotes' },
+  })
+
+  await prisma.supplyItem.upsert({
+    where: { name_unit: { name: 'Arroz', unit: 'kg' } },
+    update: {},
+    create: {
+      name: 'Arroz',
+      unit: 'kg',
+      categoryId: categoria.id,
+      status: 'active',
+    },
+  })
+
+  // Condiciones de salud: el padrón las referencia por id.
+  for (const nombre of ['Anemia', 'Diabetes']) {
+    await prisma.healthCondition.upsert({
+      where: { name: nombre },
+      update: {},
+      create: { name: nombre },
+    })
+  }
+
   console.log(`Seed CI listo. Tenant ${tenant.code}, olla ${olla.code}.`)
 }
 
