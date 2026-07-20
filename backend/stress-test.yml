@@ -1,5 +1,5 @@
 config:
-  target: "http://localhost:4000"
+  target: "https://proyecto-ollas-comunes.onrender.com"
   processor: "./stress-test-processor.js"
   phases:
     - duration: 30
