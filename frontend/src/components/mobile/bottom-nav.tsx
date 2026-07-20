@@ -40,7 +40,10 @@ export function BottomNav() {
           )
         })}
         <button
-          onClick={() => clearAuth()}
+          onClick={() => {
+            clearAuth()
+            document.cookie = "sigo_session=; path=/; max-age=0"
+          }}
           className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors min-h-[48px] min-w-[64px] text-muted-foreground hover:text-foreground cursor-pointer border-none bg-transparent"
         >
           <LogOut className="h-6 w-6" />

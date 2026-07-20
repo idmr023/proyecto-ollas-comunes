@@ -5,13 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck, Loader2, ArrowLeft, Smartphone, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/store/auth-store"
-import { verifyOtpRequest } from "@/lib/auth-api"
 import { toast } from "sonner"
 
 function OtpVerification() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") ?? ""
+  const nextParam = searchParams.get("next")
   const isSetup = searchParams.get("setup") === "1"
   const secret = searchParams.get("secret") ?? ""
   const qrCodeUri = searchParams.get("qrCodeUri") ?? ""
@@ -30,28 +30,25 @@ function OtpVerification() {
     if (code.length !== 6) { toast.error("Ingresa el código de 6 dígitos"); return }
     setLoading(true)
     try {
-      const tempToken = useAuthStore.getState().tempToken
-      if (!tempToken) {
-        toast.error("La sesión de verificación expiró. Inicia sesión de nuevo.")
-        router.replace("/login")
-        return
-      }
-
-      const res = await verifyOtpRequest({ email, code, tempToken })
-      if (!res.ok || !res.user) { toast.error(res.message ?? "Código inválido o expirado"); return }
-
-      // El backend ya emitió la cookie httpOnly en esta respuesta; el token del
-      // cuerpo se ignora a propósito para no dejarlo al alcance de un XSS.
-      setAuth(res.user)
+      const tempToken = useAuthStore.getState().token
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code, tempToken }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.message ?? "Código inválido o expirado"); return }
+      setAuth(data.user, data.token)
+      document.cookie = `sigo_session=${data.token}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 7}`
       toast.success("Sesión iniciada correctamente")
-      const destino = res.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio"
+      const destino = nextParam || (data.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio")
       router.push(destino)
     } catch {
       toast.error("Sin conexión al servidor")
     } finally {
       setLoading(false)
     }
-  }, [code, email, router, setAuth])
+  }, [code, email, router, setAuth, nextParam])
 
   const handleCopySecret = useCallback(async () => {
     try {

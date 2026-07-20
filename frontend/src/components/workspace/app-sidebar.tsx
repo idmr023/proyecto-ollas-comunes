@@ -217,6 +217,7 @@ export function AppSidebar() {
                   className="gap-2 cursor-pointer text-destructive focus:text-destructive"
                   onClick={() => {
                     clearAuth()
+                    document.cookie = "sigo_session=; path=/; max-age=0"
                     window.location.href = "/login"
                   }}
                 >
