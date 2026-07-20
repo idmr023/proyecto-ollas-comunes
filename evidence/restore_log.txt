@@ -1,0 +1,46 @@
+=============================================
+ TEST RESTORE - 2026-07-20 09:15:09
+ Backup origen: /tmp/sigo_ollas_backup_20260720_091423.dump
+ Puerto destino: 5433
+=============================================
+
+[1/6] DROP y CREATE DB limpia 'sigo_ollas_restored'
+DROP DATABASE
+CREATE DATABASE
+
+[2/6] Conteo pre-restore (debe ser 0):
+Tabla beneficiaries existe: 0 (1=existe, 0=no existe)
+
+[3/6] Ejecutando pg_restore
+Tiempo de restore: 0.053 segundos
+
+[4/6] Conteo post-restore:
+Conteo post-restore: 7
+
+[5/6] Verificando integridad de los datos restaurados:
+ id |   dni    |            full_name             | priority_level 
+----+----------+----------------------------------+----------------
+  1 | 10000001 | Beneficiario Test 1              |              1
+  2 | 10000002 | Beneficiario Test 2              |              2
+  3 | 10000003 | Beneficiario Test 3              |              3
+  4 | 50000001 | TEST-LIVE-REPLICATION-1784556716 |              1
+  5 | 70000001 | PRE-FAILOVER-1784556778          |              1
+ 38 | 80000001 | POST-FAILOVER-1784556817         |              1
+ 39 | 94556863 | PRE-BACKUP-1784556863            |              2
+(7 rows)
+
+
+[6/6] Verificando registros clave (PRE-FAILOVER, POST-FAILOVER, PRE-BACKUP):
+ id |   dni    |        full_name         | priority_level |         created_at         
+----+----------+--------------------------+----------------+----------------------------
+  5 | 70000001 | PRE-FAILOVER-1784556778  |              1 | 2026-07-20 14:12:58.435304
+ 38 | 80000001 | POST-FAILOVER-1784556817 |              1 | 2026-07-20 14:13:37.280404
+ 39 | 94556863 | PRE-BACKUP-1784556863    |              2 | 2026-07-20 14:14:23.600217
+(3 rows)
+
+
+=============================================
+ RESTORE COMPLETADO EXITOSAMENTE
+ RTO restore: 0.053 segundos
+ Registros restaurados: 7
+=============================================

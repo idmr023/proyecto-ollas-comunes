@@ -29,11 +29,15 @@ export interface LoginCredentials {
   password: string
 }
 
+/**
+ * El alta de usuarios la hace un administrador autenticado.
+ * `tenantId` no se envia: el backend lo deriva del token del solicitante y
+ * rechaza la peticion si aparece en el cuerpo.
+ */
 export interface RegisterInput {
   email: string
   password: string
   fullName: string
-  tenantId: string
   role?: string
 }
 
