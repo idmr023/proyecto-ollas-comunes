@@ -1,0 +1,37 @@
+=============================================
+ TEST BACKUP (pg_dump) - 2026-07-20 09:14:23
+ Puerto origen: 5433
+=============================================
+
+[1/5] Insertando marca temporal pre-backup
+INSERT 0 1
+Conteo pre-backup: 7
+
+[2/5] Ejecutando pg_dump -Fc (formato custom, comprimido)
+Tiempo: 0.152 segundos
+Tamano: 3531 bytes ( KB)
+Archivo: /tmp/sigo_ollas_backup_20260720_091423.dump
+
+[3/5] Listando contenido del backup
+;
+; Archive created at 2026-07-20 09:14:24 -05
+;     dbname: sigo_ollas_test
+;     TOC Entries: 12
+;     Compression: -1
+;     Dump Version: 1.14-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 15.18
+
+[4/5] Copiando backup a la maquina host (evidencia)
+Copia en: /mnt/c/Users/idmr_/OneDrive/Escritorio/proyecto-ollas-comunes/evidence/last_backup.dump
+
+[5/5] Metricas RPO
+RPO = 0 (el backup captura todos los datos hasta el momento del pg_dump)
+Frecuencia objetivo: diaria (suficiente para RPO < 24h)
+
+=============================================
+ BACKUP COMPLETADO EXITOSAMENTE
+ Tiempo: 0.152s, Tamano: 3531 bytes
+=============================================

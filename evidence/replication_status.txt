@@ -1,0 +1,51 @@
+=============================================
+ PRUEBA DE REPLICACION - 2026-07-20 09:11:56
+ SIGO-OLLAS - Alta Disponibilidad
+=============================================
+
+## ENTORNO
+Primary: 172.18.128.229:5432 (WSL2 distro: primary-db)
+Replica: 172.18.128.229:5433 (WSL2 distro: replica-db)
+SO: AlmaLinux 9.8 (Olive Jaguar) en WSL2
+PostgreSQL: 15.18 (PGDG)
+
+## ESTADO DEL PRIMARY
+pg_is_in_recovery = f
+
+## ESTADO DE LA REPLICA
+pg_is_in_recovery = 
+
+## SLOTS DE REPLICACION
+   slot_name    | active | restart_lsn 
+----------------+--------+-------------
+ replica_slot_1 | t      | 0/3000060
+(1 row)
+
+
+## ESTADO DE STREAMING (pg_stat_replication)
+-[ RECORD 1 ]----+---------------
+pid              | 51103
+usename          | replicator
+application_name | walreceiver
+client_addr      | 172.18.128.229
+state            | streaming
+sync_state       | async
+sent_lsn         | 0/3000060
+replay_lsn       | 0/3000060
+byte_lag         | 0
+
+
+## TEST DE REPLICACION EN VIVO
+Insertando registro en primary...
+INSERT 0 1
+
+Conteos despues de 2s:
+Primary: 4
+Replica: 
+
+## REPLICATION LAG MEDIDO
+-[ RECORD 1 ]---------
+sent_lsn   | 0/3000400
+replay_lsn | 0/3000400
+byte_lag   | 0
+
