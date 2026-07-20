@@ -34,3 +34,6 @@ node_trace.*.log
 
 # Directorio temporal de git filter-branch (nunca debe versionarse)
 .git-rewrite/
+
+# App movil Flutter: fuera del control de versiones hasta su aprobacion
+mobile_app/
