@@ -15,11 +15,13 @@ Ordenado por consecuencia si se hace mal. **Los puntos 1 a 3 bloquean el desplie
 El trabajo **ya está commiteado y subido**. Punto de partida: la versión de `main` al
 inicio del día.
 
-| Rama | Contenido |
-|------|-----------|
-| `main` | Versión del inicio del día **+ la remediación de seguridad** |
-| `Aaron` | Todo lo de `main` + el trabajo propio de la rama (jobs de IA, calculadora de preparación, migraciones 003–007). **Para revisión del equipo.** |
-| `wip/auditoria-seguridad` | Rama intermedia con los dos commits de remediación. Puede borrarse una vez revisado. |
+
+| Rama                      | Contenido                                                                                                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main`                    | Versión del inicio del día **+ la remediación de seguridad**                                                                                  |
+| `Aaron`                   | Todo lo de `main` + el trabajo propio de la rama (jobs de IA, calculadora de preparación, migraciones 003–007). **Para revisión del equipo.** |
+| `wip/auditoria-seguridad` | Rama intermedia con los dos commits de remediación. Puede borrarse una vez revisado.                                                          |
+
 
 Commits de la remediación:
 
@@ -44,6 +46,20 @@ chore: saca mobile_app/ del control de versiones               (solo en Aaron)
 > tratamiento: `git merge main --allow-unrelated-histories -X theirs`, más la
 > reconciliación manual de lo que cada una haya tocado.
 
+### Acciones de repositorio pendientes
+
+- [ ] **Revisar el trabajo en `Aaron`** — es el objetivo de la subida. `main` ya tiene la
+      remediación, así que cualquiera que despliegue desde ahí despliega el código
+      corregido.
+- [ ] **Borrar `wip/auditoria-seguridad`** una vez revisado. Era rama intermedia; su
+      contenido está en `main` y en `Aaron`.
+- [ ] **Al fusionar `Aaron` hacia `main`,** esperar un conflicto en este mismo archivo.
+
+  `main` **no está contenida en `Aaron`**: el commit de documentación llegó a cada rama
+  por un camino distinto (subida directa en `main`, `cherry-pick` en `Aaron`), así que
+  tienen identificadores diferentes aunque **el contenido sea idéntico**. Git lo verá
+  tocado por ambos lados; se resuelve tomando cualquiera de las dos versiones.
+
 ---
 
 ## 🔴 Bloqueantes
@@ -56,7 +72,6 @@ chore: saca mobile_app/ del control de versiones               (solo en Aaron)
 > los deja ilegibles de forma permanente.
 
 - [ ] Obtener el valor derivado del secreto **actual**:
-
   ```bash
   node -e "console.log(require('crypto').createHash('sha256').update(process.env.JWT_SECRET).digest('hex'))"
   ```
@@ -99,7 +114,6 @@ Sin acceso a los datos no puede responderse desde el código, y **el resultado c
 queda trabajo de reparación pendiente**.
 
 - [ ] Ejecutar:
-
   ```sql
   SELECT t.name, COUNT(*) AS ollas_activas
   FROM ollas_comunes o JOIN tenants t ON t.id = o.tenant_id
@@ -107,10 +121,12 @@ queda trabajo de reparación pendiente**.
   GROUP BY t.name HAVING COUNT(*) > 1;
   ```
 
-| Resultado | Interpretación | Acción |
-|-----------|----------------|--------|
-| **Sin filas** | Cada organización tenía una sola olla. El fallo estaba **latente**: nunca causó daño, pero se habría activado al crear la segunda. | Nada más. |
-| **Con filas** | Esas organizaciones pudieron escribir **entregas de raciones y movimientos de inventario en la olla equivocada**. | Auditar esos registros y decidir si se corrigen. La corrección del código **no los repara retroactivamente**. |
+
+| Resultado     | Interpretación                                                                                                                     | Acción                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Sin filas** | Cada organización tenía una sola olla. El fallo estaba **latente**: nunca causó daño, pero se habría activado al crear la segunda. | Nada más.                                                                                                     |
+| **Con filas** | Esas organizaciones pudieron escribir **entregas de raciones y movimientos de inventario en la olla equivocada**.                  | Auditar esos registros y decidir si se corrigen. La corrección del código **no los repara retroactivamente**. |
+
 
 ### 5. Aplicar la migración y asignar ollas a mano
 
@@ -186,22 +202,26 @@ cabecera.
 
 ### Decisiones ya tomadas
 
-| Decisión | Resolución |
-|----------|------------|
-| Estrategia de commit | Dos commits sobre `main`; `Aaron` los recibe por fusión, para revisión del equipo. |
-| `mobile_app/` | **La app Flutter no fue aprobada.** Desindexada y añadida al `.gitignore`. Los archivos siguen en disco y los commits de las fases 0–2 permanecen en el historial: recuperarla es revertir un commit. |
+
+| Decisión             | Resolución                                                                                                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estrategia de commit | Dos commits sobre `main`; `Aaron` los recibe por fusión, para revisión del equipo.                                                                                                                    |
+| `mobile_app/`        | **La app Flutter no fue aprobada.** Desindexada y añadida al `.gitignore`. Los archivos siguen en disco y los commits de las fases 0–2 permanecen en el historial: recuperarla es revertir un commit. |
+
 
 ---
 
 ## Variables de entorno nuevas
 
-| Variable | Obligatoria | Descripción |
-|----------|-------------|-------------|
-| `DB_ENCRYPTION_KEY` | **Sí en producción** | Clave de cifrado en reposo, independiente de `JWT_SECRET`. Hex de 64 caracteres. Ver punto 1. |
-| `EXPOSE_ERROR_DETAILS` | No | `true` expone detalles de error en las respuestas. **Nunca en producción.** |
-| `RATE_LIMIT_GLOBAL_MAX` | No | Peticiones por minuto globales. Por defecto 300 en producción. |
-| `JSON_BODY_LIMIT` | No | Tamaño máximo del cuerpo. Por defecto `10mb`. |
-| `BACKEND_ORIGIN` | No | Destino del rewrite del frontend. Si falta se usa `NEXT_PUBLIC_API_URL`. |
+
+| Variable                | Obligatoria          | Descripción                                                                                   |
+| ----------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `DB_ENCRYPTION_KEY`     | **Sí en producción** | Clave de cifrado en reposo, independiente de `JWT_SECRET`. Hex de 64 caracteres. Ver punto 1. |
+| `EXPOSE_ERROR_DETAILS`  | No                   | `true` expone detalles de error en las respuestas. **Nunca en producción.**                   |
+| `RATE_LIMIT_GLOBAL_MAX` | No                   | Peticiones por minuto globales. Por defecto 300 en producción.                                |
+| `JSON_BODY_LIMIT`       | No                   | Tamaño máximo del cuerpo. Por defecto `10mb`.                                                 |
+| `BACKEND_ORIGIN`        | No                   | Destino del rewrite del frontend. Si falta se usa `NEXT_PUBLIC_API_URL`.                      |
+
 
 `JWT_SECRET` ya no admite valores de menos de 32 caracteres: **la aplicación no arranca**.
 
@@ -209,23 +229,26 @@ cabecera.
 
 ## Trabajo pendiente que no requiere intervención
 
-| Prioridad | Tarea | Nota |
-|-----------|-------|------|
-| **Alta** | **A-1 — RLS inefectivo** | Lo más importante que queda. Cero referencias a `current_tenant_id`: las 20 políticas no se activan nunca. Establecerlo en la transacción es contenido; **conectar Prisma con un rol no propietario toca credenciales de BD y sí necesitaría visto bueno**. |
-| Alta | CI con Postgres | Sin él, integración y funcionales solo corren a mano. Mejor relación esfuerzo/beneficio pendiente. |
-| Media | Conteos globales en el dashboard | Fuga cross-tenant en `getAdminDashboard`. Dos líneas. |
-| Media | M-6 · validar TLS contra la CA de Supabase | |
-| Media | M-8 · slug como columna indexada | Las rutas críticas ya usan `findById`. |
-| Media | M-1 · índice ciego para el DNI | **Requiere migración de datos.** Hacerlo *después* de fijar `DB_ENCRYPTION_KEY`, o se recifra dos veces. |
-| Baja | A-4 · nonce en la CSP · unificar `handleError` · B-1 a B-5 | |
+
+| Prioridad | Tarea                                                      | Nota                                                                                                                                                                                                                                                        |
+| --------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Alta**  | **A-1 — RLS inefectivo**                                   | Lo más importante que queda. Cero referencias a `current_tenant_id`: las 20 políticas no se activan nunca. Establecerlo en la transacción es contenido; **conectar Prisma con un rol no propietario toca credenciales de BD y sí necesitaría visto bueno**. |
+| Alta      | CI con Postgres                                            | Sin él, integración y funcionales solo corren a mano. Mejor relación esfuerzo/beneficio pendiente.                                                                                                                                                          |
+| Media     | Conteos globales en el dashboard                           | Fuga cross-tenant en `getAdminDashboard`. Dos líneas.                                                                                                                                                                                                       |
+| Media     | M-6 · validar TLS contra la CA de Supabase                 |                                                                                                                                                                                                                                                             |
+| Media     | M-8 · slug como columna indexada                           | Las rutas críticas ya usan `findById`.                                                                                                                                                                                                                      |
+| Media     | M-1 · índice ciego para el DNI                             | **Requiere migración de datos.** Hacerlo *después* de fijar `DB_ENCRYPTION_KEY`, o se recifra dos veces.                                                                                                                                                    |
+| Baja      | A-4 · nonce en la CSP · unificar `handleError` · B-1 a B-5 |                                                                                                                                                                                                                                                             |
+
 
 ---
 
 ## Orden sugerido
 
 1. **Punto 4 primero.** Si devuelve filas, cambia la prioridad de todo lo demás: habría
-   datos que reparar antes de seguir.
+  datos que reparar antes de seguir.
 2. Puntos 1 a 3 (variables de entorno y credenciales).
 3. Puntos 5 a 8 (migración, frontend, pruebas, aviso al equipo móvil).
 4. Decisiones a–b.
 5. A-1 y el resto del trabajo pendiente.
+
