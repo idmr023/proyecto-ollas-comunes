@@ -1,0 +1,110 @@
+name: CI
+
+# Motivo: hasta ahora las pruebas de integración y funcionales solo corrían si
+# alguien levantaba el entorno a mano, así que en la práctica no corrían nunca —
+# justamente las que cubren el control de acceso, lo de mayor impacto. Aquí se
+# ejecutan contra un Postgres efímero en cada push.
+
+on:
+  push:
+    branches: [main, Aaron, development]
+  pull_request:
+    branches: [main, development]
+
+# Un push nuevo cancela la ejecución anterior de la misma rama.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — pruebas
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sigo_test
+        ports:
+          - 5432:5432
+        # Sin esto los pasos arrancan antes de que Postgres acepte conexiones.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Base efímera del runner. Nunca apunta a Supabase: las pruebas de
+      # integración crean organizaciones, ollas y beneficiarios reales.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/sigo_test
+      # Valores de prueba. Deben cumplir el mínimo de 32 caracteres que exige
+      # lib/config/secrets.ts, o la aplicación no arranca.
+      JWT_SECRET: ci-jwt-secret-0123456789abcdefghijk
+      DB_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: test
+      ALLOWED_ORIGINS: http://localhost:3000
+      # Sin límite práctico: si no, las suites completas topan con el limitador.
+      RATE_LIMIT_AUTH_MAX: '100000'
+      RATE_LIMIT_GLOBAL_MAX: '100000'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Crear el esquema
+        run: npx prisma db push --skip-generate
+
+      - name: Sembrar datos de prueba
+        run: node prisma/seed-ci.cjs
+
+      - name: Comprobación de tipos
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Pruebas
+        run: npm test
+
+  frontend:
+    name: Frontend — build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobación de tipos
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Build
+        # Verifica que proxy.ts y el rewrite de next.config.ts son válidos:
+        # ambos se escribieron sin haberse podido ejecutar nunca.
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000

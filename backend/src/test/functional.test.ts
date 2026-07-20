@@ -2,8 +2,8 @@ import 'dotenv/config'
 import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
-import { generate } from 'otplib'
 import { prisma } from '../lib/prisma'
+import { authenticate } from './helpers/auth'
 
 let server: Server
 const PORT = 4001
@@ -16,47 +16,6 @@ let testInsumoId: string = ''
 let testOllaId: string = ''
 const testDni = String(80000000 + Math.floor(Math.random() * 10000000))
 
-async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
-  // 1. Iniciar login
-  const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@ollascomunes.pe', password: 'admin123' })
-  })
-  const loginData = (await loginRes.json()) as any
-
-  if (loginData.token) {
-    return { token: loginData.token, tenantId: loginData.user.tenantId }
-  }
-
-  // 2. Generar el código TOTP dinámicamente
-  let secret = loginData.secret
-  if (!secret) {
-    const user = await prisma.appUser.findUnique({
-      where: { email: 'admin@ollascomunes.pe' }
-    })
-    secret = user?.totpSecret
-  }
-  if (!secret) throw new Error('No se encontró el secreto TOTP en la Base de Datos ni en la respuesta')
-
-  const code = await generate({ secret })
-
-  // 3. Confirmar OTP/TOTP
-  const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: 'admin@ollascomunes.pe',
-      tempToken: loginData.tempToken,
-      code
-    })
-  })
-  const verifyData = (await verifyRes.json()) as any
-  if (!verifyData.token) {
-    throw new Error('No se pudo verificar el código OTP: ' + JSON.stringify(verifyData))
-  }
-  return { token: verifyData.token, tenantId: verifyData.user.tenantId }
-}
 
 beforeAll(async () => {
   // Iniciar servidor de prueba
@@ -67,7 +26,7 @@ beforeAll(async () => {
   })
 
   // Obtener token para las pruebas autenticadas
-  const auth = await getAuthToken()
+  const auth = await authenticate(BASE_URL)
   authToken = auth.token
   testTenantId = auth.tenantId
 

@@ -4,7 +4,7 @@ import { beforeAll, afterAll, describe, it, expect } from 'vitest'
 import { app } from '../app'
 import { Server } from 'http'
 import { prisma } from '../lib/prisma'
-import { generate } from 'otplib'
+import { authenticate } from './helpers/auth'
 
 let server: Server
 const PORT = 4002
@@ -13,42 +13,6 @@ const BASE_URL = `http://127.0.0.1:${PORT}`
 let authToken: string = ''
 let testTenantId: string = ''
 
-async function getAuthToken(): Promise<{ token: string; tenantId: string }> {
-  const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@ollascomunes.pe', password: 'admin123' })
-  })
-  const loginData = (await loginRes.json()) as any
-
-  if (loginData.token) {
-    return { token: loginData.token, tenantId: loginData.user.tenantId }
-  }
-
-  // Generar el código TOTP dinámicamente
-  let secret = loginData.secret
-  if (!secret) {
-    const user = await prisma.appUser.findUnique({
-      where: { email: 'admin@ollascomunes.pe' }
-    })
-    secret = user?.totpSecret
-  }
-  if (!secret) throw new Error('No se encontró el secreto TOTP en la Base de Datos ni en la respuesta')
-
-  const code = await generate({ secret })
-
-  const verifyRes = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: 'admin@ollascomunes.pe',
-      tempToken: loginData.tempToken,
-      code
-    })
-  })
-  const verifyData = (await verifyRes.json()) as any
-  return { token: verifyData.token, tenantId: verifyData.user.tenantId }
-}
 
 beforeAll(async () => {
   await new Promise<void>((resolve) => {
@@ -57,7 +21,7 @@ beforeAll(async () => {
     })
   })
 
-  const auth = await getAuthToken()
+  const auth = await authenticate(BASE_URL)
   authToken = auth.token
   testTenantId = auth.tenantId
 })
