@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/auth-store"
+import { apiFetch } from "@/lib/http"
 
 export default function LoginPage() {
   const router = useRouter()
   const setAuth = useAuthStore((s) => s.setAuth)
-  const setToken = useAuthStore((s) => s.setToken)
+  const setTempToken = useAuthStore((s) => s.setTempToken)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
@@ -22,21 +23,19 @@ export default function LoginPage() {
     if (!email || !password) { toast.error("Completa todos los campos"); return }
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/login`, {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.message ?? data.error ?? "Error al iniciar sesión"); return }
 
       if (data.status === "TOTP_SETUP_REQUIRED") {
-        setToken(data.tempToken)
+        setTempToken(data.tempToken)
         // Segundo paso: pedir al backend que genere/persista el secret y nos devuelva el QR.
         // Solo en este momento el secret se guarda en BD.
-        const setupRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/totp/setup`, {
+        const setupRes = await apiFetch("/api/auth/totp/setup", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tempToken: data.tempToken }),
         })
         if (!setupRes.ok) {
@@ -47,10 +46,12 @@ export default function LoginPage() {
         const setup = await setupRes.json()
         router.push(`/login/otp?email=${encodeURIComponent(setup.email)}&setup=1&secret=${encodeURIComponent(setup.secret)}&qrCodeUri=${encodeURIComponent(setup.qrCodeUri)}`)
       } else if (data.status === "MFA_PENDING") {
-        setToken(data.tempToken)
+        setTempToken(data.tempToken)
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
       } else {
-        setAuth(data.user, data.token)
+        // Con MFA activo este camino no deberia darse; se conserva por si el
+        // backend responde una sesion directa. La cookie ya viene puesta.
+        setAuth(data.user)
         const destino = data.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio"
         router.push(destino)
       }
@@ -59,7 +60,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }, [email, password, router, setAuth, setToken])
+  }, [email, password, router, setAuth, setTempToken])
 
   return (
     <div className="flex min-h-screen">

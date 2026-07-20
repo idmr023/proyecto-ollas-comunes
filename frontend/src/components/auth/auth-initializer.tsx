@@ -4,16 +4,14 @@ import { useEffect, useRef } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 import { getMeRequest } from '@/lib/auth-api'
 
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    if (!payload.exp) return false
-    return payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
-
+/**
+ * Rehidrata el usuario al arrancar la aplicacion.
+ *
+ * Ya no inspecciona la expiracion del JWT en el cliente: la sesion vive en una
+ * cookie `httpOnly` ilegible desde JavaScript. Quien decide si sigue siendo
+ * valida es `/api/auth/me`, que ademas verifica la firma en el servidor en
+ * lugar de fiarse del campo `exp` decodificado en el navegador.
+ */
 export default function AuthInitializer({ children }: { children: React.ReactNode }) {
   const ran = useRef(false)
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -26,27 +24,26 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
 
     const stored = useAuthStore.getState()
 
-    if (stored.token && stored.isAuthenticated) {
-      if (isTokenExpired(stored.token)) {
-        clearAuth()
-        setInitialized(true)
-        return
-      }
-      getMeRequest(stored.token)
-        .then((res) => {
-          if (res.ok && res.user) {
-            setAuth(res.user, stored.token!)
-          } else {
-            clearAuth()
-            setInitialized(true)
-          }
-        })
-        .catch(() => {
-          setInitialized(true)
-        })
-    } else {
+    // `isAuthenticated` es solo una pista de UI persistida; sin ella no hay
+    // motivo para gastar una peticion.
+    if (!stored.isAuthenticated) {
       setInitialized(true)
+      return
     }
+
+    getMeRequest()
+      .then((res) => {
+        if (res.ok && res.user) {
+          setAuth(res.user)
+        } else {
+          clearAuth()
+          setInitialized(true)
+        }
+      })
+      .catch(() => {
+        // Sin red no se cierra la sesion: la PWA debe seguir siendo usable.
+        setInitialized(true)
+      })
   }, [setAuth, clearAuth, setInitialized])
 
   return <>{children}</>

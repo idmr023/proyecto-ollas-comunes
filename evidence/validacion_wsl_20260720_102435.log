@@ -1,0 +1,26 @@
+Validacion HA/DR WSL2 - 2026-07-20 10:24:24
+========================================
+Pasadas: 14 | Fallidas: 0 | Advertencias: 8
+
+✅|Distro 'primary-db' encontrada
+✅|Distro 'replica-db' encontrada
+✅|WSL2 'primary-db' esta ejecutandose
+✅|WSL2 'replica-db' esta ejecutandose
+✅|IP de 'primary-db': 172.18.128.229
+✅|IP de 'replica-db': 172.18.128.229
+⚠️|PostgreSQL en 'primary-db' no disponible. Intentando iniciar...
+✅|PostgreSQL en 'primary-db' iniciado exitosamente
+✅|PostgreSQL en 'replica-db:5433' acepta conexiones
+⚠️|replica-db NO puede alcanzar a primary-db (esperado si primary esta caido)
+⚠️|primary-db NO puede alcanzar a replica-db (esperado si primary esta caido)
+✅|'primary-db' es PRIMARY (no replica datos entrantes)
+⚠️|PRIMARY 'primary-db' no tiene replicas conectadas (esperado post-failover)
+✅|'replica-db' es PRIMARY (no replica datos entrantes)
+⚠️|PRIMARY 'replica-db' no tiene replicas conectadas (esperado post-failover)
+✅|BD 'sigo_ollas_test' encontrada en 'primary-db'
+✅|BD 'sigo_ollas_test' encontrada en 'replica-db'
+⚠️|No se pudieron obtener recursos de 'primary-db'
+⚠️|No se pudieron obtener recursos de 'replica-db'
+⚠️|API health endpoint no disponible (HTTP 000000) - puede que el servidor no este corriendo
+✅|Conexion a PostgreSQL en 'replica-db:5433' via WSL exitosa
+✅|Conexion a PostgreSQL en 'primary-db:5432' via WSL exitosa

@@ -1,21 +1,7 @@
 import { Beneficiary, BeneficiaryFormValues, HealthCondition } from '@/types/beneficiary'
 import { getCache, setCache, addMutation } from './indexed-db'
-
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
-
-function getAuthHeaders(): Record<string, string> {
-  try {
-    const raw = sessionStorage.getItem('auth-storage')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed.state?.token) {
-        return { Authorization: `Bearer ${parsed.state.token}` }
-      }
-    }
-  } catch {}
-  return {}
-}
+import { apiFetch } from './http'
+import { handleUnauthorized } from './session'
 
 function buildRequestHeaders(init?: RequestInit): Record<string, string> {
   const initHeaders = init?.headers
@@ -25,19 +11,8 @@ function buildRequestHeaders(init?: RequestInit): Record<string, string> {
       : {}
   return {
     'Content-Type': 'application/json',
-    ...getAuthHeaders(),
     ...customHeaders,
   }
-}
-
-function handleUnauthorized() {
-  try {
-    const store = JSON.parse(sessionStorage.getItem('auth-storage') ?? '{}')
-    if (store.state?.isAuthenticated) {
-      sessionStorage.removeItem('auth-storage')
-      window.location.href = '/login'
-    }
-  } catch {}
 }
 
 function isGetRequest(init?: RequestInit): boolean {
@@ -119,7 +94,6 @@ async function handleOfflineMutation(path: string, init?: RequestInit) {
 }
 
 async function apiRequest<T>(path: string, init?: RequestInit) {
-  const url = `${apiBaseUrl}${path}`
   const isGet = isGetRequest(init)
 
   if (!isOnline()) {
@@ -127,7 +101,7 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await apiFetch(path, {
       ...init,
       headers: buildRequestHeaders(init),
       cache: 'no-store',
