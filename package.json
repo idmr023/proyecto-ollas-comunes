@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "build:cloudflare": "cd frontend && npm install && npm run build",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:backend": "cd backend && npm install && npm run build",
+    "security:scan": "node security-scan.cjs",
+    "security:scan:zap": "node security-scan.cjs --zap",
+    "security:scan:full": "node security-scan.cjs --all",
+    "security:scan:json": "node security-scan.cjs --json",
+    "security:zap:start": "docker compose -f docker-compose.zap.yml up -d",
+    "security:zap:stop": "docker compose -f docker-compose.zap.yml down",
+    "security:zap:scan": "node escaneo.js",
+    "security:zap:auth": "node escaneo.js --auth",
+    "security:all": "node security-all.cjs",
+    "test:report": "node test-reporter.cjs",
+    "test:coverage": "cd backend && npm run test:coverage",
+    "test:cloud": "node test-cloud.mjs",
+    "test:usability": "node run-usability-tests.mjs",
+    "test:all": "node test-reporter.cjs && node run-usability-tests.mjs && node test-cloud.mjs"
+  }
+}

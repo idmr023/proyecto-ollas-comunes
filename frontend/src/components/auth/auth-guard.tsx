@@ -5,35 +5,40 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/auth-store'
 import { getMeRequest } from '@/lib/auth-api'
 
+/**
+ * Segunda linea de defensa, por detras de `proxy.ts`.
+ *
+ * `proxy.ts` decide en el servidor si la pagina llega a renderizarse; esto solo
+ * hidrata el usuario en el store y reacciona si la sesion ya no es valida. Ya
+ * no inspecciona el JWT: la cookie es `httpOnly` y no se puede leer desde
+ * JavaScript, asi que quien dice si la sesion sigue viva es `/api/auth/me`.
+ */
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated, isInitialized, token, setAuth, clearAuth, setInitialized } =
+  const { isAuthenticated, isInitialized, setAuth, clearAuth, setInitialized } =
     useAuthStore()
 
   useEffect(() => {
     if (isInitialized) return
 
-    async function validateToken() {
-      const stored = useAuthStore.getState()
-      if (stored.token && stored.isAuthenticated) {
-        try {
-          const res = await getMeRequest(stored.token)
-          if (res.ok && res.user) {
-            setAuth(res.user, stored.token)
-          } else {
-            clearAuth()
-            router.replace('/login')
-          }
-        } catch {
-          // Network error (offline): keep current session alive
-          setInitialized(true)
+    async function validateSession() {
+      try {
+        const res = await getMeRequest()
+        if (res.ok && res.user) {
+          setAuth(res.user)
+          return
         }
-      } else {
+        clearAuth()
+        setInitialized(true)
+        router.replace('/login')
+      } catch {
+        // Fallo de red: no se cierra la sesion, porque el modo offline de la
+        // PWA depende de poder seguir mostrando la interfaz.
         setInitialized(true)
       }
     }
 
-    validateToken()
+    validateSession()
   }, [isInitialized, router, setAuth, clearAuth, setInitialized])
 
   useEffect(() => {

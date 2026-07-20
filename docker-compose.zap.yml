@@ -1,0 +1,26 @@
+services:
+  zap:
+    image: zaproxy/zap-stable:latest
+    container_name: sigo-zap
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    volumes:
+      - ./zap-config:/zap/config
+      - ./zap-reports:/zap/reports
+    environment:
+      - ZAP_PORT=8080
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8080
+      -config api.addrs.addr.name=.*
+      -config api.addrs.addr.regex=true
+      -config api.key=clave-segura-zap
+      -config connection.timeoutInSecs=120
+      -config scanner.maxAlertsPerRule=0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/JSON/core/view/version/?apikey=clave-segura-zap"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped

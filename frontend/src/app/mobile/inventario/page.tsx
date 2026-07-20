@@ -4,11 +4,10 @@ import { useState, useEffect, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { InventoryStepper, type InsumoSeleccionado } from "@/components/mobile/inventory-stepper"
 import { Button } from "@/components/ui/button"
-import { Package, CheckCircle2, Plus, Minus, ChevronLeft } from "lucide-react"
+import { Package, Plus, Minus, ChevronLeft } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import { useApi } from "@/hooks/use-api"
-import { cn } from "@/lib/utils"
 
 interface InventoryItem {
   id: string
@@ -93,6 +92,15 @@ function InventarioContent() {
 
   useEffect(() => {
     fetchInventory()
+
+    const handleSync = () => {
+      console.log('[Inventario Mobile] Sincronización completada. Refrescando inventario...')
+      fetchInventory()
+    }
+    window.addEventListener('pwa-sync-completed', handleSync)
+    return () => {
+      window.removeEventListener('pwa-sync-completed', handleSync)
+    }
   }, [fetchInventory])
 
   const handleComplete = async (insumo: InsumoSeleccionado) => {

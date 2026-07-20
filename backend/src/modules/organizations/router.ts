@@ -1,12 +1,25 @@
 import { Router } from 'express'
 
+import { requireRole } from '../../lib/middleware/auth'
+import { validate } from '../../lib/middleware/validate'
+import { PERMISSIONS } from '../../lib/permissions'
 import { OrganizationServiceError } from './errors'
 import {
+  organizationPayloadSchema,
+  organizationStatusSchema,
+  updateAlertSchema,
+} from './validators'
+import {
   createOrganization,
-  getOrganizationBySlug,
-  listOrganizations,
-  updateOrganizationBySlug,
-  updateOrganizationStatusBySlug,
+  getOrganizationForTenant,
+  listOrganizationsForTenant,
+  updateOrganizationForTenant,
+  updateOrganizationStatusForTenant,
+  getAdminDashboard,
+  getTenantInventoryStock,
+  getTenantInventoryMovements,
+  getTenantAlerts,
+  updateTenantAlert,
 } from './service'
 import { createOlla, listOllasByTenantId } from '../ollas-comunes/service'
 import { OllaServiceError } from '../ollas-comunes/errors'
@@ -57,9 +70,9 @@ function handleOrganizationError(
   })
 }
 
-organizationsRouter.get('/', async (_request, response) => {
+organizationsRouter.get('/', async (request, response) => {
   try {
-    const organizations = await listOrganizations()
+    const organizations = await listOrganizationsForTenant(request.user!.tenantId)
     response.json({
       ok: true,
       items: organizations,
@@ -69,9 +82,71 @@ organizationsRouter.get('/', async (_request, response) => {
   }
 })
 
+organizationsRouter.get('/dashboard/stats', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const data = await getAdminDashboard(tenantId)
+    response.json({ ok: true, ...data })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/inventory/stock', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantInventoryStock(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/inventory/movements', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantInventoryMovements(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.get('/alerts', async (request, response) => {
+  try {
+    const tenantId = request.user!.tenantId
+    const items = await getTenantAlerts(tenantId)
+    response.json({ ok: true, items })
+  } catch (error) {
+    handleOrganizationError(error, response)
+  }
+})
+
+organizationsRouter.patch(
+  '/alerts/:id',
+  requireRole(...PERMISSIONS.alerts.update),
+  validate(updateAlertSchema),
+  async (request, response) => {
+    try {
+      const tenantId = request.user!.tenantId
+      const item = await updateTenantAlert(
+        String(request.params.id),
+        tenantId,
+        request.body.status,
+      )
+      response.json({ ok: true, item })
+    } catch (error) {
+      handleOrganizationError(error, response)
+    }
+  },
+)
+
 organizationsRouter.get('/:slug', async (request, response) => {
   try {
-    const organization = await getOrganizationBySlug(request.params.slug)
+    const organization = await getOrganizationForTenant(
+      request.params.slug,
+      request.user!.tenantId,
+    )
     response.json({
       ok: true,
       item: organization,
@@ -81,7 +156,7 @@ organizationsRouter.get('/:slug', async (request, response) => {
   }
 })
 
-organizationsRouter.post('/', async (request, response) => {
+organizationsRouter.post('/', requireRole(...PERMISSIONS.organizations.create), validate(organizationPayloadSchema), async (request, response) => {
   try {
     const organization = await createOrganization(request.body)
     response.status(201).json({
@@ -93,41 +168,56 @@ organizationsRouter.post('/', async (request, response) => {
   }
 })
 
-organizationsRouter.patch('/:slug', async (request, response) => {
-  try {
-    const organization = await updateOrganizationBySlug(
-      request.params.slug,
-      request.body,
-    )
-    response.json({
-      ok: true,
-      item: organization,
-    })
-  } catch (error) {
-    handleOrganizationError(error, response)
-  }
-})
+organizationsRouter.patch(
+  '/:slug',
+  requireRole(...PERMISSIONS.organizations.update),
+  validate(organizationPayloadSchema),
+  async (request, response) => {
+    try {
+      const organization = await updateOrganizationForTenant(
+        String(request.params.slug),
+        request.user!.tenantId,
+        request.body,
+      )
+      response.json({
+        ok: true,
+        item: organization,
+      })
+    } catch (error) {
+      handleOrganizationError(error, response)
+    }
+  },
+)
 
-organizationsRouter.patch('/:slug/status', async (request, response) => {
-  try {
-    const organization = await updateOrganizationStatusBySlug(
-      request.params.slug,
-      request.body?.status,
-    )
-    response.json({
-      ok: true,
-      item: organization,
-    })
-  } catch (error) {
-    handleOrganizationError(error, response)
-  }
-})
+organizationsRouter.patch(
+  '/:slug/status',
+  requireRole(...PERMISSIONS.organizations.changeStatus),
+  validate(organizationStatusSchema),
+  async (request, response) => {
+    try {
+      const organization = await updateOrganizationStatusForTenant(
+        String(request.params.slug),
+        request.user!.tenantId,
+        request.body?.status,
+      )
+      response.json({
+        ok: true,
+        item: organization,
+      })
+    } catch (error) {
+      handleOrganizationError(error, response)
+    }
+  },
+)
 
 // --- Ollas Comunes (nested under organizations) ---
 
 organizationsRouter.get('/:slug/ollas', async (request, response) => {
   try {
-    const tenant = await getOrganizationBySlug(request.params.slug)
+    const tenant = await getOrganizationForTenant(
+      request.params.slug,
+      request.user!.tenantId,
+    )
     const ollas = await listOllasByTenantId(tenant.id)
     response.json({ ok: true, items: ollas })
   } catch (error) {
@@ -135,14 +225,21 @@ organizationsRouter.get('/:slug/ollas', async (request, response) => {
   }
 })
 
-organizationsRouter.post('/:slug/ollas', async (request, response) => {
-  try {
-    const tenant = await getOrganizationBySlug(request.params.slug)
-    const olla = await createOlla(tenant.id, request.body)
-    response.status(201).json({ ok: true, item: olla })
-  } catch (error) {
-    handleOrganizationError(error, response)
-  }
-})
+organizationsRouter.post(
+  '/:slug/ollas',
+  requireRole(...PERMISSIONS.ollas.create),
+  async (request, response) => {
+    try {
+      const tenant = await getOrganizationForTenant(
+        String(request.params.slug),
+        request.user!.tenantId,
+      )
+      const olla = await createOlla(tenant.id, request.body)
+      response.status(201).json({ ok: true, item: olla })
+    } catch (error) {
+      handleOrganizationError(error, response)
+    }
+  },
+)
 
 export { organizationsRouter }

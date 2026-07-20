@@ -1,0 +1,81 @@
+==================== COMANDOS DE PRUEBA - SIGO-OLLAS ====================
+
+
+1) PRUEBAS UNITARIAS DEL BACKEND (Vitest - 45 escenarios)
+   cd backend
+   npm test
+
+   O desde la raiz:
+   cd backend && npx vitest run
+
+
+2) PRUEBAS MANUALES DE AUTENTICACION
+   .\test-auth.bat
+
+   O manualmente:
+   cd backend
+   start /B node dist\server.js
+   ping -n 4 127.0.0.1 >nul
+   node test-auth2.mjs
+   taskkill /F /IM node.exe
+
+
+3) PRUEBAS MANUALES DE BENEFICIARIOS
+   .\run-beneficiaries-tests.bat
+
+   O manualmente:
+   cd backend
+   start /B node dist\server.js
+   ping -n 5 127.0.0.1 >nul
+   node test-beneficiaries.mjs
+   taskkill /F /IM node.exe
+
+
+4) PRUEBAS MANUALES COMPLETAS (Auth + Organizaciones)
+   .\test-all.bat
+
+   O manualmente:
+   cd backend
+   start /B node dist\server.js
+   ping -n 5 127.0.0.1 >nul
+   node test-all.mjs
+   taskkill /F /IM node.exe
+
+
+5) PRUEBAS DE OPERACIONES MOVILES (Inventario, raciones)
+   cd backend
+   start /B node dist\server.js
+   ping -n 5 127.0.0.1 >nul
+   node test-mobile-ops.mjs
+   taskkill /F /IM node.exe
+
+
+6) PRUEBA DE RUTAS
+   cd backend
+   start /B node dist\server.js
+   ping -n 4 127.0.0.1 >nul
+   node test-route.mjs
+   taskkill /F /IM node.exe
+
+
+7) PRUEBA DE RENDER (despliegue en onrender.com)
+   node test-render.mjs
+
+
+8) PRUEBAS DE USABILIDAD (Frontend - analisis JSX)
+   cd frontend
+   npm run test:usability
+
+   O desde la raiz:
+   node run-usability-tests.mjs
+
+
+9) PRUEBAS E2E (Playwright)
+   cd frontend
+   npm run test:e2e
+
+
+10) PRUEBA DE SEGURIDAD (OWASP ZAP + Docker)
+    docker run -d --name zap -p 8080:8080 zaproxy/zap-stable zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -config api.key=<tu-api-key>
+    node escaneo.js
+    docker stop zap && docker rm zap

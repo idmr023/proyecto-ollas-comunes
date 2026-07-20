@@ -1,6 +1,7 @@
 import { OrganizationServiceError } from './errors'
 import { Organization, OrganizationPayload } from './types'
 import { organizationRepository } from './repository'
+import { prisma } from '../../lib/prisma'
 import {
   buildOrganizationSlug,
   buildUniqueOrganizationCode,
@@ -29,15 +30,32 @@ function parseOrganizationPayload(payload: unknown): OrganizationPayload {
   return { name, category, location }
 }
 
-export async function listOrganizations(): Promise<Organization[]> {
-  const records = await organizationRepository.findAll()
-  return records.map(toOrganization)
+/**
+ * Devuelve unicamente la organizacion del solicitante.
+ *
+ * Sustituye al antiguo listado global, que exponia todos los tenants de la
+ * plataforma a cualquier usuario autenticado.
+ */
+export async function listOrganizationsForTenant(tenantId: string): Promise<Organization[]> {
+  const record = await organizationRepository.findById(tenantId)
+  return record ? [toOrganization(record)] : []
 }
 
-export async function getOrganizationBySlug(slug: string): Promise<Organization> {
-  const record = await organizationRepository.findBySlug(slug)
+/**
+ * Resuelve una organizacion por slug EXIGIENDO que sea la del solicitante.
+ *
+ * Se responde 404 tanto si el slug no existe como si pertenece a otro tenant:
+ * un 403 confirmaria la existencia del recurso ajeno.
+ *
+ * Ademas resuelve por id (indexado) en lugar de recorrer todos los tenants.
+ */
+export async function getOrganizationForTenant(
+  slug: string,
+  tenantId: string,
+): Promise<Organization> {
+  const record = await organizationRepository.findById(tenantId)
 
-  if (!record) {
+  if (!record || buildOrganizationSlug(record.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
@@ -69,10 +87,14 @@ export async function createOrganization(payload: unknown): Promise<Organization
   return toOrganization(record)
 }
 
-export async function updateOrganizationBySlug(slug: string, payload: unknown): Promise<Organization> {
-  const current = await organizationRepository.findBySlug(slug)
+export async function updateOrganizationForTenant(
+  slug: string,
+  tenantId: string,
+  payload: unknown,
+): Promise<Organization> {
+  const current = await organizationRepository.findById(tenantId)
 
-  if (!current) {
+  if (!current || buildOrganizationSlug(current.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
@@ -99,10 +121,14 @@ export async function updateOrganizationBySlug(slug: string, payload: unknown): 
   return toOrganization(updated)
 }
 
-export async function updateOrganizationStatusBySlug(slug: string, status: unknown): Promise<Organization> {
-  const current = await organizationRepository.findBySlug(slug)
+export async function updateOrganizationStatusForTenant(
+  slug: string,
+  tenantId: string,
+  status: unknown,
+): Promise<Organization> {
+  const current = await organizationRepository.findById(tenantId)
 
-  if (!current) {
+  if (!current || buildOrganizationSlug(current.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
@@ -116,3 +142,171 @@ export async function updateOrganizationStatusBySlug(slug: string, status: unkno
 
   return toOrganization(updated)
 }
+
+export async function getAdminDashboard(tenantId: string) {
+  // 1. Obtener conteos de las entidades clave
+  const [tenantsCount, ollasCount, beneficiariesCount, supplyItemsCount] = await Promise.all([
+    prisma.tenant.count({ where: { status: 'active' } }),
+    prisma.ollaComun.count({ where: { tenantId, status: 'active' } }),
+    prisma.beneficiary.count({ where: { tenantId, status: 'active' } }),
+    prisma.supplyItem.count({ where: { status: 'active' } }),
+  ])
+
+  // 2. Obtener alertas recientes (actividades de la base de datos)
+  const alerts = await prisma.alert.findMany({
+    where: { tenantId },
+    orderBy: { detectedAt: 'desc' },
+    take: 10,
+    include: {
+      olla: { select: { name: true } }
+    }
+  })
+
+  // 3. Obtener insumos con stock crítico (menos de 5 unidades)
+  const lowStockItems = await prisma.inventoryStock.findMany({
+    where: {
+      olla: { tenantId },
+      quantity: { lt: 5 }
+    },
+    include: {
+      supplyItem: true,
+      olla: true
+    },
+    orderBy: { quantity: 'asc' },
+    take: 5
+  })
+
+  return {
+    kpis: {
+      tenants: tenantsCount,
+      ollas: ollasCount,
+      beneficiaries: beneficiariesCount,
+      supplyItems: supplyItemsCount,
+    },
+    activities: alerts.map(a => ({
+      id: a.id,
+      alertType: a.alertType,
+      message: a.message,
+      detectedAt: a.detectedAt.toISOString(),
+      ollaName: a.olla?.name || 'Sistema'
+    })),
+    lowStock: lowStockItems.map(ls => ({
+      name: ls.supplyItem.name,
+      ollaName: ls.olla.name,
+      stock: `${Number(ls.quantity)} ${ls.supplyItem.unit}`,
+      isCritical: Number(ls.quantity) === 0
+    }))
+  }
+}
+
+export async function getTenantInventoryStock(tenantId: string) {
+  const stock = await prisma.inventoryStock.findMany({
+    where: {
+      olla: { tenantId }
+    },
+    include: {
+      olla: { select: { name: true } },
+      supplyItem: { select: { name: true, unit: true, category: { select: { name: true } } } }
+    },
+    orderBy: [
+      { olla: { name: 'asc' } },
+      { supplyItem: { name: 'asc' } }
+    ]
+  })
+
+  return stock.map(s => ({
+    ollaName: s.olla.name,
+    ollaId: s.ollaId,
+    supplyItemId: s.supplyItemId,
+    supplyItemName: s.supplyItem.name,
+    categoryName: s.supplyItem.category?.name || 'General',
+    quantity: Number(s.quantity),
+    unit: s.supplyItem.unit,
+    updatedAt: s.updatedAt.toISOString()
+  }))
+}
+
+export async function getTenantInventoryMovements(tenantId: string) {
+  const movements = await prisma.inventoryMovement.findMany({
+    where: { tenantId },
+    include: {
+      olla: { select: { name: true } },
+      supplyItem: { select: { name: true, unit: true } },
+      source: { select: { name: true } },
+      createdByUser: { select: { fullName: true } }
+    },
+    orderBy: { movementDate: 'desc' },
+    take: 100
+  })
+
+  return movements.map(m => ({
+    id: m.id,
+    ollaName: m.olla.name,
+    ollaId: m.ollaId,
+    supplyItemName: m.supplyItem.name,
+    unit: m.supplyItem.unit,
+    movementType: m.movementType,
+    quantity: Number(m.quantity),
+    movementDate: m.movementDate.toISOString(),
+    notes: m.notes,
+    sourceName: m.source?.name || null,
+    createdByName: m.createdByUser?.fullName || 'Sistema'
+  }))
+}
+
+export async function getTenantAlerts(tenantId: string) {
+  const alerts = await prisma.alert.findMany({
+    where: { tenantId },
+    include: {
+      olla: { select: { name: true } }
+    },
+    orderBy: { detectedAt: 'desc' }
+  })
+
+  return alerts.map(a => ({
+    id: a.id,
+    ollaName: a.olla?.name || 'Sistema',
+    ollaId: a.ollaId,
+    alertType: a.alertType,
+    severity: a.severity,
+    message: a.message,
+    status: a.status,
+    detectedAt: a.detectedAt.toISOString(),
+    resolvedAt: a.resolvedAt ? a.resolvedAt.toISOString() : null
+  }))
+}
+
+export async function updateTenantAlert(id: string, tenantId: string, status: string) {
+  const alert = await prisma.alert.findFirst({
+    where: { id, tenantId }
+  })
+
+  if (!alert) {
+    throw new OrganizationServiceError(404, 'Alerta no encontrada.')
+  }
+
+  const updated = await prisma.alert.update({
+    where: { id },
+    data: {
+      status,
+      resolvedAt: status === 'resolved' ? new Date() : undefined
+    },
+    include: {
+      olla: { select: { name: true } }
+    }
+  })
+
+  return {
+    id: updated.id,
+    ollaName: updated.olla?.name || 'Sistema',
+    ollaId: updated.ollaId,
+    alertType: updated.alertType,
+    severity: updated.severity,
+    message: updated.message,
+    status: updated.status,
+    detectedAt: updated.detectedAt.toISOString(),
+    resolvedAt: updated.resolvedAt ? updated.resolvedAt.toISOString() : null
+  }
+}
+
+

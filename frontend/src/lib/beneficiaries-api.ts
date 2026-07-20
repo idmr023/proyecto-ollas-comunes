@@ -1,20 +1,47 @@
 import { Beneficiary, BeneficiaryFormValues, HealthCondition } from '@/types/beneficiary'
 import { getCache, setCache, addMutation } from './indexed-db'
+import { apiFetch } from './http'
+import { handleUnauthorized } from './session'
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
+function buildRequestHeaders(init?: RequestInit): Record<string, string> {
+  const initHeaders = init?.headers
+  const customHeaders: Record<string, string> =
+    initHeaders && typeof initHeaders === 'object' && !Array.isArray(initHeaders)
+      ? (initHeaders as Record<string, string>)
+      : {}
+  return {
+    'Content-Type': 'application/json',
+    ...customHeaders,
+  }
+}
 
-function getAuthHeaders(): Record<string, string> {
-  try {
-    const raw = localStorage.getItem('auth-storage')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed.state?.token) {
-        return { Authorization: `Bearer ${parsed.state.token}` }
-      }
+function isGetRequest(init?: RequestInit): boolean {
+  return !init || !init.method || init.method.toUpperCase() === 'GET'
+}
+
+function isOnline(): boolean {
+  return typeof navigator === 'undefined' || navigator.onLine
+}
+
+async function serveOfflineOrEnqueue<T>(path: string, init?: RequestInit, isGet = false) {
+  if (isGet) {
+    const cached = await getCache<T>(path)
+    if (cached) {
+      console.log('[Offline API] Sirviendo caché local de IndexedDB para:', path)
+      return cached
     }
-  } catch {}
-  return {}
+    throw new Error('Sin conexión. No hay datos locales guardados para esta vista.')
+  }
+  return await handleOfflineMutation(path, init)
+}
+
+async function tryCacheFallback(path: string): Promise<any | null> {
+  const cached = await getCache<any>(path)
+  if (cached) {
+    console.log('[Offline API] Fallo de red. Sirviendo caché de:', path)
+    return cached
+  }
+  return null
 }
 
 async function handleOfflineMutation(path: string, init?: RequestInit) {
@@ -38,7 +65,6 @@ async function handleOfflineMutation(path: string, init?: RequestInit) {
       offline: true,
     }
 
-    // Actualizar la caché del listado general
     const cachedList = await getCache<any>('/api/beneficiaries')
     if (cachedList && Array.isArray(cachedList.items)) {
       let updatedItems = [...cachedList.items]
@@ -54,7 +80,6 @@ async function handleOfflineMutation(path: string, init?: RequestInit) {
       await setCache('/api/beneficiaries', { ...cachedList, items: updatedItems })
     }
 
-    // Despachar evento para alertar al banner que hay cambios en la cola
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('offline-mutations-updated'))
     }
@@ -69,31 +94,16 @@ async function handleOfflineMutation(path: string, init?: RequestInit) {
 }
 
 async function apiRequest<T>(path: string, init?: RequestInit) {
-  const url = `${apiBaseUrl}${path}`
-  const isGet = !init || !init.method || init.method.toUpperCase() === 'GET'
-  const isOffline = typeof window !== 'undefined' && (!navigator.onLine)
+  const isGet = isGetRequest(init)
 
-  if (isOffline) {
-    if (isGet) {
-      const cached = await getCache<any>(path)
-      if (cached) {
-        console.log('[Offline API] Sirviendo caché local de IndexedDB para:', path)
-        return cached
-      }
-      throw new Error('Sin conexión. No hay datos locales guardados para esta vista.')
-    } else {
-      return await handleOfflineMutation(path, init)
-    }
+  if (!isOnline()) {
+    return serveOfflineOrEnqueue<T>(path, init, isGet)
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await apiFetch(path, {
       ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-        ...(init?.headers ?? {}),
-      },
+      headers: buildRequestHeaders(init),
       cache: 'no-store',
     })
 
@@ -102,15 +112,7 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
       | null
 
     if (!response.ok) {
-      if (response.status === 401 && typeof navigator !== 'undefined' && navigator.onLine) {
-        try {
-          const store = JSON.parse(localStorage.getItem('auth-storage') ?? '{}')
-          if (store.state?.isAuthenticated) {
-            localStorage.removeItem('auth-storage')
-            window.location.href = '/login'
-          }
-        } catch {}
-      }
+      if (response.status === 401) handleUnauthorized()
       throw new Error(payload?.message ?? 'No se pudo completar la solicitud.')
     }
 
@@ -119,13 +121,10 @@ async function apiRequest<T>(path: string, init?: RequestInit) {
     }
 
     return payload
-  } catch (err: any) {
+  } catch (err) {
     if (isGet) {
-      const cached = await getCache<any>(path)
-      if (cached) {
-        console.log('[Offline API] Fallo de red. Sirviendo caché de:', path)
-        return cached
-      }
+      const cached = await tryCacheFallback(path)
+      if (cached) return cached
     } else {
       return await handleOfflineMutation(path, init)
     }
@@ -143,7 +142,7 @@ export async function listBeneficiaries(filters?: {
   if (filters?.ollaId) params.set('ollaId', filters.ollaId)
   if (filters?.healthConditionId) params.set('healthConditionId', filters.healthConditionId)
   const qs = params.toString()
-  const path = `/api/beneficiaries${qs ? `?${qs}` : ''}`
+  const path = qs ? `/api/beneficiaries?${qs}` : '/api/beneficiaries'
   const payload = await apiRequest<Beneficiary>(path)
   return payload?.items ?? []
 }

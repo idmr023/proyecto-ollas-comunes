@@ -1,6 +1,7 @@
 # Reporte de Implementación y Ejecución de Pruebas Automatizadas
 
-Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y ejecutado de manera exitosa **45 escenarios de prueba automatizados** distribuidos equitativamente en tres categorías críticas.
+Este documento sirve como evidencia técnica e informe de sustentación del **Plan de Pruebas Automatizadas** desarrollado para **SIGO-OLLAS** (Sistema de Gestión de Ollas Comunes). Se han diseñado, codificado y configurado **114 escenarios de prueba automatizados** distribuidos en cuatro categorías críticas, cubriendo la ruta de éxito y múltiples casos de falla.
+
 
 ---
 
@@ -19,12 +20,12 @@ El diseño de la suite de pruebas se acopló al stack moderno del proyecto (Next
 1.  **Ejecución con Aislamiento de Procesos (`pool: 'forks'`):**
     *   *Problema:* Al correr pruebas de base de datos con hilos concurrentes (`worker_threads`), el adaptador de base de datos de Prisma (`@prisma/adapter-pg`) experimentaba cierres de socket inesperados (`ConnectionClosed`), arrojando errores de base de datos aleatorios.
     *   *Solución:* Se reconfiguró el planificador de Vitest ([vitest.config.ts](file:///d:/proyecto-ollas-comunes/backend/vitest.config.ts)) para usar un pool de subprocesos aislados (`forks`) y deshabilitar el paralelismo de archivos. Esto asegura que la conexión con el Transaction Pooler (Supavisor) de Supabase sea persistente y secuencial.
-2.  **Bypass Seguro del Flujo Multifactor (MFA/OTP):**
-    *   *Problema:* El flujo de login del backend exige de forma obligatoria un código OTP enviado por correo electrónico, lo cual bloquea la automatización convencional.
-    *   *Solución:* En lugar de desactivar temporalmente la seguridad en la base de datos o cablear accesos alternativos, las pruebas automatizadas se conectan de forma segura a la base de datos de pruebas mediante Prisma, extraen el último código OTP generado para el usuario logueado en la tabla `otp_codes` y envían la confirmación en milisegundos. Esto valida el flujo real del backend con un 100% de apego a la arquitectura de seguridad del sistema.
-3.  **Simulación y Aislamiento de APIs Externas (Gemini IA):**
-    *   *Problema:* Las sugerencias de menús consumen créditos y dependen de la API de Gemini (Google Generative AI), lo cual puede causar demoras de red y fallas de conexión en entornos locales de desarrollo.
-    *   *Solución:* Se configuró el test runner para inyectar una variable `GEMINI_API_KEY` vacía durante la prueba, obligando al backend a ejecutar su rama de contingencia local (*fallback offline*), respondiendo de forma instantánea con sugerencias preconfiguradas estructuradas sin romper la validación.
+2.  **Bypass Seguro del Flujo Multifactor (MFA/TOTP):**
+    *   *Problema:* El flujo de login del backend exige de forma obligatoria un código TOTP multifactor (Google Authenticator), lo cual bloquea la automatización convencional de inicio de sesión.
+    *   *Solución:* Para simular la generación del código TOTP sin una aplicación móvil física, las pruebas automatizadas leen el secreto TOTP de la respuesta de inicio de sesión (en el setup inicial) o directamente del registro del usuario en la base de datos (`totpSecret` en la tabla `app_users`) y generan el token de 6 dígitos dinámicamente usando `otplib/functional`. Esto valida el flujo real del backend con un 100% de apego a la arquitectura de seguridad del sistema.
+3.  **Simulación y Aislamiento de APIs Externas (Groq IA):**
+    *   *Problema:* Las sugerencias de menús consumen créditos y dependen de la API de Groq, lo cual puede causar demoras de red y fallas de conexión en entornos locales de desarrollo.
+    *   *Solución:* Se configuró el test runner para inyectar una variable `GROQ_API_KEY` vacía durante la prueba, obligando al backend a ejecutar su rama de contingencia local (*fallback offline*), respondiendo de forma instantánea con sugerencias preconfiguradas estructuradas sin romper la validación.
 
 ---
 
@@ -63,8 +64,8 @@ Validadas en [integration.test.ts](file:///d:/proyecto-ollas-comunes/backend/src
 *   **I-07:** Cabeceras CORS válidas presentes en las respuestas del API Gateway.
 *   **I-08:** Integridad transaccional y Rollback (fallar operaciones de inventario revierte todo el lote).
 *   **I-09:** Verificación de escritura del trigger forense en la tabla `audit_logs`.
-*   **I-10:** Activación del hilo de alerta de inicio de sesión de NodeMailer.
-*   **I-11:** Inserción y encriptación de claves de acceso dinámicas OTP de 6 dígitos.
+*   **I-10:** Verificación del cifrado y hashing de contraseñas de usuarios mediante bcrypt.
+*   **I-11:** Almacenamiento seguro del secreto TOTP de 2FA en la base de datos (totpSecret).
 *   **I-12:** Subida y guardado de archivos JPG/PDF de evidencia en los Buckets de Supabase Storage.
 *   **I-13:** Cálculo lógico automatizado para detonar alertas de stock por debajo del límite mínimo.
 *   **I-14:** Consistencia del JSON Schema devuelto por el recomendador de menús interactivos.
@@ -103,7 +104,8 @@ Estas pruebas levantarán un servidor HTTP temporal en el puerto `4001` y se com
 cd backend
 npm run test
 ```
-*Resultado:* Verás el reporte de Vitest indicando `30 passed` de forma secuencial.
+*Resultado:* Verás el reporte de Vitest indicando `58 passed` de forma secuencial (incluyendo los nuevos casos de falla y validación).
+
 
 ### Paso 2: Ejecutar Pruebas de Usabilidad y Accesibilidad
 Este comando analizará el código fuente del frontend, validará las reglas semánticas y actualizará el informe interactivo:

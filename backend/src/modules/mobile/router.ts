@@ -1,5 +1,14 @@
 import { Router, Response } from "express"
-import { getDashboard, getInventory, createMovement, getAlerts, getSuggestions, registerMealDelivery, runMenuPlanExecution, uploadDocument, getRecipes, calcularPreparacion } from "./service"
+import { requireRole } from "../../lib/middleware/auth"
+import { validate } from "../../lib/middleware/validate"
+import { PERMISSIONS } from "../../lib/permissions"
+import { getDashboard, getInventory, createMovement, getAlerts, getSuggestions, registerMealDelivery, runMenuPlanExecution, uploadDocument } from "./service"
+import {
+  createMovementSchema,
+  mealDeliverySchema,
+  menuPlanExecutionSchema,
+  uploadDocumentSchema,
+} from "./validators"
 
 const mobileRouter = Router()
 
@@ -40,7 +49,7 @@ function handleError(error: unknown, response: Response) {
 
 mobileRouter.get("/dashboard", async (request, response) => {
   try {
-    const data = await getDashboard(request.user!.tenantId)
+    const data = await getDashboard(request.user!.tenantId, request.user!.userId)
     response.json({ ok: true, ...data })
   } catch (error) {
     handleError(error, response)
@@ -49,25 +58,30 @@ mobileRouter.get("/dashboard", async (request, response) => {
 
 mobileRouter.get("/inventory", async (request, response) => {
   try {
-    const data = await getInventory(request.user!.tenantId)
+    const data = await getInventory(request.user!.tenantId, request.user!.userId)
     response.json({ ok: true, ...data })
   } catch (error) {
     handleError(error, response)
   }
 })
 
-mobileRouter.post("/inventory/movements", async (request, response) => {
-  try {
-    const movement = await createMovement(request.user!.tenantId, request.user!.userId, request.body)
-    response.status(201).json({ ok: true, movement })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
+mobileRouter.post(
+  "/inventory/movements",
+  requireRole(...PERMISSIONS.inventory.createMovement),
+  validate(createMovementSchema),
+  async (request, response) => {
+    try {
+      const movement = await createMovement(request.user!.tenantId, request.user!.userId, request.body)
+      response.status(201).json({ ok: true, movement })
+    } catch (error) {
+      handleError(error, response)
+    }
+  },
+)
 
 mobileRouter.get("/alerts", async (request, response) => {
   try {
-    const data = await getAlerts(request.user!.tenantId)
+    const data = await getAlerts(request.user!.tenantId, request.user!.userId)
     response.json({ ok: true, ...data })
   } catch (error) {
     handleError(error, response)
@@ -76,56 +90,53 @@ mobileRouter.get("/alerts", async (request, response) => {
 
 mobileRouter.get("/suggestions", async (request, response) => {
   try {
-    const data = await getSuggestions(request.user!.tenantId)
+    const data = await getSuggestions(request.user!.tenantId, request.user!.userId)
     response.json({ ok: true, ...data })
   } catch (error) {
     handleError(error, response)
   }
 })
 
-mobileRouter.post("/deliveries", async (request, response) => {
-  try {
-    const delivery = await registerMealDelivery(request.user!.tenantId, request.user!.userId, request.body)
-    response.status(201).json({ ok: true, delivery })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
+mobileRouter.post(
+  "/deliveries",
+  requireRole(...PERMISSIONS.deliveries.create),
+  validate(mealDeliverySchema),
+  async (request, response) => {
+    try {
+      const delivery = await registerMealDelivery(request.user!.tenantId, request.user!.userId, request.body)
+      response.status(201).json({ ok: true, delivery })
+    } catch (error) {
+      handleError(error, response)
+    }
+  },
+)
 
-mobileRouter.post("/menu-plans/execute", async (request, response) => {
-  try {
-    const plan = await runMenuPlanExecution(request.user!.tenantId, request.user!.userId, request.body)
-    response.status(201).json({ ok: true, plan })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
+mobileRouter.post(
+  "/menu-plans/execute",
+  requireRole(...PERMISSIONS.inventory.createMovement),
+  validate(menuPlanExecutionSchema),
+  async (request, response) => {
+    try {
+      const plan = await runMenuPlanExecution(request.user!.tenantId, request.user!.userId, request.body)
+      response.status(201).json({ ok: true, plan })
+    } catch (error) {
+      handleError(error, response)
+    }
+  },
+)
 
-mobileRouter.post("/documents/upload", async (request, response) => {
-  try {
-    const document = await uploadDocument(request.user!.tenantId, request.user!.userId, request.body)
-    response.status(201).json({ ok: true, document })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
-
-mobileRouter.get("/recipes", async (request, response) => {
-  try {
-    const data = await getRecipes(request.user!.tenantId)
-    response.json({ ok: true, ...data })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
-
-mobileRouter.post("/preparacion/calcular", async (request, response) => {
-  try {
-    const data = await calcularPreparacion(request.user!.tenantId, request.body)
-    response.json({ ok: true, ...data })
-  } catch (error) {
-    handleError(error, response)
-  }
-})
+mobileRouter.post(
+  "/documents/upload",
+  requireRole(...PERMISSIONS.documents.upload),
+  validate(uploadDocumentSchema),
+  async (request, response) => {
+    try {
+      const document = await uploadDocument(request.user!.tenantId, request.user!.userId, request.body)
+      response.status(201).json({ ok: true, document })
+    } catch (error) {
+      handleError(error, response)
+    }
+  },
+)
 
 export { mobileRouter }

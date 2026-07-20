@@ -1,0 +1,374 @@
+[H[2J[3J[0;36m
+╔══════════════════════════════════════════════════════════════╗
+║   SIGO-OLLAS — Auditoría de Seguridad con Kali Linux       ║
+║   Solo análisis read-only. No modifica el sistema.         ║
+╚══════════════════════════════════════════════════════════════╝
+[0m
+
+[0;34m================================================================[0m
+[0;34m  VERIFICACIÓN DE HERRAMIENTAS[0m
+[0;34m================================================================[0m
+[0;32m[✓] nmap encontrado: /usr/bin/nmap[0m
+[0;32m[✓] nikto encontrado: /usr/bin/nikto[0m
+[0;32m[✓] dirb encontrado: /usr/bin/dirb[0m
+[0;32m[✓] hydra encontrado: /usr/bin/hydra[0m
+[0;32m[✓] sqlmap encontrado: /usr/bin/sqlmap[0m
+[0;32m[✓] curl encontrado: /usr/bin/curl[0m
+[0;32m[✓] jq encontrado: /usr/bin/jq[0m
+
+[0;34m================================================================[0m
+[0;34m  PRUEBA 1: NMAP — Reconocimiento de infraestructura[0m
+[0;34m================================================================[0m
+[0;36m[20:12:22] Objetivo: https://proyecto-ollas-comunes.vercel.app[0m
+[0;36m[20:12:22] Tipo: Escaneo de servicios + detección de versiones[0m
+Starting Nmap 7.99 ( https://nmap.org ) at 2026-07-19 20:12 +0000
+Nmap scan report for proyecto-ollas-comunes.vercel.app (64.29.17.3)
+Host is up (0.0016s latency).
+Other addresses for proyecto-ollas-comunes.vercel.app (not scanned): 216.198.79.3
+Not shown: 3 filtered tcp ports (no-response)
+Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+PORT    STATE SERVICE  VERSION
+80/tcp  open  http     Vercel
+|_http-title: Site doesn't have a title (text/plain).
+| fingerprint-strings: 
+|   FourOhFourRequest: 
+|     HTTP/1.0 308 Permanent Redirect
+|     Content-Type: text/plain
+|     Location: https:///nice%20ports%2C/Tri%6Eity.txt%2ebak
+|     Refresh: 0;url=https:///nice%20ports%2C/Tri%6Eity.txt%2ebak
+|     server: Vercel
+|     Redirecting...
+|   GetRequest, HTTPOptions: 
+|     HTTP/1.0 308 Permanent Redirect
+|     Content-Type: text/plain
+|     Location: https:///
+|     Refresh: 0;url=https:///
+|     server: Vercel
+|_    Redirecting...
+|_http-server-header: Vercel
+443/tcp open  ssl/http Golang net/http server
+|_ssl-date: TLS randomness does not represent time
+| ssl-cert: Subject: commonName=*.vercel.app
+| Subject Alternative Name: DNS:*.vercel.app
+| Not valid before: 2026-06-28T13:27:57
+|_Not valid after:  2026-09-26T13:27:56
+|_http-server-header: Vercel
+| fingerprint-strings: 
+|   GetRequest: 
+|     HTTP/1.0 403 Forbidden
+|     Cache-Control: private, no-store, max-age=0
+|     Content-Type: text/html; charset=utf-8
+|     Server: Vercel
+|     X-Vercel-Challenge-Token: 2.1784491957.60.YjlkZThkNjkzNDJmZTE1NzhhNTJlODE3NTk4NDViZDQ7NzBjM2NlOGQ7YzI0NjBiYjljYmZiMDAxOWE3MzhhYjVkNTNjNWE5NTFhMTNjZGEyODszO80hB6tI1iJxaRHJex0iQFrQUip1vxp/A4BgyJyNBLwCyIQ6DeeVVPVmt7zImj37qBC7pjCR5YzDIYbrAJWy6mrrmqY=.7bd542069956c942a7b99ae9df81400e
+|     X-Vercel-Id: gru1::1784491957-oxrOKzG4p0BAhDFCdaCdblwYnbkRRhdJ
+|     X-Vercel-Mitigated: challenge
+|     Date: Sun, 19 Jul 2026 20:12:37 GMT
+|     <!DOCTYPE html><html lang="en" data-astro-cid-nbv56vs3> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#000"><title>Vercel Security Checkpoint</title><style>.spinner[data-astro-cid-jlpqxutv]{display:flex;flex-direction:column;justify-content:center;align-items:center}.spinner-
+|   HTTPOptions: 
+|     HTTP/1.0 403 Forbidden
+|     Cache-Control: private, no-store, max-age=0
+|     Content-Type: text/html; charset=utf-8
+|     Server: Vercel
+|     X-Vercel-Challenge-Token: 2.1784491957.60.YjlkZThkNjkzNDJmZTE1NzhhNTJlODE3NTk4NDViZDQ7Nzc5MDFmNzc7ZTJjOTJiNTQxNzE4YmE1ZTdhMWRlOWY1YzFhOWUzZWE4N2JhZTAyNjszO8KxPjDahZ2wqBlDivN/5kGfFIetqYy/ZBWEX3+4yuLXg3c8VVZjD3QrKysIobxf4vlrm2jRA4gM63nDn62Kzs8kj1A=.438dfa8fd32c023d66689bf9d9032c86
+|     X-Vercel-Id: gru1::1784491957-GaZAIStUTl50jasXnHXJyMeDJtjAin3c
+|     X-Vercel-Mitigated: challenge
+|     Date: Sun, 19 Jul 2026 20:12:37 GMT
+|_    <!DOCTYPE html><html lang="en" data-astro-cid-nbv56vs3> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#000"><title>Vercel Security Checkpoint</title><style>.spinner[data-astro-cid-jlpqxutv]{display:flex;flex-direction:column;justify-content:center;align-items:center}.spinner-
+2 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at https://nmap.org/cgi-bin/submit.cgi?new-service :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port80-TCP:V=7.99%I=7%D=7/19%Time=6A5D2FAE%P=x86_64-pc-linux-gnu%r(GetR
+SF:equest,8A,"HTTP/1\.0\x20308\x20Permanent\x20Redirect\r\nContent-Type:\x
+SF:20text/plain\r\nLocation:\x20https:///\r\nRefresh:\x200;url=https:///\r
+SF:\nserver:\x20Vercel\r\n\r\nRedirecting\.\.\.")%r(HTTPOptions,8A,"HTTP/1
+SF:\.0\x20308\x20Permanent\x20Redirect\r\nContent-Type:\x20text/plain\r\nL
+SF:ocation:\x20https:///\r\nRefresh:\x200;url=https:///\r\nserver:\x20Verc
+SF:el\r\n\r\nRedirecting\.\.\.")%r(FourOhFourRequest,D0,"HTTP/1\.0\x20308\
+SF:x20Permanent\x20Redirect\r\nContent-Type:\x20text/plain\r\nLocation:\x2
+SF:0https:///nice%20ports%2C/Tri%6Eity\.txt%2ebak\r\nRefresh:\x200;url=htt
+SF:ps:///nice%20ports%2C/Tri%6Eity\.txt%2ebak\r\nserver:\x20Vercel\r\n\r\n
+SF:Redirecting\.\.\.");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port443-TCP:V=7.99%T=SSL%I=7%D=7/19%Time=6A5D2FB4%P=x86_64-pc-linux-gnu
+SF:%r(GetRequest,1000,"HTTP/1\.0\x20403\x20Forbidden\r\nCache-Control:\x20
+SF:private,\x20no-store,\x20max-age=0\r\nContent-Type:\x20text/html;\x20ch
+SF:arset=utf-8\r\nServer:\x20Vercel\r\nX-Vercel-Challenge-Token:\x202\.178
+SF:4491957\.60\.YjlkZThkNjkzNDJmZTE1NzhhNTJlODE3NTk4NDViZDQ7NzBjM2NlOGQ7Yz
+SF:I0NjBiYjljYmZiMDAxOWE3MzhhYjVkNTNjNWE5NTFhMTNjZGEyODszO80hB6tI1iJxaRHJe
+SF:x0iQFrQUip1vxp/A4BgyJyNBLwCyIQ6DeeVVPVmt7zImj37qBC7pjCR5YzDIYbrAJWy6mrr
+SF:mqY=\.7bd542069956c942a7b99ae9df81400e\r\nX-Vercel-Id:\x20gru1::1784491
+SF:957-oxrOKzG4p0BAhDFCdaCdblwYnbkRRhdJ\r\nX-Vercel-Mitigated:\x20challeng
+SF:e\r\nDate:\x20Sun,\x2019\x20Jul\x202026\x2020:12:37\x20GMT\r\n\r\n<!DOC
+SF:TYPE\x20html><html\x20lang=\"en\"\x20data-astro-cid-nbv56vs3>\x20<head>
+SF:<meta\x20charset=\"utf-8\"><meta\x20name=\"viewport\"\x20content=\"widt
+SF:h=device-width,\x20initial-scale=1\"><meta\x20name=\"theme-color\"\x20c
+SF:ontent=\"#000\"><title>Vercel\x20Security\x20Checkpoint</title><style>\
+SF:.spinner\[data-astro-cid-jlpqxutv\]{display:flex;flex-direction:column;
+SF:justify-content:center;align-items:center}\.spinner-")%r(HTTPOptions,10
+SF:00,"HTTP/1\.0\x20403\x20Forbidden\r\nCache-Control:\x20private,\x20no-s
+SF:tore,\x20max-age=0\r\nContent-Type:\x20text/html;\x20charset=utf-8\r\nS
+SF:erver:\x20Vercel\r\nX-Vercel-Challenge-Token:\x202\.1784491957\.60\.Yjl
+SF:kZThkNjkzNDJmZTE1NzhhNTJlODE3NTk4NDViZDQ7Nzc5MDFmNzc7ZTJjOTJiNTQxNzE4Ym
+SF:E1ZTdhMWRlOWY1YzFhOWUzZWE4N2JhZTAyNjszO8KxPjDahZ2wqBlDivN/5kGfFIetqYy/Z
+SF:BWEX3\+4yuLXg3c8VVZjD3QrKysIobxf4vlrm2jRA4gM63nDn62Kzs8kj1A=\.438dfa8fd
+SF:32c023d66689bf9d9032c86\r\nX-Vercel-Id:\x20gru1::1784491957-GaZAIStUTl5
+SF:0jasXnHXJyMeDJtjAin3c\r\nX-Vercel-Mitigated:\x20challenge\r\nDate:\x20S
+SF:un,\x2019\x20Jul\x202026\x2020:12:37\x20GMT\r\n\r\n<!DOCTYPE\x20html><h
+SF:tml\x20lang=\"en\"\x20data-astro-cid-nbv56vs3>\x20<head><meta\x20charse
+SF:t=\"utf-8\"><meta\x20name=\"viewport\"\x20content=\"width=device-width,
+SF:\x20initial-scale=1\"><meta\x20name=\"theme-color\"\x20content=\"#000\"
+SF:><title>Vercel\x20Security\x20Checkpoint</title><style>\.spinner\[data-
+SF:astro-cid-jlpqxutv\]{display:flex;flex-direction:column;justify-content
+SF::center;align-items:center}\.spinner-");
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 97.18 seconds
+[0;32m[✓] Nmap completado → /tmp/sigo-ollas-security/20260719_201222/nmap-proyecto-ollas-comunes.vercel.app.txt[0m
+
+[0;34m================================================================[0m
+[0;34m  PRUEBA 2: NIKTO — Auditoría de configuración web[0m
+[0;34m================================================================[0m
+[0;36m[20:13:59] Objetivo: https://proyecto-ollas-comunes.vercel.app[0m
+[0;36m[20:13:59] Tipo: Headers de seguridad, configuración, archivos expuestos[0m
+- Nikto v2.6.0
+---------------------------------------------------------------------------
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_xml
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "XML reports (v2)" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_outdated
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Outdated" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_cookies
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "HTTP Cookie Internal IP" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_robots
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Robots" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_msgs
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Server Messages" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_tests
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Nikto Tests" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_put_del_test
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Put/Delete test" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_ssl
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "SSL and cert checks" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_sqlg
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Generic SQL reports" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_sitefiles
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Site Files" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_core
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_paths
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Path Search" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_negotiate
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Negotiate" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_favicon
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Favicon" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_ms10_070
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "ms10-070 Check" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_text
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Text reports" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_shellshock
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "shellshock" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_auth
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Test Authentication" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_headers
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "HTTP Headers" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_dictionary_attack
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Dictionary attack" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_siebel
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Siebel Checks" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_options
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "HTTP Options" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_html
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Report as HTML" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_csv
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "CSV reports" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_multiple_index
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Multiple Index" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_fileops
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "File Operations" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_springboot
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Spring Boot Actuator endpoint check" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_optionsbleed
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "OPTIONSBLEED (CVE-2017-9798) check" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_report_json
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "JSON reports" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_content_search
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Content Search" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_cgi
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "CGI" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Initializing plugin nikto_apacheusers
+V:Sun Jul 19 20:13:59 2026 [Init] - - Loaded "Apache Users" plugin.
+V:Sun Jul 19 20:13:59 2026 [Init] - - Getting targets
+V:Sun Jul 19 20:13:59 2026 [Reports] - - Opening reports (txt)
+V:Sun Jul 19 20:13:59 2026 [Reports] - - Opening report for "Text reports" plugin (txt) -> /tmp/sigo-ollas-security/20260719_201222/nikto-proyecto-ollas-comunes.vercel.app.txt.txt
++ Multiple IPs found: 64.29.17.3, 216.198.79.3
+V:Sun Jul 19 20:13:59 2026 [Init] - - 4517 server checks loaded
+V:Sun Jul 19 20:13:59 2026 [Plugins] - - Running start for "Favicon" plugin
+V:Sun Jul 19 20:13:59 2026 [Plugins] - - Running start for "HTTP Headers" plugin
+V:Sun Jul 19 20:13:59 2026 [Plugins] - - Running start for "Test Authentication" plugin
+V:Sun Jul 19 20:13:59 2026 [Plugins] - - Running start for "Content Search" plugin
+V:Sun Jul 19 20:13:59 2026 [CheckSSL] - - Checking for HTTPS on proyecto-ollas-comunes.vercel.app:443, using GET
+V:Sun Jul 19 20:14:00 2026 [PortCheck] - - 200 for GET:	/
++ ERROR: Failed to check for updates: 403
+V:Sun Jul 19 20:14:00 2026 [Init] - - 200 for GET:	/
++ [999986] /: Retrieved access-control-allow-origin header: *.
++ [999100] /: Uncommon header(s) 'x-vercel-id' found, with contents: gru1::zmdfg-1784492041529-6a6780fa767c.
++ [999100] /: Uncommon header(s) 'content-disposition' found, with contents: inline.
++ [999100] /: Uncommon header(s) 'x-vercel-cache' found, with contents: HIT.
++ [999100] /: Uncommon header(s) 'x-matched-path' found, with contents: /.
+V:Sun Jul 19 20:14:00 2026 [platform_profiler] - - 200 for GET:	/
+V:Sun Jul 19 20:14:01 2026 [platform_profiler] - - 308 for GET:	/server-status
++ [999100] /server-status: Uncommon header(s) 'refresh' found, with contents: 0;url=/server-status/.
+V:Sun Jul 19 20:14:01 2026 [platform_profiler] - - 404 for GET:	/icons/
++ [999979] /icons/: IP address found in the 'x-vercel-id' header. The IP is "1::78f". See: https://portswigger.net/kb/issues/00600300_private-ip-addresses-disclosed
+V:Sun Jul 19 20:14:01 2026 [platform_profiler] - - 404 for GET:	/trace.axd
+V:Sun Jul 19 20:14:01 2026 [platform_profiler] - - 404 for GET:	/nosuchfile.asp
+V:Sun Jul 19 20:14:02 2026 [platform_profiler] - - 404 for GET:	/nosuchfile.aspx
+V:Sun Jul 19 20:14:02 2026 [platform_profiler] - - 404 for GET:	/localstart.asp
+V:Sun Jul 19 20:14:02 2026 [platform_profiler] - - 404 for GET:	/docs/
+V:Sun Jul 19 20:14:02 2026 [platform_profiler] - - 308 for GET:	/server
++ Target IP:          64.29.17.3
++ Target Hostname:    proyecto-ollas-comunes.vercel.app
++ Target Port:        443
+---------------------------------------------------------------------------
++ SSL Info:           Subject:  /CN=*.vercel.app
+                      CN:       *.vercel.app
+                      SAN:      *.vercel.app
+                      Ciphers:  TLS_AES_128_GCM_SHA256
+                      Issuer:   /C=US/O=Google Trust Services/CN=WR1
++ Platform:           Unknown
++ Start Time:         2026-07-19 20:14:00 (GMT0)
+---------------------------------------------------------------------------
++ Server: Vercel
+V:Sun Jul 19 20:14:02 2026 [Plugins] - - Running recon for "CGI" plugin
+V:Sun Jul 19 20:14:03 2026 [CGI] - - 308 for GET:	/cgi.cgi/
+V:Sun Jul 19 20:14:03 2026 [CGI] - - 404 for GET:	/webcgi/
+V:Sun Jul 19 20:14:03 2026 [CGI] - - 404 for GET:	/cgi-914/
+V:Sun Jul 19 20:14:03 2026 [CGI] - - 404 for GET:	/cgi-915/
+V:Sun Jul 19 20:14:04 2026 [CGI] - - 404 for GET:	/bin/
+V:Sun Jul 19 20:14:04 2026 [CGI] - - 404 for GET:	/cgi/
+V:Sun Jul 19 20:14:04 2026 [CGI] - - 404 for GET:	/mpcgi/
+V:Sun Jul 19 20:14:05 2026 [CGI] - - 403 for GET:	/cgi-bin/
++ [999100] /cgi-bin/: Uncommon header(s) 'x-vercel-mitigated' found, with contents: deny.
+V:Sun Jul 19 20:14:05 2026 [is_404] - - 404 for GET:	/MJpgzHhx/
+V:Sun Jul 19 20:14:05 2026 [CGI] - - 404 for GET:	/ows-bin/
+V:Sun Jul 19 20:14:05 2026 [CGI] - - 404 for GET:	/cgi-sys/
+V:Sun Jul 19 20:14:06 2026 [CGI] - - 404 for GET:	/cgi-local/
+V:Sun Jul 19 20:14:06 2026 [CGI] - - 404 for GET:	/htbin/
+V:Sun Jul 19 20:14:06 2026 [CGI] - - 404 for GET:	/cgibin/
+V:Sun Jul 19 20:14:06 2026 [CGI] - - 404 for GET:	/cgis/
+V:Sun Jul 19 20:14:07 2026 [CGI] - - 404 for GET:	/scripts/
+V:Sun Jul 19 20:14:07 2026 [CGI] - - 404 for GET:	/cgi-win/
+V:Sun Jul 19 20:14:07 2026 [CGI] - - 404 for GET:	/fcgi-bin/
+V:Sun Jul 19 20:14:07 2026 [CGI] - - 404 for GET:	/cgi-exe/
+V:Sun Jul 19 20:14:08 2026 [CGI] - - 404 for GET:	/cgi-home/
+V:Sun Jul 19 20:14:08 2026 [CGI] - - 404 for GET:	/cgi-perl/
+V:Sun Jul 19 20:14:08 2026 [CGI] - - 404 for GET:	/scgi-bin/
+V:Sun Jul 19 20:14:08 2026 [CGI] - - 403 for GET:	/cgi-bin-sdb/
+V:Sun Jul 19 20:14:09 2026 [CGI] - - 404 for GET:	/cgi-mod/
++ No CGI Directories found (use '-C all' to force check all possible dirs). CGI tests skipped.
+V:Sun Jul 19 20:14:09 2026 [cgi] - - Checking for CGI in: 
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running recon for "Path Search" plugin
+V:Sun Jul 19 20:14:09 2026 [Paths] - - 200 for GET:	/
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running recon for "Robots" plugin
+V:Sun Jul 19 20:14:09 2026 [robots] - - 404 for GET:	/robots.txt
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running scan for "Outdated" plugin
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running scan for "Put/Delete test" plugin
+V:Sun Jul 19 20:14:09 2026 [put_del_test: PUT] - - 404 for PUT:	/nikto-test-YcBFqVF3.html
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running scan for "SSL and cert checks" plugin
++ [999992] /: Server is using a wildcard certificate: *.vercel.app. See: https://en.wikipedia.org/wiki/Wildcard_certificate
+V:Sun Jul 19 20:14:09 2026 [Plugins] - - Running scan for "Site Files" plugin
+V:Sun Jul 19 20:14:10 2026 [sitefiles] - - 404 for GET:	/app.war
+V:Sun Jul 19 20:14:11 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:12 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes_vercel_app.egg
+V:Sun Jul 19 20:14:12 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:12 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes.vercel.app.tar.lzma
+V:Sun Jul 19 20:14:14 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:14 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes.egg
+V:Sun Jul 19 20:14:15 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:15 2026 [sitefiles] - - 404 for GET:	/site.gz
+V:Sun Jul 19 20:14:16 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:16 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunesvercelapp.gz
+V:Sun Jul 19 20:14:17 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:17 2026 [sitefiles] - - 404 for GET:	/64.29.17.3.tgz
+V:Sun Jul 19 20:14:18 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:18 2026 [sitefiles] - - 404 for GET:	/64.29.17.3.bz2
+V:Sun Jul 19 20:14:19 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:19 2026 [sitefiles] - - 404 for GET:	/app.gz
+V:Sun Jul 19 20:14:19 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:20 2026 [sitefiles] - - 404 for GET:	/vercel.tar
+V:Sun Jul 19 20:14:20 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:20 2026 [sitefiles] - - 404 for GET:	/backup.jks
+V:Sun Jul 19 20:14:21 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:21 2026 [sitefiles] - - 404 for GET:	/app.jks
+V:Sun Jul 19 20:14:22 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:22 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes.gz
+V:Sun Jul 19 20:14:22 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:23 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes.vercel.jks
+V:Sun Jul 19 20:14:23 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:23 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunesvercel.tar.lzma
+V:Sun Jul 19 20:14:23 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:24 2026 [sitefiles] - - 404 for GET:	/database.bz2
+V:Sun Jul 19 20:14:24 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:24 2026 [sitefiles] - - 404 for GET:	/site.cer
+V:Sun Jul 19 20:14:25 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:25 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes_vercel_app.gz
+V:Sun Jul 19 20:14:25 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:25 2026 [sitefiles] - - 404 for GET:	/proyecto-ollas-comunes.vercel.app.tar.gz
+V:Sun Jul 19 20:14:26 2026 [sitefiles] - -  for GET:	
+V:Sun Jul 19 20:14:26 2026 [sitefiles] - - 404 for GET:	/database.war
++ ERROR: *** Error limit (20) reached for host, giving up. Last error: opening stream: ssl connect failed. ***
++ ERROR: *** Consider using mitmproxy to avoid TLS fingerprinting. ***
+- STATUS: Completed 98 requests (~2% complete, ~20.3 minutes left): currently in plugin 'Site Files'
+- STATUS: Running average: Not enough data.
+V:Sun Jul 19 20:14:26 2026 [sitefiles] - -  for GET:	
++ Scan terminated: 20 errors and 9 items reported on the remote host
++ End Time:           2026-07-19 20:14:26 (GMT0) (26 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+V:Sun Jul 19 20:14:26 2026 [END] - + 98 requests made in 27 seconds
+[0;32m[✓] Nikto completado → /tmp/sigo-ollas-security/20260719_201222/nikto-proyecto-ollas-comunes.vercel.app.txt[0m
+
+[0;34m================================================================[0m
+[0;34m  PRUEBA 3: DIRB — Enumeración de rutas[0m
+[0;34m================================================================[0m
+[0;36m[20:14:26] Objetivo: https://proyecto-ollas-comunes.vercel.app[0m
+[0;36m[20:14:26] Wordlist: /usr/share/wordlists/dirb/common.txt[0m
+[1;33m[!] Wordlist no encontrada en /usr/share/wordlists/dirb/common.txt[0m
+[1;33m[!] Intentando con wordlist alternativa...[0m
+
+-----------------
+DIRB v2.22    
+By The Dark Raver
+-----------------
+
+OUTPUT_FILE: /tmp/sigo-ollas-security/20260719_201222/dirb-proyecto-ollas-comunes.vercel.app.txt
+START_TIME: Sun Jul 19 20:14:26 2026
+URL_BASE: https://proyecto-ollas-comunes.vercel.app/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+OPTION: Not Recursive
+OPTION: Silent Mode
+
+-----------------
+
+GENERATED WORDS: 4612
+
+---- Scanning URL: https://proyecto-ollas-comunes.vercel.app/ ----
++ https://proyecto-ollas-comunes.vercel.app/_src (CODE:307|SIZE:15)
++ https://proyecto-ollas-comunes.vercel.app/admin.php (CODE:403|SIZE:59)
++ https://proyecto-ollas-comunes.vercel.app/cgi-bin/ (CODE:403|SIZE:59)
++ https://proyecto-ollas-comunes.vercel.app/favicon.ico (CODE:200|SIZE:25931)
++ https://proyecto-ollas-comunes.vercel.app/index.php (CODE:403|SIZE:59)
++ https://proyecto-ollas-comunes.vercel.app/info.php (CODE:403|SIZE:59)
++ https://proyecto-ollas-comunes.vercel.app/phpinfo.php (CODE:403|SIZE:59)
++ https://proyecto-ollas-comunes.vercel.app/xmlrpc_server.php (CODE:403|SIZE:59)
+
+-----------------
+END_TIME: Sun Jul 19 20:21:04 2026
+DOWNLOADED: 4612 - FOUND: 8
+[0;32m[✓] Dirb completado con wordlist alternativa[0m
+
+[0;34m================================================================[0m
+[0;34m  PRUEBA 4: HYDRA — Prueba controlada de fuerza bruta[0m
+[0;34m================================================================[0m
+[0;36m[20:21:04] Endpoint: https://proyecto-ollas-comunes.vercel.app/api/auth/login[0m
+[0;36m[20:21:04] Intentos: 5 | Delay: 2s entre intentos[0m
+[0;36m[20:21:04] Propósito: Verificar que el rate limiting bloquea intentos repetidos[0m
+[0;36m[20:21:04] Test 1: Login con credenciales incorrectas (verificar 401)...[0m
+HTTP_CODE:000 TIME:0.000000s

@@ -1,0 +1,8 @@
+=== Header Analysis ===
+  [MISSING] Strict-Transport-Security
+  [MISSING] X-Content-Type-Options
+  [MISSING] X-Frame-Options
+  [MISSING] Content-Security-Policy
+  [MISSING] X-XSS-Protection
+  [MISSING] Referrer-Policy
+  [MISSING] Permissions-Policy

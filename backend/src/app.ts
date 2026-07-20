@@ -10,12 +10,14 @@ import {
   supabaseHealthcheckTable,
 } from './lib/supabase'
 import { prisma, isPrismaConfigured } from './lib/prisma'
+import { resolveAllowedOrigins } from './lib/cors'
 import { requireAuth } from './lib/middleware/auth'
+import { debugDetail } from './lib/debug'
 import { authRouter } from './modules/auth/router'
 import { beneficiariesRouter } from './modules/beneficiaries/router'
 import { mobileRouter } from './modules/mobile/router'
 import { organizationsRouter } from './modules/organizations/router'
-import { internalRouter } from './modules/internal/router'
+import { notificationsRouter } from './modules/notifications/router'
 
 const app = express()
 
@@ -29,34 +31,60 @@ app.use(helmet())
 // Rate limiting for auth routes: max 5 requests per minute per IP (relaxed in dev/test)
 const authLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: process.env.NODE_ENV === 'production' ? 5 : 1000,
+  max: parseInt(process.env.RATE_LIMIT_AUTH_MAX ?? '', 10) || (process.env.NODE_ENV === 'production' ? 5 : 10000),
   standardHeaders: true,
   legacyHeaders: false,
   message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
 })
 
-// --- CORS ---
+// Limitador global: hasta ahora solo /api/auth estaba protegido, dejando el
+// resto de la API sin techo de peticiones.
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max:
+    parseInt(process.env.RATE_LIMIT_GLOBAL_MAX ?? '', 10) ||
+    (process.env.NODE_ENV === 'production' ? 300 : 100000),
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Los healthchecks de la plataforma no deben consumir cuota.
+  skip: (request) => request.path.startsWith('/api/health'),
+  message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
+})
 
-const rawAllowed = process.env.ALLOWED_ORIGINS
-if (rawAllowed) {
-  const allowed = rawAllowed.split(',').map((s) => s.trim()).filter(Boolean)
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true)
-        if (allowed.includes(origin)) return callback(null, true)
-        for (const a of allowed) {
-          if (a && origin.endsWith(a)) return callback(null, true)
-        }
-        callback(new Error('Not allowed by CORS'))
-      },
-    }),
+// --- CORS (whitelist explícita, sin comodines) ---
+
+const NODE_ENV = process.env.NODE_ENV ?? 'development'
+const isProd = NODE_ENV === 'production'
+
+const allowedOrigins = resolveAllowedOrigins(isProd)
+
+if (isProd && allowedOrigins.length === 0) {
+  throw new Error(
+    'CORS misconfigured: ALLOWED_ORIGINS must be set in production. Refusing to start.'
   )
-} else {
-  app.use(cors())
 }
 
-app.use(express.json())
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (curl, server-to-server, healthchecks)
+      if (!origin) return callback(null, true)
+      if (allowedOrigins.includes(origin)) return callback(null, true)
+      callback(new Error(`Origin ${origin} not allowed by CORS`))
+    },
+    // Necesario para que el navegador envie y acepte la cookie de sesion.
+    // Es seguro porque el origen se valida contra una whitelist explicita
+    // (nunca un comodin), que es justo lo que `credentials: true` exige.
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  })
+)
+
+// Acota el cuerpo de las peticiones: sin limite explicito, un solo POST puede
+// forzar al proceso a materializar un JSON arbitrariamente grande en memoria.
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT ?? '10mb' }))
+
+app.use(globalLimiter)
 
 // --- Routes ---
 
@@ -64,7 +92,7 @@ app.use('/api/auth', authLimiter, authRouter)
 app.use('/api/beneficiaries', requireAuth, beneficiariesRouter)
 app.use('/api/mobile', requireAuth, mobileRouter)
 app.use('/api/organizations', requireAuth, organizationsRouter)
-app.use('/api/internal', internalRouter)
+app.use('/api/notifications', requireAuth, notificationsRouter)
 
 app.get('/', (_request, response) => {
   response.json({
@@ -99,10 +127,13 @@ app.get('/api/health/prisma', async (_request, response) => {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    // El detalle va al log, no a la respuesta: estos endpoints son publicos y
+    // el mensaje de Prisma revela host, puerto y nombres de tablas.
+    console.error('[health] Fallo de conexion con Prisma:', error)
     response.status(503).json({
       ok: false,
       service: 'prisma',
-      message: error instanceof Error ? error.message : 'Error de conexion con Prisma',
+      ...debugDetail(error),
     })
   }
 })
@@ -124,12 +155,12 @@ app.get('/api/health/supabase', async (_request, response) => {
       .select('*', { count: 'exact', head: true })
 
     if (error) {
+      console.error('[health] Fallo de conexion con Supabase (tabla):', error)
       response.status(503).json({
         ok: false,
         service: 'supabase',
         mode: 'table',
-        table: supabaseHealthcheckTable,
-        message: error.message,
+        ...debugDetail(error),
       })
       return
     }
@@ -147,11 +178,12 @@ app.get('/api/health/supabase', async (_request, response) => {
   const { error } = await supabase.storage.listBuckets()
 
   if (error) {
+    console.error('[health] Fallo de conexion con Supabase (storage):', error)
     response.status(503).json({
       ok: false,
       service: 'supabase',
       mode: 'storage',
-      message: error.message,
+      ...debugDetail(error),
     })
     return
   }

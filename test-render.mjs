@@ -51,4 +51,4 @@ async function main() {
   console.log(create.status, JSON.stringify(create.data).slice(0, 200));
 }
 
-main().catch(console.error);
+try { await main() } catch (e) { console.error(e) }

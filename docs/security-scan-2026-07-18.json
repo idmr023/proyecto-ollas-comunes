@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-07-18T21:30:27.345Z",
+  "target": "https://proyecto-ollas-comunes.vercel.app",
+  "score": 24,
+  "grade": "F",
+  "sections": {},
+  "alerts": [
+    {
+      "severity": "high",
+      "message": "npm audit frontend: 5 vulnerabilidades altas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-18T21:30:31.292Z"
+    },
+    {
+      "severity": "high",
+      "message": "npm audit backend: 12 vulnerabilidades altas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-18T21:30:39.083Z"
+    },
+    {
+      "severity": "high",
+      "message": "CORS usa wildcard * — cualquier origin puede acceder",
+      "section": "cors",
+      "timestamp": "2026-07-18T21:30:39.637Z"
+    },
+    {
+      "severity": "high",
+      "message": "Rate limiting no detectado en /api/auth/login (CWE-770)",
+      "section": "rate-limit",
+      "timestamp": "2026-07-18T21:30:40.414Z"
+    },
+    {
+      "severity": "medium",
+      "message": "npm audit frontend: 6 vulnerabilidades moderadas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-18T21:30:31.292Z"
+    },
+    {
+      "severity": "medium",
+      "message": "npm audit backend: 32 vulnerabilidades moderadas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-18T21:30:39.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "Header cross-origin-resource-policy: Controla CORP (CWE-942)",
+      "section": "headers",
+      "timestamp": "2026-07-18T21:30:39.461Z"
+    },
+    {
+      "severity": "low",
+      "message": "Server header expone: Vercel",
+      "section": "server-info",
+      "timestamp": "2026-07-18T21:30:39.459Z"
+    },
+    {
+      "severity": "low",
+      "message": "Header cross-origin-opener-policy: Controla COOP",
+      "section": "headers",
+      "timestamp": "2026-07-18T21:30:39.461Z"
+    },
+    {
+      "severity": "low",
+      "message": "Header x-permitted-cross-domain-policies: Controla cross-domain Flash/PDF",
+      "section": "headers",
+      "timestamp": "2026-07-18T21:30:39.461Z"
+    },
+    {
+      "severity": "critical",
+      "message": "npm audit backend: 2 vulnerabilidades críticas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-18T21:30:39.083Z"
+    }
+  ]
+}

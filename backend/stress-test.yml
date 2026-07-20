@@ -1,0 +1,140 @@
+config:
+  target: "http://localhost:4000"
+  processor: "./stress-test-processor.js"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      rampTo: 10
+      name: "Fase 1: Calentamiento (30s, 2→10 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 10
+      rampTo: 30
+      name: "Fase 2: Carga media (30s, 10→30 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 30
+      rampTo: 50
+      name: "Fase 3: Estrés alto (30s, 30→50 usuarios/seg)"
+    - duration: 30
+      arrivalRate: 50
+      name: "Fase 4: Sostenido (30s, 50 usuarios/seg constantes)"
+  plugins:
+    expect: {}
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Health Checks (Páginas Públicas)"
+    flow:
+      - get:
+          url: "/"
+          expect:
+            statusCode: 200
+      - get:
+          url: "/api/health"
+          expect:
+            statusCode: 200
+      - get:
+          url: "/api/health/prisma"
+          expect:
+            statusCode: 200
+      - get:
+          url: "/api/health/supabase"
+          expect:
+            statusCode: [200, 500, 503]
+
+  - name: "Flujo Operativo de Negocio (Lideresa de Olla / Supervisor)"
+    flow:
+      # 1. Login - Paso 1 (email + password)
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "admin@ollascomunes.pe"
+            password: "admin123"
+          capture:
+            - json: "$.tempToken"
+              as: "tempToken"
+          expect:
+            statusCode: 200
+
+      # 2. Login - Paso 2 (OTP code bypass)
+      - post:
+          url: "/api/auth/verify-otp"
+          beforeRequest: "forceStringCode"
+          json:
+            email: "admin@ollascomunes.pe"
+            tempToken: "{{ tempToken }}"
+            code: "999999"
+          capture:
+            - json: "$.token"
+              as: "jwtToken"
+          expect:
+            statusCode: 200
+
+      # 3. Cargar Dashboard de la Olla/Municipio
+      - get:
+          url: "/api/mobile/dashboard"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          expect:
+            statusCode: 200
+
+      # 4. Consultar Ollas del Tenant y Capturar ID de la primera
+      - get:
+          url: "/api/beneficiaries/ollas"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          capture:
+            - json: "$.items[0].id"
+              as: "ollaId"
+          expect:
+            statusCode: 200
+
+      # 5. Insertar un Beneficiario Nuevo (Escritura, Cifrado DNI y Auditoría)
+      - post:
+          url: "/api/beneficiaries"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          json:
+            firstName: "Stress{{ $randomString(5) }}"
+            lastName: "Test{{ $randomString(5) }}"
+            birthDate: "1990-05-15"
+            dni: "{{ $randomNumber(99999999, 10000000) }}"
+            gender: "male"
+            ollaId: "{{ ollaId }}"
+            priorityLevel: "normal"
+            status: "active"
+            phone: "999888777"
+            address: "Av. Concurrencia 123"
+            healthConditionIds: []
+          capture:
+            - json: "$.item.id"
+              as: "beneficiaryId"
+          expect:
+            statusCode: 201
+
+      # 6. Consultar Inventario y Capturar ID del primer Suministro
+      - get:
+          url: "/api/mobile/inventory"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          capture:
+            - json: "$.items[0].supplyItemId"
+              as: "supplyItemId"
+          expect:
+            statusCode: 200
+
+      # 7. Crear Movimiento de Inventario Concurrente (Escritura e Stock trigger)
+      - post:
+          url: "/api/mobile/inventory/movements"
+          headers:
+            authorization: "Bearer {{ jwtToken }}"
+          json:
+            ollaId: "{{ ollaId }}"
+            supplyItemId: "{{ supplyItemId }}"
+            movementType: "in"
+            quantity: 10
+            notes: "Carga automatizada Artillery"
+          expect:
+            statusCode: 201
+

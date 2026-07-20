@@ -9,7 +9,6 @@ backend/.env
 backend/.env.local
 backend/.env.*.local
 backend/backend-dev*.log
-mobile_app/android/key.properties
 .env
 .env.local
 node_modules
@@ -17,3 +16,21 @@ node_modules
 .env*.local
 
 /generated/prisma
+
+# SonarQube scanner working dir
+/.scannerwork
+
+# Test coverage output (se regenera con npm run test:coverage)
+/backend/coverage
+
+.codebase-memory/
+.vscode/
+
+# Clinic.js profiling
+.clinic/
+
+# Node.js trace logs
+node_trace.*.log
+
+# Directorio temporal de git filter-branch (nunca debe versionarse)
+.git-rewrite/

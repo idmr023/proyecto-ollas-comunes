@@ -1,0 +1,279 @@
+# ZAP Scan Policy for SIGO-OLLAS
+# Custom policy enabling all relevant scanners for a REST API + SPA
+
+---
+name: SIGO-OLLAS Security Policy
+description: >
+  Comprehensive security scan policy for SIGO-OLLAS.
+  Covers OWASP Top 10 (2021), API-specific attacks, and header analysis.
+
+# Scanner configurations
+# Strength: 1=Low, 2=Medium, 3=High
+# Threshold: 0=Low, 1=Medium, 2=High, 3=Insane
+
+scanners:
+  # === SQL INJECTION (CWE-89) ===
+  - id: 40018
+    name: "SQL Injection"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  - id: 40019
+    name: "SQL Injection - MySQL"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  - id: 40020
+    name: "SQL Injection - Hypersonic"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  - id: 40021
+    name: "SQL Injection - Oracle"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  - id: 40022
+    name: "SQL Injection - PostgreSQL"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  # === CROSS SITE SCRIPTING (CWE-79) ===
+  - id: 40012
+    name: "Cross Site Scripting (Reflected)"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  - id: 40014
+    name: "Cross Site Scripting (DOM XSS)"
+    enabled: false  # Requires browser, disabled for headless Docker
+    strength: 2
+    threshold: 1
+
+  - id: 40016
+    name: "Cross Site Scripting (Persistent)"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === PATH TRAVERSAL (CWE-22) ===
+  - id: 6
+    name: "Path Traversal"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  # === REMOTE CODE INJECTION ===
+  - id: 90020
+    name: "Remote OS Command Injection"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+  # === SSRF (CWE-918) ===
+  - id: 10102
+    name: "Server Side Code Injection"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === LDAP INJECTION ===
+  - id: 90021
+    name: "LDAP Injection"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === XML INJECTION ===
+  - id: 90023
+    name: "XML External Entity Attack"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  - id: 90024
+    name: "Generic XML Bomb"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === DIRECTORY BROWSING ===
+  - id: 0
+    name: "Directory Browsing"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  # === INFORMATION DISCLOSURE ===
+  - id: 10021
+    name: "X-Content-Type-Options Header Missing"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  - id: 10098
+    name: "Cross-Domain Misconfiguration (CORS)"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 10023
+    name: "Information Disclosure - Debug Messages"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 10024
+    name: "Information Disclosure - Sensitive Information in URL"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 10025
+    name: "Information Disclosure - Sensitive Information in HTTP Referrer Header"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 10027
+    name: "Information Disclosure - Suspicious Comments"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  # === ENV / HIDDEN FILE DISCLOSURE ===
+  - id: 40034
+    name: ".env Information Leak"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 40035
+    name: "Hidden File Finder"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 40032
+    name: ".htaccess Information Leak"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 40028
+    name: "ELMAH Information Leak"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  - id: 40029
+    name: "Trace.axd Information Leak"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  # === VULNERABLE COMPONENTS ===
+  - id: 100043
+    name: "Swagger/OpenAPI Detector"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  # === REMOTE FILE INCLUSION ===
+  - id: 7
+    name: "Remote File Inclusion"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === SERVER SIDE INCLUDES ===
+  - id: 40009
+    name: "Server Side Include"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === SHELL SHOCK ===
+  - id: 10048
+    name: "Shell Shock"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === EXTERNAL REDIRECTS ===
+  - id: 20019
+    name: "External Redirect"
+    enabled: true
+    strength: 2
+    threshold: 1
+
+  # === CSRF ===
+  - id: 40013
+    name: "Anti-CSRF Tokens Check"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  # === SOURCE CODE DISCLOSURE ===
+  - id: 10045
+    name: "Source Code Disclosure - /WEB-INF"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 20018
+    name: "Remote Code Execution - CVE-2012-1823"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  - id: 20017
+    name: "Source Code Disclosure - CVE-2012-1823"
+    enabled: true
+    strength: 2
+    threshold: 0
+
+  # === CLIENT HEADERS ===
+  - id: 10104
+    name: "User Agent Fuzzer"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  # === HEARTBLEED ===
+  - id: 20015
+    name: "Heartbleed OpenSSL"
+    enabled: true
+    strength: 1
+    threshold: 0
+
+  # === CORS ===
+  - id: 10098
+    name: "CORS Misconfiguration"
+    enabled: true
+    strength: 3
+    threshold: 1
+
+# Disabled scanners (incompatible with headless Docker or false-positive prone)
+disabled_scanners:
+  - id: 40026
+    name: "DOM Cross Site Scripting"
+    reason: "Requires a real browser; incompatible with headless Docker mode"
+
+# Scan policy thresholds for alert risk levels
+alert_thresholds:
+  high_risk:
+    strength: 3
+    threshold: 1
+  medium_risk:
+    strength: 2
+    threshold: 1
+  low_risk:
+    strength: 1
+    threshold: 0

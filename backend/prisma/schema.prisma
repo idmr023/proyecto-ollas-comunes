@@ -157,6 +157,8 @@ enum AlertType {
   unusual_consumption
   missing_daily_report
   high_priority_beneficiary
+  new_beneficiary
+  sync_conflict
 
   @@map("alerts_alert_type_check")
 }
@@ -227,8 +229,13 @@ model AppUser {
   role         String       @db.VarChar(30)
   status       String       @default("active") @db.VarChar(20)
   totpSecret   String?      @map("totp_secret") @db.VarChar(255)
+  // Olla a cargo del usuario. Obligatoria en la practica para `lideresa_olla`;
+  // nula para roles administrativos, que operan sobre toda la organizacion.
+  // Sin esta columna no habia forma de saber que olla gestiona cada lideresa.
+  ollaId       String?      @map("olla_id") @db.Uuid
   createdAt    DateTime     @default(now()) @map("created_at")
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  olla         OllaComun?   @relation(fields: [ollaId], references: [id], onDelete: SetNull)
   inventoryMovements InventoryMovement[]
   menuPlans    MenuPlan[]
   mealDeliveries MealDelivery[]
@@ -236,6 +243,7 @@ model AppUser {
   documents    Document[]
   auditLogs    AuditLog[]
   @@index([tenantId])
+  @@index([ollaId])
   @@map("app_users")
 }
 
@@ -264,6 +272,7 @@ model OllaComun {
   tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   district             District?             @relation(fields: [districtId], references: [id])
   beneficiaries        Beneficiary[]
+  assignedUsers        AppUser[]
   inventoryMovements   InventoryMovement[]
   inventoryStocks      InventoryStock[]
   menuPlans            MenuPlan[]
@@ -281,7 +290,7 @@ model Beneficiary {
   id           String                     @id @default(uuid()) @db.Uuid
   tenantId     String                     @map("tenant_id") @db.Uuid
   ollaId       String?                    @map("olla_id") @db.Uuid
-  dni          String?                    @unique @db.VarChar(20)
+  dni          String?                    @unique @db.VarChar(128)
   firstName    String                     @map("first_name") @db.VarChar(100)
   lastName     String                     @map("last_name") @db.VarChar(100)
   gender       String                     @default("not_specified") @db.VarChar(20)
@@ -491,6 +500,9 @@ model Recommendation {
   description        String?
   generatedByType    String               @default("ia") @map("generated_by_type") @db.VarChar(20)
   status             String               @default("pending") @db.VarChar(20)
+  // `payload` y `expiresAt` provienen de la migracion 007_recommendations_cache,
+  // que solo existia en la rama Aaron. Se conservan al reconciliarla con main:
+  // los trabajos de `src/jobs/` cachean aqui las recomendaciones generadas.
   payload            Json?                @db.JsonB
   expiresAt          DateTime?            @map("expires_at")
   approvedBy         String?              @map("approved_by") @db.Uuid
@@ -501,6 +513,7 @@ model Recommendation {
   relatedRecipe      Recipe?              @relation(fields: [relatedRecipeId], references: [id], onDelete: SetNull)
   approvedByUser     AppUser?             @relation(fields: [approvedBy], references: [id], onDelete: SetNull)
 
+  // Clave del upsert de recomendaciones: una por olla, tipo y fecha objetivo.
   @@unique([ollaId, recommendationType, targetDate])
   @@index([tenantId])
   @@index([ollaId])
@@ -546,6 +559,25 @@ model Document {
   @@index([ollaId])
   @@index([documentType])
   @@map("documents")
+}
+
+model FailedSyncBackup {
+  id              BigInt   @id @default(autoincrement())
+  tenantId        String?  @map("tenant_id") @db.Uuid
+  userId          String?  @map("user_id") @db.Uuid
+  path            String   @db.VarChar(500)
+  method          String   @db.VarChar(10)
+  body            Json?    @db.JsonB
+  errorMessage    String?
+  status          Int?
+  originalTimestamp DateTime @map("original_timestamp")
+  reportedAt      DateTime @default(now()) @map("reported_at")
+  emailSent       Boolean  @default(false) @map("email_sent")
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([reportedAt])
+  @@map("failed_sync_backups")
 }
 
 model AuditLog {

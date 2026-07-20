@@ -7,42 +7,51 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/auth-store"
+import { apiFetch } from "@/lib/http"
 
 export default function LoginPage() {
   const router = useRouter()
   const setAuth = useAuthStore((s) => s.setAuth)
-  const setToken = useAuthStore((s) => s.setToken)
+  const setTempToken = useAuthStore((s) => s.setTempToken)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = useCallback(async (e) => {
     e.preventDefault()
     if (!email || !password) { toast.error("Completa todos los campos"); return }
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/login`, {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.message ?? data.error ?? "Error al iniciar sesión"); return }
 
       if (data.status === "TOTP_SETUP_REQUIRED") {
-        setToken(data.tempToken)
-        router.push(`/login/otp?email=${encodeURIComponent(data.email)}&setup=1&secret=${encodeURIComponent(data.secret)}&qrCodeUri=${encodeURIComponent(data.qrCodeUri)}`)
-      } else if (data.status === "MFA_PENDING") {
-        setToken(data.tempToken)
-        if (data.devOtp) {
-          sessionStorage.setItem("dev-otp", data.devOtp)
-        } else {
-          sessionStorage.removeItem("dev-otp")
+        setTempToken(data.tempToken)
+        // Segundo paso: pedir al backend que genere/persista el secret y nos devuelva el QR.
+        // Solo en este momento el secret se guarda en BD.
+        const setupRes = await apiFetch("/api/auth/totp/setup", {
+          method: "POST",
+          body: JSON.stringify({ tempToken: data.tempToken }),
+        })
+        if (!setupRes.ok) {
+          const err = await setupRes.json().catch(() => ({}))
+          toast.error(err.message ?? "No se pudo iniciar la configuración TOTP")
+          return
         }
+        const setup = await setupRes.json()
+        router.push(`/login/otp?email=${encodeURIComponent(setup.email)}&setup=1&secret=${encodeURIComponent(setup.secret)}&qrCodeUri=${encodeURIComponent(setup.qrCodeUri)}`)
+      } else if (data.status === "MFA_PENDING") {
+        setTempToken(data.tempToken)
         router.push(`/login/otp?email=${encodeURIComponent(data.email)}`)
       } else {
-        setAuth(data.user, data.token)
+        // Con MFA activo este camino no deberia darse; se conserva por si el
+        // backend responde una sesion directa. La cookie ya viene puesta.
+        setAuth(data.user)
         const destino = data.user?.role === "admin_municipal" ? "/workspace/home" : "/mobile/inicio"
         router.push(destino)
       }
@@ -51,7 +60,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }, [email, password, router, setAuth, setToken])
+  }, [email, password, router, setAuth, setTempToken])
 
   return (
     <div className="flex min-h-screen">
@@ -117,13 +126,13 @@ export default function LoginPage() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#0F3821]">
               <Lock className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-[#0F3821]">Iniciar sesión</h2>
-            <p className="mt-1 text-sm text-gray-500">Ingresa tus credenciales para continuar</p>
+            <h2 className="text-2xl font-bold text-[#0F3821]">Bienvenido de vuelta</h2>
+            <p className="mt-1 text-sm text-gray-500">Ingresa tu correo y contraseña para continuar</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
+              <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-gray-700">Correo electrónico o DNI</label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
@@ -140,7 +149,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
+              <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input

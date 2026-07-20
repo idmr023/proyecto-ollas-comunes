@@ -19,12 +19,12 @@ export interface BeneficiaryRecord {
 export interface BeneficiaryPayload {
   firstName: string
   lastName: string
-  dni?: string | null
+  dni: string
   gender?: string
   birthDate: string
   phone?: string | null
   address?: string | null
-  ollaId?: string | null
+  ollaId: string
   priorityLevel?: string
   status?: string
   healthConditionIds?: number[]

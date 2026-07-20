@@ -36,57 +36,44 @@ function req(method, path, headers, body) {
   });
 }
 
-async function run() {
-  console.log('====================================================');
-  console.log('🚀 INICIANDO PRUEBAS DE OPERACIONES MÓVILES (LIDERESA)');
-  console.log('====================================================\n');
-
-  // 1. Login
+async function login() {
   console.log('1. Autenticando con admin@ollascomunes.pe...');
   const loginRes = await req('POST', '/api/auth/login', {}, { email: 'admin@ollascomunes.pe', password: 'admin123' });
-  
-  // Si requiere OTP (MFA) simulamos la verificación
   let token = loginRes.d.token;
+
   if (loginRes.d.status === 'MFA_PENDING') {
     console.log('  MFA detectado. OTP enviado. Obteniendo código OTP de la DB...');
-    // Esperamos que el código esté en la base de datos (usamos la API de verificación con el token temporal)
-    // Pero en local, la contraseña OTP suele ir por email mockeado. Como es un test, podemos probar a verificar
-    // con un código que consultemos o simplemente usar el token si viniera directo.
-    // Para simplificar, asumiremos que en este entorno de pruebas de desarrollo podemos saltar el OTP o consultar el último código
-    // de la base de datos si fuera necesario. En la API de test-all.mjs, el login directo dio token porque la DB de pruebas
-    // no tenía MFA habilitado o el mock devolvió token.
   }
 
   if (!token && loginRes.d.tempToken) {
     console.log('  Verificando OTP con tempToken...');
-    // Consultamos el último código OTP directo de la tabla de la DB para este test
-    // Para no acoplar base de datos directa en este script, podemos intentar usar el código '000000'
-    // o levantar el token del login si no requiere OTP.
-    // Nota: el test-all.mjs anterior asume que devuelven token directo si está en bypass, o validado.
   }
 
   if (!token) {
     console.error('❌ Error de autenticación: no se recibió token.');
     process.exit(1);
   }
-  
+
   const auth = { Authorization: 'Bearer ' + token };
   console.log('  ✓ Autenticado con éxito. Token recibido.\n');
+  return auth;
+}
 
-  // 2. Obtener datos del Dashboard actual
+async function fetchInitialDashboard(auth) {
   console.log('2. Consultando Dashboard inicial...');
   const dashInit = await req('GET', '/api/mobile/dashboard', auth);
   console.log('  Dashboard:', JSON.stringify(dashInit.d.summary));
   const racionesEntregadasPrevias = dashInit.d.summary?.entregadas || 0;
   console.log('  ✓ Dashboard consultado.\n');
+  return racionesEntregadasPrevias;
+}
 
-  // 3. Obtener catálogo de inventario e insumo para test
+async function ensureInventory(auth) {
   console.log('3. Consultando catálogo de inventario...');
   const inv = await req('GET', '/api/mobile/inventory', auth);
   const items = inv.d.items || [];
   if (items.length === 0) {
     console.log('  ⚠️ Alerta: No hay insumos en el stock de esta olla. Registrando un ingreso primero...');
-    // Intentamos buscar categorías para crear un insumo
     const cats = inv.d.categories || [];
     if (cats.length > 0 && cats[0].items?.length > 0) {
       const targetItem = cats[0].items[0];
@@ -100,7 +87,6 @@ async function run() {
     }
   }
 
-  // Volvemos a leer el inventario actualizado
   const invUpdated = await req('GET', '/api/mobile/inventory', auth);
   const activeItems = invUpdated.d.items || [];
   if (activeItems.length === 0) {
@@ -110,8 +96,10 @@ async function run() {
   const testItem = activeItems[0];
   console.log(`  Usando insumo de prueba: ${testItem.nombre} (Stock actual: ${testItem.cantidad})`);
   console.log('  ✓ Inventario verificado.\n');
+  return testItem;
+}
 
-  // 4. Registrar movimiento de Salida (Egreso)
+async function registerOutMovement(auth, testItem) {
   console.log(`4. Registrando salida de 5 unidades de ${testItem.nombre}...`);
   const outRes = await req('POST', '/api/mobile/inventory/movements', auth, {
     supplyItemId: testItem.id,
@@ -126,8 +114,9 @@ async function run() {
     console.log('  ✗ Error al registrar salida.');
   }
   console.log('');
+}
 
-  // 5. Ejecutar Menú IA (descuento automático de stock)
+async function executeIaMenu(auth) {
   console.log('5. Ejecutando Menú IA ("Arroz con pollo y verduras") para 80 raciones...');
   const menuRes = await req('POST', '/api/mobile/menu-plans/execute', auth, {
     dishName: 'Arroz con pollo y verduras',
@@ -140,8 +129,9 @@ async function run() {
     console.log('  ✗ Error al ejecutar menú.');
   }
   console.log('');
+}
 
-  // 6. Obtener lista de beneficiarios para registrar entrega
+async function ensureBeneficiary(auth) {
   console.log('6. Consultando lista de beneficiarios...');
   const ben = await req('GET', '/api/beneficiaries', auth);
   const beneficiaries = ben.d.items || [];
@@ -159,12 +149,14 @@ async function run() {
     });
     if (createBen.d.item) beneficiaries.push(createBen.d.item);
   }
-  
+
   const targetBen = beneficiaries[0];
   console.log(`  Usando beneficiario: ${targetBen.firstName} ${targetBen.lastName} (ID: ${targetBen.id})`);
   console.log('  ✓ Beneficiarios listados.\n');
+  return targetBen;
+}
 
-  // 7. Registrar entrega de raciones
+async function registerDelivery(auth, targetBen) {
   console.log(`7. Registrando entrega de ración al beneficiario ${targetBen.firstName}...`);
   const delRes = await req('POST', '/api/mobile/deliveries', auth, {
     beneficiaryIds: [targetBen.id],
@@ -178,22 +170,40 @@ async function run() {
     console.log('  ✗ Error al registrar entrega.');
   }
   console.log('');
+}
 
-  // 8. Consultar Dashboard final
+function reportFinalDashboard(auth, racionesEntregadasPrevias) {
   console.log('8. Consultando Dashboard final...');
-  const dashFinal = await req('GET', '/api/mobile/dashboard', auth);
-  console.log('  Dashboard Final:', JSON.stringify(dashFinal.d.summary));
-  const racionesEntregadasFinales = dashFinal.d.summary?.entregadas || 0;
-  console.log(`  Raciones entregadas: Previo = ${racionesEntregadasPrevias} -> Final = ${racionesEntregadasFinales}`);
-  
-  if (racionesEntregadasFinales > racionesEntregadasPrevias) {
-    console.log('  ✓ ÉXITO: El contador de raciones entregadas se incrementó correctamente.');
-  } else {
-    console.log('  ✗ ERROR: El contador de raciones no aumentó.');
-  }
+  return req('GET', '/api/mobile/dashboard', auth).then((dashFinal) => {
+    console.log('  Dashboard Final:', JSON.stringify(dashFinal.d.summary));
+    const racionesEntregadasFinales = dashFinal.d.summary?.entregadas || 0;
+    console.log(`  Raciones entregadas: Previo = ${racionesEntregadasPrevias} -> Final = ${racionesEntregadasFinales}`);
+
+    if (racionesEntregadasFinales > racionesEntregadasPrevias) {
+      console.log('  ✓ ÉXITO: El contador de raciones entregadas se incrementó correctamente.');
+    } else {
+      console.log('  ✗ ERROR: El contador de raciones no aumentó.');
+    }
+  });
+}
+
+async function run() {
+  console.log('====================================================');
+  console.log('🚀 INICIANDO PRUEBAS DE OPERACIONES MÓVILES (LIDERESA)');
+  console.log('====================================================\n');
+
+  const auth = await login();
+  const racionesEntregadasPrevias = await fetchInitialDashboard(auth);
+  const testItem = await ensureInventory(auth);
+  await registerOutMovement(auth, testItem);
+  await executeIaMenu(auth);
+  const targetBen = await ensureBeneficiary(auth);
+  await registerDelivery(auth, targetBen);
+  await reportFinalDashboard(auth, racionesEntregadasPrevias);
+
   console.log('\n====================================================');
   console.log('🎉 TODAS LAS PRUEBAS COMPLETADAS CON ÉXITO');
   console.log('====================================================');
 }
 
-run().catch(console.error);
+try { await run() } catch (e) { console.error(e) }

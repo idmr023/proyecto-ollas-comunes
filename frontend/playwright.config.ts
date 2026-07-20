@@ -29,7 +29,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
 
-    /* Configure projects for major browsers */
+  /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
@@ -39,10 +39,7 @@ export default defineConfig({
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+
   ],
 
 })

@@ -1,10 +1,51 @@
 import { prisma } from "../../lib/prisma"
 import { getPeruDayRange } from "../../lib/date-utils"
 
+function pickKeywordsForDish(dishName: string): string[] {
+  const lower = (dishName || "").toLowerCase()
+  if (lower.includes("pollo")) return ["arroz", "pollo", "zanahoria", "papa"]
+  if (lower.includes("lenteja")) return ["lenteja", "arroz", "cebolla", "aceite"]
+  return ["verdura", "arroz", "cebolla"]
+}
+
 export class MobileRepository {
-  async getUserOlla(tenantId: string) {
+  /**
+   * Resuelve la olla sobre la que opera un usuario.
+   *
+   * Antes recibia `tenantId` y devolvia la primera olla activa de la
+   * organizacion por orden alfabetico, la misma para todas sus lideresas. Con
+   * mas de una olla eso significaba ver el padron ajeno, recibir 403 sobre los
+   * beneficiarios propios y registrar entregas e inventario en la olla
+   * equivocada.
+   *
+   * Ahora parte del usuario:
+   *  - Con olla asignada, esa y solo esa (validando ademas que siga activa y
+   *    dentro de su organizacion).
+   *  - Rol administrativo sin asignar: la organizacion no se gestiona desde una
+   *    olla concreta, asi que se conserva la resolucion por tenant.
+   *  - Lideresa sin asignar: `null`. Se falla cerrado; devolver una olla
+   *    cualquiera es justo el fallo que se corrige. Los routers ya traducen ese
+   *    `null` a lista vacia o 403.
+   */
+  async getUserOlla(userId: string) {
+    const user = await prisma.appUser.findUnique({
+      where: { id: userId },
+      select: { ollaId: true, tenantId: true, role: true },
+    })
+
+    if (!user) return null
+
+    if (user.ollaId) {
+      return prisma.ollaComun.findFirst({
+        where: { id: user.ollaId, tenantId: user.tenantId, status: "active" },
+        select: { id: true, name: true, code: true, address: true },
+      })
+    }
+
+    if (user.role === "lideresa_olla") return null
+
     return prisma.ollaComun.findFirst({
-      where: { tenantId, status: "active" },
+      where: { tenantId: user.tenantId, status: "active" },
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true, address: true },
     })
@@ -13,7 +54,27 @@ export class MobileRepository {
   async getDailySummary(ollaId: string) {
     const { dateString } = getPeruDayRange()
 
-    const menuPlan = await prisma.menuPlan.findFirst({
+    const planificadas = await prisma.beneficiary.count({
+      where: { ollaId, status: "active" }
+    })
+
+    const menuPlan = await this.findActiveMenuPlan(ollaId, dateString)
+    if (!menuPlan) return { planificadas, entregadas: 0, menu: null }
+
+    const entregadas = menuPlan.deliveries.reduce((sum, d) => sum + d.totalRations, 0)
+    const activeStock = await prisma.inventoryStock.findMany({ where: { ollaId } })
+    const maxServings = await this.calculateMaxServings(ollaId, menuPlan, activeStock)
+    const maxServingsRemaining = Math.max(0, maxServings)
+
+    return {
+      planificadas,
+      entregadas,
+      menu: this.buildMenuResponse(menuPlan, maxServingsRemaining),
+    }
+  }
+
+  private async findActiveMenuPlan(ollaId: string, dateString: string) {
+    return prisma.menuPlan.findFirst({
       where: {
         ollaId,
         operationDate: new Date(dateString),
@@ -43,76 +104,58 @@ export class MobileRepository {
         deliveries: { select: { totalRations: true } },
       },
     })
+  }
 
-    if (!menuPlan) return { planificadas: 0, entregadas: 0, menu: null }
-
-    const entregadas = menuPlan.deliveries.reduce((sum, d) => sum + d.totalRations, 0)
-
-    // Calculate maximum servings possible based on available stock of the recipe ingredients
-    let maxServings = 9999 // fallback / high limit
-
-    // Find the current inventory stock for this olla
-    const activeStock = await prisma.inventoryStock.findMany({
-      where: { ollaId },
-    })
-
+  private async calculateMaxServings(ollaId: string, menuPlan: any, activeStock: any[]): Promise<number> {
     if (menuPlan.recipe && menuPlan.recipe.ingredients.length > 0) {
-      const estServings = menuPlan.recipe.estimatedServings || 1
-      for (const ing of menuPlan.recipe.ingredients) {
-        const stockItem = activeStock.find(s => s.supplyItemId === ing.supplyItemId)
-        const stockQty = stockItem ? Number(stockItem.quantity) : 0
-        const consumptionPerServing = Number(ing.quantity) / estServings
-        if (consumptionPerServing > 0) {
-          const possibleServings = Math.floor(stockQty / consumptionPerServing)
-          if (possibleServings < maxServings) {
-            maxServings = possibleServings
-          }
-        }
-      }
-    } else {
-      // Fallback keywords based limit
-      const lowerDish = (menuPlan.dishName || "").toLowerCase()
-      let keywords: string[] = []
-      if (lowerDish.includes("pollo")) {
-        keywords = ["arroz", "pollo", "zanahoria", "papa"]
-      } else if (lowerDish.includes("lenteja")) {
-        keywords = ["lenteja", "arroz", "cebolla", "aceite"]
-      } else {
-        keywords = ["verdura", "arroz", "cebolla"]
-      }
+      return this.maxServingsFromRecipe(menuPlan.recipe, activeStock)
+    }
+    return this.maxServingsFromKeywords(ollaId, menuPlan.dishName || "")
+  }
 
-      // Fetch active stock with supply items to match names
-      const activeStockWithItems = await prisma.inventoryStock.findMany({
-        where: { ollaId },
-        include: { supplyItem: true }
-      })
-
-      for (const kw of keywords) {
-        const match = activeStockWithItems.find((s) => s.supplyItem.name.toLowerCase().includes(kw))
-        const stockQty = match ? Number(match.quantity) : 0
-        // Fallback uses 0.1 units per serving
-        const possibleServings = Math.floor(stockQty / 0.1)
-        if (possibleServings < maxServings) {
-          maxServings = possibleServings
-        }
+  private maxServingsFromRecipe(recipe: any, activeStock: any[]): number {
+    let maxServings = 9999
+    const estServings = recipe.estimatedServings || 1
+    for (const ing of recipe.ingredients) {
+      const stockItem = activeStock.find(s => s.supplyItemId === ing.supplyItemId)
+      const stockQty = stockItem ? Number(stockItem.quantity) : 0
+      const consumptionPerServing = Number(ing.quantity) / estServings
+      if (consumptionPerServing > 0) {
+        const possibleServings = Math.floor(stockQty / consumptionPerServing)
+        if (possibleServings < maxServings) maxServings = possibleServings
       }
     }
+    return maxServings
+  }
 
-    const maxServingsRemaining = Math.max(0, maxServings)
+  private async maxServingsFromKeywords(ollaId: string, dishName: string): Promise<number> {
+    const keywords = pickKeywordsForDish(dishName)
+    const activeStockWithItems = await prisma.inventoryStock.findMany({
+      where: { ollaId },
+      include: { supplyItem: true },
+    })
+    let maxServings = 9999
+    for (const kw of keywords) {
+      const match = activeStockWithItems.find(s => s.supplyItem.name.toLowerCase().includes(kw))
+      const stockQty = match ? Number(match.quantity) : 0
+      const possibleServings = Math.floor(stockQty / 0.1)
+      if (possibleServings < maxServings) maxServings = possibleServings
+    }
+    return maxServings
+  }
 
+  private buildMenuResponse(menuPlan: any, maxServingsRemaining: number) {
     return {
-      planificadas: menuPlan.plannedServings,
-      entregadas,
-      menu: {
-        id: menuPlan.id,
-        dishName: menuPlan.dishName,
-        status: menuPlan.status,
-        maxServingsRemaining,
-        recipe: menuPlan.recipe ? {
-          name: menuPlan.recipe.name,
-          ingredients: menuPlan.recipe.ingredients.map(i => i.supplyItem.name)
-        } : null
-      }
+      id: menuPlan.id,
+      dishName: menuPlan.dishName,
+      status: menuPlan.status,
+      maxServingsRemaining,
+      recipe: menuPlan.recipe
+        ? {
+            name: menuPlan.recipe.name,
+            ingredients: menuPlan.recipe.ingredients.map((i: any) => i.supplyItem.name),
+          }
+        : null,
     }
   }
 
@@ -230,6 +273,20 @@ export class MobileRepository {
         update: { quantity: newQty, updatedAt: new Date() },
       })
 
+      if (data.movementType === "out" && newQty === 0) {
+        const supplyItem = await tx.supplyItem.findUnique({ where: { id: data.supplyItemId } })
+        await tx.alert.create({
+          data: {
+            tenantId: data.tenantId,
+            ollaId: data.ollaId,
+            alertType: "low_stock",
+            severity: "critical",
+            message: `Insumo agotado: ${supplyItem?.name || "Insumo"} — Se registró una salida que dejó el stock en 0.`,
+            status: "open",
+          },
+        })
+      }
+
       return movement
     })
   }
@@ -325,14 +382,15 @@ export class MobileRepository {
       address: olla?.address || ""
     }
 
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = process.env.GROQ_API_KEY
+    const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
     if (!apiKey || apiKey.trim() === "") {
       // Return a structured warning fallback suggestion so the application doesn't crash if apiKey is not configured yet
       return [
         {
-          nombre: "Configurar API Key de Gemini (Offline)",
+          nombre: "Configurar API Key de Groq (Offline)",
           puntaje: 99,
-          ingredientes: ["Por favor, agregue su clave GEMINI_API_KEY en el archivo backend/.env para activar la generación inteligente."],
+          ingredientes: ["Por favor, agregue su clave GROQ_API_KEY en el archivo backend/.env para activar la generación inteligente."],
           recipeIngredients: []
         }
       ]
@@ -355,73 +413,63 @@ Instrucciones:
 2. Cada plato debe contener un puntaje de idoneidad nutritional (escala 1-100) basándose en las necesidades del padrón.
 3. Para cada plato sugerido, debes especificar exactamente qué insumos de los provistos en la lista de inventario utilizará y en qué cantidad (en la misma unidad de medida que figura en el inventario) para preparar raciones para ${totalBeneficiaries} personas.
 4. SOLO utiliza ingredientes que existan en el inventario provisto (usa sus supplyItemId). No sugieras insumos inexistentes.
-5. Devuelve la información estrictamente estructurada según el JSON schema requerido.
+5. Devuelve la información estrictamente estructurada en formato JSON según el siguiente esquema:
+{
+  "suggestions": [
+    {
+      "nombre": "Nombre del plato",
+      "puntaje": 85,
+      "justification": "Breve justificación nutricional",
+      "ingredientsNeeded": [
+        {
+          "supplyItemId": "ID del insumo",
+          "quantityNeeded": 5.5
+        }
+      ]
+    }
+  ]
+}
 `
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        "https://api.groq.com/openai/v1/chat/completions",
         {
           method: "POST",
           headers: {
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            contents: [
+            model: model,
+            messages: [
               {
-                parts: [
-                  {
-                    text: prompt
-                  }
-                ]
+                role: "system",
+                content: "Eres un nutricionista experto en gestión de ollas comunes en el Perú. Debes responder estrictamente en formato JSON con las sugerencias solicitadas."
+              },
+              {
+                role: "user",
+                content: prompt
               }
             ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: "OBJECT",
-                properties: {
-                  suggestions: {
-                    type: "ARRAY",
-                    items: {
-                      type: "OBJECT",
-                      properties: {
-                        nombre: { "type": "STRING" },
-                        puntaje: { "type": "INTEGER" },
-                        justification: { "type": "STRING" },
-                        ingredientsNeeded: {
-                          type: "ARRAY",
-                          items: {
-                            type: "OBJECT",
-                            properties: {
-                              supplyItemId: { "type": "STRING" },
-                              quantityNeeded: { "type": "NUMBER" }
-                            },
-                            required: ["supplyItemId", "quantityNeeded"]
-                          }
-                        }
-                      },
-                      required: ["nombre", "puntaje", "justification", "ingredientsNeeded"]
-                    }
-                  }
-                },
-                required: ["suggestions"]
-              }
-            }
+            response_format: {
+              type: "json_object"
+            },
+            temperature: 0.2
           })
         }
       )
 
       if (!response.ok) {
         const errText = await response.text()
-        console.error("Gemini API error status:", response.status, errText)
-        throw new Error(`Error en API de Gemini: ${response.statusText}`)
+        console.error("Groq API error status:", response.status, errText)
+        throw new Error(`Error en API de Groq: ${response.statusText}`)
       }
 
       const resData = await response.json() as any
-      const textContent = resData.candidates?.[0]?.content?.parts?.[0]?.text
+      const textContent = resData.choices?.[0]?.message?.content
       if (!textContent) {
-        throw new Error("No se obtuvo respuesta de Gemini")
+        throw new Error("No se obtuvo respuesta de Groq")
       }
 
       const parsed = JSON.parse(textContent) as {
@@ -450,7 +498,7 @@ Instrucciones:
         }
       })
     } catch (error) {
-      console.error("Error generating Gemini suggestions, falling back...", error)
+      console.error("Error generating Groq suggestions, falling back...", error)
       return [
         {
           nombre: "Seco de Pollo con Arroz (Offline)",
@@ -474,179 +522,167 @@ Instrucciones:
     const operationDate = new Date(dateString)
 
     return prisma.$transaction(async (tx) => {
-      // 1. Get today's MenuPlan
-      let menuPlan = await tx.menuPlan.findFirst({
-        where: {
-          ollaId: data.ollaId,
-          operationDate,
-        },
-        include: {
-          recipe: {
-            include: {
-              ingredients: true
-            }
-          }
-        }
-      })
-
-      if (!menuPlan) {
-        menuPlan = await tx.menuPlan.create({
-          data: {
-            ollaId: data.ollaId,
-            operationDate,
-            dishName: data.dishName || "Almuerzo del día",
-            plannedServings: data.totalRations || data.beneficiaryIds.length,
-            status: "executed",
-            suggestedByType: "user",
-            createdBy: data.userId,
-          },
-          include: {
-            recipe: {
-              include: {
-                ingredients: true
-              }
-            }
-          }
-        })
-      } else {
-        menuPlan = await tx.menuPlan.update({
-          where: { id: menuPlan.id },
-          data: { status: "executed" },
-          include: {
-            recipe: {
-              include: {
-                ingredients: true
-              }
-            }
-          }
-        })
-      }
-
-      // 2. Determine items to discount based on servings (data.totalRations)
+      const menuPlan = await this.ensureDeliveryMenuPlan(tx, data, operationDate)
       const servings = data.totalRations || data.beneficiaryIds.length
-      const itemsToDiscount: { supplyItemId: string; quantity: number }[] = []
-
-      if (menuPlan.recipe && menuPlan.recipe.ingredients.length > 0) {
-        const factor = servings / (menuPlan.recipe.estimatedServings || 1)
-        for (const ing of menuPlan.recipe.ingredients) {
-          const qty = Number((Number(ing.quantity) * factor).toFixed(2))
-          if (qty >= 0.01) {
-            itemsToDiscount.push({
-              supplyItemId: ing.supplyItemId,
-              quantity: qty,
-            })
-          }
-        }
-      } else {
-        // Fallback: match keywords by name
-        const lowerDish = (menuPlan.dishName || data.dishName || "Almuerzo del día").toLowerCase()
-        let keywords: string[] = []
-        if (lowerDish.includes("pollo")) {
-          keywords = ["arroz", "pollo", "zanahoria", "papa"]
-        } else if (lowerDish.includes("lenteja")) {
-          keywords = ["lenteja", "arroz", "cebolla", "aceite"]
-        } else {
-          keywords = ["verdura", "arroz", "cebolla"]
-        }
-
-        const activeStock = await tx.inventoryStock.findMany({
-          where: { ollaId: data.ollaId },
-          include: { supplyItem: true },
-        })
-
-        for (const kw of keywords) {
-          const match = activeStock.find((s) => s.supplyItem.name.toLowerCase().includes(kw))
-          if (match) {
-            const qty = Number((0.1 * servings).toFixed(2))
-            if (qty >= 0.01) {
-              itemsToDiscount.push({
-                supplyItemId: match.supplyItemId,
-                quantity: qty,
-              })
-            }
-          }
-        }
-      }
-
-      // 3. Perform deductions and movements
-      for (const item of itemsToDiscount) {
-        await tx.inventoryMovement.create({
-          data: {
-            tenantId: data.tenantId,
-            ollaId: data.ollaId,
-            supplyItemId: item.supplyItemId,
-            movementType: "out",
-            quantity: item.quantity,
-            notes: `Descuento incremental: ${menuPlan.dishName}`,
-            createdBy: data.userId,
-          },
-        })
-
-        const currentStock = await tx.inventoryStock.findUnique({
-          where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
-          include: { supplyItem: true },
-        })
-
-        const currentQty = currentStock ? Number(currentStock.quantity) : 0
-        const isInsufficient = currentQty < item.quantity
-        const newQty = Math.max(0, currentQty - item.quantity)
-
-        await tx.inventoryStock.upsert({
-          where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
-          create: {
-            ollaId: data.ollaId,
-            supplyItemId: item.supplyItemId,
-            quantity: 0,
-            updatedAt: new Date(),
-          },
-          update: {
-            quantity: newQty,
-            updatedAt: new Date(),
-          },
-        })
-
-        if (isInsufficient) {
-          const supplyItem = currentStock?.supplyItem || await tx.supplyItem.findUnique({ where: { id: item.supplyItemId } })
-          if (supplyItem) {
-            await tx.alert.create({
-              data: {
-                tenantId: data.tenantId,
-                ollaId: data.ollaId,
-                alertType: "low_stock",
-                severity: "high",
-                message: `Stock insuficiente para: ${supplyItem.name} — Se intentó descontar ${item.quantity} ${supplyItem.unit} pero solo había ${currentQty} ${supplyItem.unit}`,
-                status: "open",
-              },
-            })
-          }
-        }
-      }
-
-      // 4. Create MealDelivery
-      const delivery = await tx.mealDelivery.create({
-        data: {
-          menuPlanId: menuPlan.id,
-          totalRations: servings,
-          createdBy: data.userId,
-        },
-      })
-
-      // 5. Create MealDeliveryDetail for each beneficiary
-      if (data.beneficiaryIds && data.beneficiaryIds.length > 0) {
-        const detailsData = data.beneficiaryIds.map((bId) => ({
-          deliveryId: delivery.id,
-          beneficiaryId: bId,
-          rationType: "estandar",
-        }))
-
-        await tx.mealDeliveryDetail.createMany({
-          data: detailsData,
-          skipDuplicates: true,
-        })
-      }
-
-      return delivery
+      const itemsToDiscount = await this.computeDeliveryDiscounts(tx, menuPlan, data, servings)
+      await this.applyInventoryDeductions(tx, itemsToDiscount, data, menuPlan.dishName)
+      return await this.createDeliveryWithDetails(tx, menuPlan.id, servings, data)
     })
+  }
+
+  private async ensureDeliveryMenuPlan(tx: any, data: any, operationDate: Date) {
+    const include = { recipe: { include: { ingredients: true } } }
+    const existing = await tx.menuPlan.findFirst({
+      where: { ollaId: data.ollaId, operationDate },
+      include,
+    })
+    if (existing) {
+      return tx.menuPlan.update({
+        where: { id: existing.id },
+        data: { status: "executed" },
+        include,
+      })
+    }
+    return tx.menuPlan.create({
+      data: {
+        ollaId: data.ollaId,
+        operationDate,
+        dishName: data.dishName || "Almuerzo del día",
+        plannedServings: data.totalRations || data.beneficiaryIds.length,
+        status: "executed",
+        suggestedByType: "user",
+        createdBy: data.userId,
+      },
+      include,
+    })
+  }
+
+  private async computeDeliveryDiscounts(tx: any, menuPlan: any, data: any, servings: number) {
+    if (menuPlan.recipe && menuPlan.recipe.ingredients.length > 0) {
+      return this.discountsFromRecipe(menuPlan.recipe, servings)
+    }
+    return this.discountsFromKeywords(tx, menuPlan.dishName || data.dishName || "", data.ollaId, servings)
+  }
+
+  private discountsFromRecipe(recipe: any, servings: number): { supplyItemId: string; quantity: number }[] {
+    const items: { supplyItemId: string; quantity: number }[] = []
+    const factor = servings / (recipe.estimatedServings || 1)
+    for (const ing of recipe.ingredients) {
+      const qty = Number((Number(ing.quantity) * factor).toFixed(2))
+      if (qty >= 0.01) {
+        items.push({ supplyItemId: ing.supplyItemId, quantity: qty })
+      }
+    }
+    return items
+  }
+
+  private async discountsFromKeywords(tx: any, dishName: string, ollaId: string, servings: number) {
+    const keywords = pickKeywordsForDish(dishName)
+    const activeStock: any[] = await tx.inventoryStock.findMany({
+      where: { ollaId },
+      include: { supplyItem: true },
+    })
+    const items: { supplyItemId: string; quantity: number }[] = []
+    for (const kw of keywords) {
+      const match = activeStock.find((s: any) => s.supplyItem.name.toLowerCase().includes(kw))
+      if (!match) continue
+      const qty = Number((0.1 * servings).toFixed(2))
+      if (qty >= 0.01) {
+        items.push({ supplyItemId: match.supplyItemId, quantity: qty })
+      }
+    }
+    return items
+  }
+
+  private async applyInventoryDeductions(
+    tx: any,
+    items: { supplyItemId: string; quantity: number }[],
+    data: any,
+    dishName: string,
+  ) {
+    for (const item of items) {
+      await this.deductSingleItem(tx, item, data, dishName)
+    }
+  }
+
+  private async deductSingleItem(tx: any, item: any, data: any, dishName: string) {
+    await tx.inventoryMovement.create({
+      data: {
+        tenantId: data.tenantId,
+        ollaId: data.ollaId,
+        supplyItemId: item.supplyItemId,
+        movementType: "out",
+        quantity: item.quantity,
+        notes: `Descuento incremental: ${dishName}`,
+        createdBy: data.userId,
+      },
+    })
+
+    const currentStock = await tx.inventoryStock.findUnique({
+      where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
+      include: { supplyItem: true },
+    })
+
+    const currentQty = currentStock ? Number(currentStock.quantity) : 0
+    const newQty = Math.max(0, currentQty - item.quantity)
+
+    await tx.inventoryStock.upsert({
+      where: { ollaId_supplyItemId: { ollaId: data.ollaId, supplyItemId: item.supplyItemId } },
+      create: {
+        ollaId: data.ollaId,
+        supplyItemId: item.supplyItemId,
+        quantity: 0,
+        updatedAt: new Date(),
+      },
+      update: {
+        quantity: newQty,
+        updatedAt: new Date(),
+      },
+    })
+
+    if (currentQty < item.quantity) {
+      await this.createLowStockAlert(tx, item, data, currentStock, currentQty)
+    }
+  }
+
+  private async createLowStockAlert(tx: any, item: any, data: any, currentStock: any, currentQty: number) {
+    const supplyItem =
+      currentStock?.supplyItem ||
+      (await tx.supplyItem.findUnique({ where: { id: item.supplyItemId } }))
+    if (!supplyItem) return
+    await tx.alert.create({
+      data: {
+        tenantId: data.tenantId,
+        ollaId: data.ollaId,
+        alertType: "low_stock",
+        severity: "high",
+        message: `Stock insuficiente para: ${supplyItem.name} — Se intentó descontar ${item.quantity} ${supplyItem.unit} pero solo había ${currentQty} ${supplyItem.unit}`,
+        status: "open",
+      },
+    })
+  }
+
+  private async createDeliveryWithDetails(tx: any, menuPlanId: string, servings: number, data: any) {
+    const delivery = await tx.mealDelivery.create({
+      data: {
+        menuPlanId,
+        totalRations: servings,
+        createdBy: data.userId,
+      },
+    })
+
+    if (data.beneficiaryIds && data.beneficiaryIds.length > 0) {
+      const detailsData = data.beneficiaryIds.map((bId: string) => ({
+        deliveryId: delivery.id,
+        beneficiaryId: bId,
+        rationType: "estandar",
+      }))
+      await tx.mealDeliveryDetail.createMany({
+        data: detailsData,
+        skipDuplicates: true,
+      })
+    }
+    return delivery
   }
 
   async executeMenuPlan(data: {
@@ -735,51 +771,13 @@ Instrucciones:
     })
   }
 
-  async listRecipes(tenantId: string) {
-    const recipes = await prisma.recipe.findMany({
-      where: { tenantId, status: "active" },
-      orderBy: { name: "asc" },
-      include: { ingredients: { select: { supplyItemId: true } } },
-    })
-    return recipes.map((r) => ({
-      id: r.id,
-      nombre: r.name,
-      racionesEstimadas: r.estimatedServings,
-      totalIngredientes: r.ingredients.length,
-    }))
-  }
-
-  async getRecipeWithIngredients(recipeId: string, tenantId: string) {
-    const recipe = await prisma.recipe.findFirst({
-      where: { id: recipeId, tenantId },
-      include: {
-        ingredients: {
-          include: { supplyItem: { select: { id: true, name: true, unit: true } } },
-        },
-      },
-    })
-    if (!recipe) return null
-    return {
-      id: recipe.id,
-      nombre: recipe.name,
-      racionesEstimadas: recipe.estimatedServings,
-      ingredientes: recipe.ingredients.map((i) => ({
-        supplyItemId: i.supplyItemId,
-        nombre: i.supplyItem.name,
-        unidad: i.supplyItem.unit,
-        cantidad: Number(i.quantity),
-      })),
-    }
-  }
-
-  async getStockMap(ollaId: string) {
-    const stock = await prisma.inventoryStock.findMany({ where: { ollaId } })
-    const mapa = new Map<string, number>()
-    for (const s of stock) {
-      mapa.set(s.supplyItemId, Number(s.quantity))
-    }
-    return mapa
-  }
+  /* ── Soporte de los trabajos de recomendaciones e IA ──────────────────
+   *
+   * Se conservan de la rama Aaron al reconciliarla con main: los jobs de
+   * `src/jobs/` dependen de ellos. La resolucion de la fusion tomo la version
+   * de main para el resto del repositorio, que incluye el `getUserOlla`
+   * corregido (resuelve por usuario y no por tenant).
+   */
 
   async countActiveBeneficiaries(ollaId: string) {
     return prisma.beneficiary.count({ where: { ollaId, status: "active" } })

@@ -1,14 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Modal } from '@/components/shared/modal'
+import { BeneficiaryForm } from '@/components/shared/beneficiary-form'
 import { PageShell } from '@/components/workspace/page-shell'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Beneficiary, BeneficiaryFormValues, HealthCondition } from '@/types/beneficiary'
+import type { Beneficiary, HealthCondition } from '@/types/beneficiary'
 import {
   createBeneficiary,
   deleteBeneficiary,
@@ -17,6 +19,15 @@ import {
   listBeneficiaries,
   updateBeneficiary,
 } from '@/lib/beneficiaries-api'
+import { z } from 'zod'
+
+const beneficiarySchema = z.object({
+  firstName: z.string().trim().min(1, 'El nombre es obligatorio.'),
+  lastName: z.string().trim().min(1, 'Los apellidos son obligatorios.'),
+  birthDate: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria.'),
+  dni: z.string().trim().regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 digitos.'),
+  ollaId: z.string().trim().min(1, 'La olla común es obligatoria.'),
+})
 
 type PriorityStyle = { label: string; className: string }
 
@@ -26,13 +37,6 @@ const PRIORITY_MAP: Record<string, PriorityStyle> = {
   high: { label: 'Alto', className: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
 }
 
-const GENDER_OPTIONS = [
-  { value: 'not_specified', label: 'No especificado' },
-  { value: 'male', label: 'Masculino' },
-  { value: 'female', label: 'Femenino' },
-  { value: 'other', label: 'Otro' },
-]
-
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate)
   const today = new Date()
@@ -40,22 +44,6 @@ function calculateAge(birthDate: string): number {
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
   return age
-}
-
-function emptyForm(): BeneficiaryFormValues {
-  return {
-    firstName: '',
-    lastName: '',
-    dni: '',
-    gender: 'not_specified',
-    birthDate: '',
-    phone: '',
-    address: '',
-    ollaId: '',
-    priorityLevel: 'normal',
-    status: 'active',
-    healthConditionIds: [],
-  }
 }
 
 export default function BeneficiariosPage() {
@@ -73,8 +61,8 @@ export default function BeneficiariosPage() {
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState<BeneficiaryFormValues>(emptyForm())
+  const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null)
+  const [formVersion, setFormVersion] = useState(0)
   const [saving, setSaving] = useState(false)
 
   // Confirm delete
@@ -114,47 +102,64 @@ export default function BeneficiariosPage() {
   }, [fetchData])
 
   function openCreateModal() {
-    setEditingId(null)
-    setForm(emptyForm())
+    setEditingBeneficiary(null)
+    setFormVersion((v) => v + 1)
     setModalOpen(true)
   }
 
   function openEditModal(beneficiary: Beneficiary) {
-    setEditingId(beneficiary.id)
-    setForm({
-      firstName: beneficiary.firstName,
-      lastName: beneficiary.lastName,
-      dni: beneficiary.dni ?? '',
-      gender: beneficiary.gender,
-      birthDate: beneficiary.birthDate.slice(0, 10),
-      phone: beneficiary.phone ?? '',
-      address: beneficiary.address ?? '',
-      ollaId: beneficiary.ollaId ?? '',
-      priorityLevel: beneficiary.priorityLevel,
-      status: beneficiary.status,
-      healthConditionIds: (beneficiary.healthConditions ?? []).map((hc) => hc.id),
-    })
+    setEditingBeneficiary(beneficiary)
+    setFormVersion((v) => v + 1)
     setModalOpen(true)
   }
 
-  async function handleSave() {
-    const errors: string[] = []
-    if (!form.firstName.trim()) errors.push('El nombre es obligatorio.')
-    if (!form.lastName.trim()) errors.push('Los apellidos son obligatorios.')
-    if (!form.birthDate) errors.push('La fecha de nacimiento es obligatoria.')
+  async function handleFormSubmit(data: {
+    firstName: string
+    lastName: string
+    dni: string
+    birthDate: string
+    gender: string
+    priorityLevel: string
+    phone: string
+    address: string
+    ollaId: string
+    healthConditionIds: number[]
+  }) {
+    const result = beneficiarySchema.safeParse({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      birthDate: data.birthDate,
+      dni: data.dni,
+      ollaId: data.ollaId,
+    })
 
-    if (errors.length > 0) {
-      toast.error(errors.join(' '))
+    if (!result.success) {
+      const messages = result.error.issues.map((e) => e.message)
+      toast.error(messages.join(' '))
       return
+    }
+
+    const payload = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      dni: data.dni,
+      birthDate: data.birthDate,
+      gender: data.gender,
+      priorityLevel: data.priorityLevel,
+      phone: data.phone,
+      address: data.address,
+      ollaId: data.ollaId,
+      healthConditionIds: data.healthConditionIds,
+      status: editingBeneficiary?.status ?? 'active',
     }
 
     setSaving(true)
     try {
-      if (editingId) {
-        await updateBeneficiary(editingId, form)
+      if (editingBeneficiary) {
+        await updateBeneficiary(editingBeneficiary.id, payload)
         toast.success('Beneficiario actualizado correctamente.')
       } else {
-        await createBeneficiary(form)
+        await createBeneficiary(payload)
         toast.success('Beneficiario registrado correctamente.')
       }
       setModalOpen(false)
@@ -178,28 +183,6 @@ export default function BeneficiariosPage() {
       setDeletingId(null)
     }
   }
-
-  function updateFormField<K extends keyof BeneficiaryFormValues>(
-    key: K,
-    value: BeneficiaryFormValues[K],
-  ) {
-    setForm((prev) => ({ ...prev, [key]: value }))
-  }
-
-  function toggleHealthCondition(conditionId: number) {
-    setForm((prev) => {
-      const ids = prev.healthConditionIds ?? []
-      if (ids.includes(conditionId)) {
-        return { ...prev, healthConditionIds: ids.filter((id) => id !== conditionId) }
-      }
-      return { ...prev, healthConditionIds: [...ids, conditionId] }
-    })
-  }
-
-  const selectedOllaName = useMemo(() => {
-    if (!form.ollaId) return ''
-    return ollas.find((o) => o.id === form.ollaId)?.name ?? ''
-  }, [form.ollaId, ollas])
 
   return (
     <PageShell title="Beneficiarios" description="Padrón y seguimiento de beneficiarios." width="wide">
@@ -265,7 +248,7 @@ export default function BeneficiariosPage() {
       {loading && (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            <Skeleton key={"skel-" + i} className="h-12 w-full rounded-lg" />
           ))}
         </div>
       )}
@@ -425,152 +408,38 @@ export default function BeneficiariosPage() {
       )}
 
       {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-10 pb-10">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
-          <div className="relative z-50 w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-950">
-            <h2 className="mb-4 text-lg font-semibold">
-              {editingId ? 'Editar Beneficiario' : 'Registrar Beneficiario'}
-            </h2>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="firstName">Nombres *</Label>
-                  <Input
-                    id="firstName"
-                    value={form.firstName}
-                    onChange={(e) => updateFormField('firstName', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Apellidos *</Label>
-                  <Input
-                    id="lastName"
-                    value={form.lastName}
-                    onChange={(e) => updateFormField('lastName', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="dni">DNI</Label>
-                  <Input
-                    id="dni"
-                    maxLength={20}
-                    value={form.dni ?? ''}
-                    onChange={(e) => updateFormField('dni', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="birthDate">Fecha de Nacimiento *</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={form.birthDate}
-                    onChange={(e) => updateFormField('birthDate', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="gender">Género</Label>
-                  <select
-                    id="gender"
-                    className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    value={form.gender}
-                    onChange={(e) => updateFormField('gender', e.target.value)}
-                  >
-                    {GENDER_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="priorityLevel">Prioridad</Label>
-                  <select
-                    id="priorityLevel"
-                    className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    value={form.priorityLevel}
-                    onChange={(e) => updateFormField('priorityLevel', e.target.value)}
-                  >
-                    <option value="low">Bajo</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">Alto</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input
-                  id="phone"
-                  value={form.phone ?? ''}
-                  onChange={(e) => updateFormField('phone', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  value={form.address ?? ''}
-                  onChange={(e) => updateFormField('address', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="ollaId">Olla Común</Label>
-                <select
-                  id="ollaId"
-                  className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  value={form.ollaId ?? ''}
-                  onChange={(e) => updateFormField('ollaId', e.target.value || undefined)}
-                >
-                  <option value="">Sin asignar</option>
-                  {ollas.map((olla) => (
-                    <option key={olla.id} value={olla.id}>{olla.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label>Condiciones de Salud</Label>
-                <div className="mt-1 grid grid-cols-2 gap-2 rounded-lg border p-3">
-                  {healthConditions.length === 0 && (
-                    <p className="col-span-2 text-xs text-muted-foreground">No hay condiciones disponibles.</p>
-                  )}
-                  {healthConditions.map((hc) => {
-                    const checked = (form.healthConditionIds ?? []).includes(hc.id)
-                    return (
-                      <label key={hc.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={checked}
-                          onChange={() => toggleHealthCondition(hc.id)}
-                        />
-                        {hc.name}
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Registrar'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingBeneficiary ? 'Editar Beneficiario' : 'Registrar Beneficiario'}
+        maxWidth="max-w-2xl"
+      >
+        <BeneficiaryForm
+          key={formVersion}
+          mode={editingBeneficiary ? 'edit' : 'create'}
+          initialData={
+            editingBeneficiary
+              ? {
+                  firstName: editingBeneficiary.firstName,
+                  lastName: editingBeneficiary.lastName,
+                  dni: editingBeneficiary.dni ?? '',
+                  birthDate: editingBeneficiary.birthDate.slice(0, 10),
+                  gender: editingBeneficiary.gender,
+                  priorityLevel: editingBeneficiary.priorityLevel,
+                  phone: editingBeneficiary.phone ?? '',
+                  address: editingBeneficiary.address ?? '',
+                  ollaId: editingBeneficiary.ollaId ?? '',
+                  healthConditionIds: (editingBeneficiary.healthConditions ?? []).map((hc) => hc.id),
+                }
+              : undefined
+          }
+          ollas={ollas}
+          healthConditions={healthConditions}
+          onSubmit={handleFormSubmit}
+          onCancel={() => setModalOpen(false)}
+          loading={saving}
+        />
+      </Modal>
     </PageShell>
   )
 }

@@ -1,4 +1,7 @@
 import { Router, Response } from 'express'
+import { prisma } from '../../lib/prisma'
+import { debugDetail } from '../../lib/debug'
+import { mobileRepository } from '../mobile/repository'
 import { BeneficiaryServiceError } from './errors'
 import {
   getAllBeneficiaries,
@@ -48,7 +51,7 @@ function handleError(error: unknown, response: Response) {
   response.status(500).json({
     ok: false,
     message: 'Error interno del servidor.',
-    ...(process.env.NODE_ENV !== 'production' ? { detail: String(error) } : {}),
+    ...debugDetail(error),
   })
 }
 
@@ -56,9 +59,18 @@ beneficiariesRouter.get('/', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
     const query = typeof request.query.query === 'string' ? request.query.query : undefined
-    const ollaId = typeof request.query.ollaId === 'string' ? request.query.ollaId : undefined
+    let ollaId = typeof request.query.ollaId === 'string' ? request.query.ollaId : undefined
     const rawHealthConditionId = request.query.healthConditionId
     const healthConditionId = typeof rawHealthConditionId === 'string' ? Number(rawHealthConditionId) : undefined
+
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      if (!olla) {
+        response.json({ ok: true, items: [] })
+        return
+      }
+      ollaId = olla.id
+    }
 
     const items = await getAllBeneficiaries(tenantId, {
       query,
@@ -84,6 +96,15 @@ beneficiariesRouter.get('/conditions', async (_request, response) => {
 beneficiariesRouter.get('/ollas', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      if (!olla) {
+        response.json({ ok: true, items: [] })
+        return
+      }
+      response.json({ ok: true, items: [{ id: olla.id, name: olla.name }] })
+      return
+    }
     const items = await getTenantOllas(tenantId)
     response.json({ ok: true, items })
   } catch (error) {
@@ -95,6 +116,17 @@ beneficiariesRouter.get('/:id', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
     const item = await getBeneficiaryById(request.params.id, tenantId)
+
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      // Sin olla asignada se deniega. Comparar contra `olla?.id` dejaba pasar a
+      // un beneficiario sin olla, porque `undefined === undefined`.
+      if (!olla || item.ollaId !== olla.id) {
+        response.status(403).json({ ok: false, message: 'No tienes permisos para ver este beneficiario.' })
+        return
+      }
+    }
+
     response.json({ ok: true, item })
   } catch (error) {
     handleError(error, response)
@@ -104,6 +136,26 @@ beneficiariesRouter.get('/:id', async (request, response) => {
 beneficiariesRouter.post('/', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
+
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      if (!olla) {
+        response.status(403).json({ ok: false, message: 'No tienes una olla activa asignada.' })
+        return
+      }
+      request.body.ollaId = olla.id
+    } else {
+      if (request.body.ollaId) {
+        const ollaExist = await prisma.ollaComun.findFirst({
+          where: { id: request.body.ollaId, tenantId }
+        })
+        if (!ollaExist) {
+          response.status(400).json({ ok: false, message: 'La olla común especificada no pertenece a tu organización.' })
+          return
+        }
+      }
+    }
+
     const item = await registerBeneficiary(tenantId, request.body)
     response.status(201).json({ ok: true, item })
   } catch (error) {
@@ -114,6 +166,32 @@ beneficiariesRouter.post('/', async (request, response) => {
 beneficiariesRouter.patch('/:id', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
+
+    const beneficiary = await getBeneficiaryById(request.params.id, tenantId)
+
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      if (!olla) {
+        response.status(403).json({ ok: false, message: 'No tienes una olla activa asignada.' })
+        return
+      }
+      if (beneficiary.ollaId !== olla.id) {
+        response.status(403).json({ ok: false, message: 'No tienes permisos para modificar este beneficiario.' })
+        return
+      }
+      request.body.ollaId = olla.id
+    } else {
+      if (request.body.ollaId) {
+        const ollaExist = await prisma.ollaComun.findFirst({
+          where: { id: request.body.ollaId, tenantId }
+        })
+        if (!ollaExist) {
+          response.status(400).json({ ok: false, message: 'La olla común especificada no pertenece a tu organización.' })
+          return
+        }
+      }
+    }
+
     const item = await updateBeneficiary(request.params.id, tenantId, request.body)
     response.json({ ok: true, item })
   } catch (error) {
@@ -124,6 +202,21 @@ beneficiariesRouter.patch('/:id', async (request, response) => {
 beneficiariesRouter.delete('/:id', async (request, response) => {
   try {
     const tenantId = request.user!.tenantId
+
+    const beneficiary = await getBeneficiaryById(request.params.id, tenantId)
+
+    if (request.user!.role === 'lideresa_olla') {
+      const olla = await mobileRepository.getUserOlla(request.user!.userId)
+      if (!olla) {
+        response.status(403).json({ ok: false, message: 'No tienes una olla activa asignada.' })
+        return
+      }
+      if (beneficiary.ollaId !== olla.id) {
+        response.status(403).json({ ok: false, message: 'No tienes permisos para eliminar este beneficiario.' })
+        return
+      }
+    }
+
     const result = await removeBeneficiary(request.params.id, tenantId)
     response.json({ ok: true, ...result })
   } catch (error) {

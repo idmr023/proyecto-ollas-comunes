@@ -1,0 +1,117 @@
+{
+  "timestamp": "2026-07-19T03:19:27.262Z",
+  "target": "http://localhost:3000",
+  "score": 0,
+  "grade": "F",
+  "sections": {},
+  "alerts": [
+    {
+      "severity": "high",
+      "message": "npm audit frontend: 1 vulnerabilidades altas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-19T03:19:37.525Z"
+    },
+    {
+      "severity": "high",
+      "message": "npm audit backend: 11 vulnerabilidades altas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-19T03:19:52.308Z"
+    },
+    {
+      "severity": "high",
+      "message": "Rate limiting no detectado en /api/auth/login (CWE-770)",
+      "section": "rate-limit",
+      "timestamp": "2026-07-19T03:19:52.410Z"
+    },
+    {
+      "severity": "high",
+      "message": "Header x-frame-options: Previene clickjacking (CWE-1021)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "high",
+      "message": "Header strict-transport-security: Fuerza HTTPS via HSTS (CWE-319)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "high",
+      "message": "Header content-security-policy: Previene XSS via CSP (CWE-693)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "npm audit frontend: 1 vulnerabilidades moderadas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-19T03:19:37.525Z"
+    },
+    {
+      "severity": "medium",
+      "message": "npm audit backend: 31 vulnerabilidades moderadas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-19T03:19:52.308Z"
+    },
+    {
+      "severity": "medium",
+      "message": "Header x-content-type-options: Previene MIME sniffing (CWE-693)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "Header referrer-policy: Controla Referrer-Policy (CWE-200)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "Header permissions-policy: Restringe features del navegador (CWE-250)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "Header cross-origin-resource-policy: Controla CORP (CWE-942)",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "X-Powered-By expuesto: Next.js",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "medium",
+      "message": "X-Powered-By expone: Next.js",
+      "section": "server-info",
+      "timestamp": "2026-07-19T03:19:54.096Z"
+    },
+    {
+      "severity": "low",
+      "message": "Header cross-origin-opener-policy: Controla COOP",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "low",
+      "message": "Header x-permitted-cross-domain-policies: Controla cross-domain Flash/PDF",
+      "section": "headers",
+      "timestamp": "2026-07-19T03:19:54.083Z"
+    },
+    {
+      "severity": "critical",
+      "message": "npm audit backend: 2 vulnerabilidades críticas",
+      "section": "npm-audit",
+      "timestamp": "2026-07-19T03:19:52.308Z"
+    },
+    {
+      "severity": "critical",
+      "message": "La aplicación NO usa HTTPS (CWE-319)",
+      "section": "tls",
+      "timestamp": "2026-07-19T03:19:52.337Z"
+    }
+  ]
+}

@@ -16,26 +16,35 @@ const getNetworkIPs = () => {
   return ips;
 };
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Origen real del backend. Solo se usa como destino del rewrite: el navegador
+// nunca lo contacta directamente.
+const backendOrigin = (
+  process.env.BACKEND_ORIGIN ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'http://localhost:4000'
+).replace(/\/$/, '');
+
 const nextConfig: NextConfig = {
-  // Con esto, Next.js autorizará de forma automática cualquier IP por la cual se intente
-  // acceder a esta máquina desde la red local (para móviles, laptops, etc.).
-  allowedDevOrigins: getNetworkIPs(),
-  async redirects() {
+  // Comodidad de desarrollo: enumerar las interfaces de red no aporta nada en
+  // el build de producción, así que queda condicionado al entorno.
+  ...(isProduction ? {} : { allowedDevOrigins: getNetworkIPs() }),
+
+  /**
+   * El backend se sirve bajo el mismo origen que la aplicación.
+   *
+   * Sin esto la cookie de sesión sería de terceros (el frontend vive en Vercel
+   * y el backend en Render, que son sitios distintos): Safari la bloquearía por
+   * defecto y `proxy.ts` no podría leerla, porque quedaría asociada al dominio
+   * del backend y no al de la app. Con el rewrite, el `Set-Cookie` del backend
+   * llega al navegador como cookie de origen propio.
+   */
+  async rewrites() {
     return [
       {
-        source: '/',
-        destination: '/login',
-        permanent: false,
-      },
-      {
-        source: '/workspace',
-        destination: '/workspace/home',
-        permanent: false,
-      },
-      {
-        source: '/mobile',
-        destination: '/mobile/inicio',
-        permanent: false,
+        source: '/api/:path*',
+        destination: `${backendOrigin}/api/:path*`,
       },
     ];
   },

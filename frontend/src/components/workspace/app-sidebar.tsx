@@ -5,11 +5,8 @@ import { usePathname } from "next/navigation"
 import {
   Home,
   Building2,
-  CookingPot,
   Users,
   Package,
-  BarChart3,
-  UserCog,
   Bell,
   Settings,
   LogOut,
@@ -53,7 +50,6 @@ const navMain = [
     items: [
       { title: "Inicio", href: "/workspace/home", icon: Home },
       { title: "Organizaciones", href: "/workspace/organizaciones", icon: Building2 },
-      { title: "Ollas comunes", href: "/workspace/organizaciones", icon: CookingPot },
       { title: "Beneficiarios", href: "/workspace/beneficiarios", icon: Users },
       { title: "Inventario", href: "/workspace/inventario", icon: Package },
     ],
@@ -61,9 +57,7 @@ const navMain = [
   {
     label: "Gestión",
     items: [
-      { title: "Reportes", href: "/workspace/reportes", icon: BarChart3 },
-      { title: "Usuarios", href: "/workspace/configuracion", icon: UserCog },
-      { title: "Notificaciones", href: "/workspace/configuracion", icon: Bell },
+      { title: "Alertas", href: "/workspace/alertas", icon: Bell },
       { title: "Configuración", href: "/workspace/configuracion", icon: Settings },
     ],
   },

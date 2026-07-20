@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGO-OLLAS — Reporte de Seguridad Completo v2.0</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; max-width: 1100px; margin: 0 auto; padding: 2rem; background: #0a0a0a; color: #e0e0e0; }
+  h1 { color: #4ade80; border-bottom: 2px solid #4ade80; padding-bottom: 0.5rem; }
+  h2 { color: #a3a3a3; margin-top: 2rem; border-bottom: 1px solid #333; padding-bottom: 0.3rem; }
+  .score-box { display: flex; align-items: center; gap: 2rem; margin: 1.5rem 0; }
+  .score-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; }
+  .grade-A { background: #065f46; color: #4ade80; } .grade-B { background: #1e3a5f; color: #60a5fa; }
+  .grade-C { background: #7c2d12; color: #fbbf24; } .grade-D { background: #7f1d1d; color: #ef4444; }
+  .grade-F { background: #450a0a; color: #dc2626; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin: 1rem 0; }
+  .stat { padding: 0.8rem; border-radius: 8px; text-align: center; font-weight: bold; }
+  .stat-critical { background: #450a0a; color: #fca5a5; }
+  .stat-high { background: #7f1d1d; color: #fca5a5; }
+  .stat-medium { background: #78350f; color: #fcd34d; }
+  .stat-low { background: #713f12; color: #fde68a; }
+  .stat-info { background: #1e3a5f; color: #93c5fd; }
+  .stat-pass { background: #065f46; color: #4ade80; }
+  table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 0.5rem; border: 1px solid #222; }
+  th { background: #111; color: #a3a3a3; font-size: 0.7rem; text-transform: uppercase; }
+  .pass { background: #052e16; } .fail { background: #2e0f0f; }
+  .section { background: #111; border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; border: 1px solid #222; }
+  .section-title { font-weight: bold; color: #4ade80; margin-bottom: 0.5rem; }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #222; color: #666; font-size: 0.75rem; text-align: center; }
+</style>
+</head>
+<body>
+<h1>🛡️ SIGO-OLLAS — Reporte de Seguridad Completo</h1>
+<p><strong>Fecha:</strong> 2026-07-19T03:38:25.348Z | <strong>Target:</strong> <code>http://localhost:4000</code></p>
+
+<div class="score-box">
+  <div class="score-circle grade-D">50</div>
+  <div>
+    <p style="font-size:1.2rem;font-weight:bold;">Grado: D (50/100)</p>
+    <p style="color:#666;font-size:0.85rem;">
+      1 críticos |
+      2 altos |
+      3 medios |
+      0 bajos
+    </p>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat stat-critical">🔴 1<br><small>CRÍTICOS</small></div>
+  <div class="stat stat-high">🟠 2<br><small>ALTOS</small></div>
+  <div class="stat stat-medium">🟡 3<br><small>MEDIOS</small></div>
+  <div class="stat stat-low">⚪ 0<br><small>BAJOS</small></div>
+  <div class="stat stat-pass">✅ 0<br><small>PASARON</small></div>
+</div>
+
+<h2>Resultados por Sección</h2>
+
+<div class="section">
+  <div class="section-title">1. Dependencias Vulnerables (npm audit)</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="fail"><td>Frontend</td><td>❌ FAIL</td><td><code>2 vulnerabilidades (0 critical, 1 high)</code></td></tr><tr class="fail"><td>Backend</td><td>❌ FAIL</td><td><code>50 vulnerabilidades (2 critical, 11 high)</code></td></tr><tr class="fail"><td>next</td><td>❌ FAIL</td><td><code>high: Next.js Vulnerable to Denial of Service with Server Components, Next.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up, Next.js</code></td></tr><tr class="fail"><td>@clinic/bubbleprof</td><td>❌ FAIL</td><td><code>high: d3-color, d3-interpolate, d3-transition</code></td></tr><tr class="fail"><td>@clinic/flame</td><td>❌ FAIL</td><td><code>high: 0x, d3-fg</code></td></tr><tr class="fail"><td>@clinic/heap-profiler</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>0x</td><td>❌ FAIL</td><td><code>high: d3-fg</code></td></tr><tr class="fail"><td>clinic</td><td>❌ FAIL</td><td><code>high: @clinic/bubbleprof, @clinic/doctor, @clinic/flame, @clinic/heap-profiler, autocannon, insight, update-notifier</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">2. HTTP Security Headers</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>x-frame-options</td><td>✅ PASS</td><td><code>SAMEORIGIN</code></td></tr><tr class="pass"><td>x-content-type-options</td><td>✅ PASS</td><td><code>nosniff</code></td></tr><tr class="pass"><td>strict-transport-security</td><td>✅ PASS</td><td><code>max-age=31536000; includeSubDomains</code></td></tr><tr class="pass"><td>content-security-policy</td><td>✅ PASS</td><td><code>default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'sel</code></td></tr><tr class="pass"><td>referrer-policy</td><td>✅ PASS</td><td><code>no-referrer</code></td></tr><tr class="fail"><td>permissions-policy</td><td>❌ FAIL</td><td><code>(ausente)</code></td></tr><tr class="pass"><td>cross-origin-resource-policy</td><td>✅ PASS</td><td><code>same-origin</code></td></tr><tr class="pass"><td>cross-origin-opener-policy</td><td>✅ PASS</td><td><code>same-origin</code></td></tr><tr class="pass"><td>x-permitted-cross-domain-policies</td><td>✅ PASS</td><td><code>none</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">3. CORS Behavior</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="fail"><td>Origin propio permitido</td><td>❌ FAIL</td><td><code>(sin header)</code></td></tr><tr class="pass"><td>Origin malicioso bloqueado</td><td>✅ PASS</td><td><code>(correctamente bloqueado)</code></td></tr><tr class="pass"><td>CORS wildcard</td><td>✅ PASS</td><td><code>no aplica</code></td></tr><tr class="fail"><td>Preflight OPTIONS responde</td><td>❌ FAIL</td><td><code>Status: 500, Methods: (ausente)</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">4. Cookie Security Flags</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>Cookies</td><td>✅ PASS</td><td><code>No se detectaron cookies en la respuesta (usa JWT en sessionStorage — OK)</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">5. Information Leakage</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>.env file exposure</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>.git directory exposure</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>.git/config accessible</td><td>✅ PASS</td><td><code>Status: 404</code></td></tr><tr class="fail"><td>robots.txt visible</td><td>❌ FAIL</td><td><code>Status: 404 </code></td></tr><tr class="fail"><td>sitemap.xml accessible</td><td>❌ FAIL</td><td><code>Status: 404</code></td></tr><tr class="pass"><td>Stack trace in 404</td><td>✅ PASS</td><td><code>Sin stack trace</code></td></tr><tr class="fail"><td>Error response es JSON</td><td>❌ FAIL</td><td><code>text/html; charset=utf-8</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">6. Path Traversal</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>Path traversal: /../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..%2f..%2f..%2fetc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /....//....//....//etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /%2e%2e/%2e%2e/%2e%2e/etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /..\..\..\windows\system32</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /static/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr><tr class="pass"><td>Path traversal: /api/../../../etc/passwd</td><td>✅ PASS</td><td><code>Status: 404, Contains passwd: false</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">7. SQL Injection Indicators</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>SQL indicator: ' OR 1=1--</td><td>✅ PASS</td><td><code>Clean response</code></td></tr><tr class="pass"><td>SQL indicator: 1' UNION SELECT null</td><td>✅ PASS</td><td><code>Clean response</code></td></tr><tr class="pass"><td>SQL indicator: admin'--</td><td>✅ PASS</td><td><code>Clean response</code></td></tr><tr class="pass"><td>SQL indicator: 1; DROP TABLE--</td><td>✅ PASS</td><td><code>Clean response</code></td></tr><tr class="pass"><td>SQL indicator: ' OR ''='</td><td>✅ PASS</td><td><code>Clean response</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">8. Server Information Disclosure</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>Server header</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>X-Powered-By header</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>ASP.NET version headers</td><td>✅ PASS</td><td><code>(ausente — OK)</code></td></tr><tr class="pass"><td>Health endpoint retorna JSON</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">9. TLS/SSL Configuration</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>HTTPS habilitado</td><td>✅ PASS</td><td><code>Local bypass (desarrollo)</code></td></tr><tr class="pass"><td>HTTP→HTTPS redirect</td><td>✅ PASS</td><td><code>No requerido en desarrollo local</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">10. Rate Limiting</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>Rate limiting en /api/auth/login</td><td>✅ PASS</td><td><code>Headers de Rate Limit detectados en la respuesta (activo)</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">11. JWT/Token Exposure</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>JWT no expuesto en URLs de redirect</td><td>✅ PASS</td><td><code>OK</code></td></tr><tr class="pass"><td>JWT no expuesto en mensajes de error</td><td>✅ PASS</td><td><code>OK</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">12. Content-Type Verification</div>
+  <table>
+    <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    <tr class="pass"><td>/ → Content-Type válido</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr><tr class="pass"><td>/api/health → Content-Type válido</td><td>✅ PASS</td><td><code>application/json; charset=utf-8</code></td></tr><tr class="pass"><td>/api/auth/login → Content-Type válido</td><td>✅ PASS</td><td><code>text/html; charset=utf-8</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<h2>Alertas de Seguridad (6)</h2>
+
+<table>
+  <thead><tr><th>Severidad</th><th>Descripción</th><th>Sección</th></tr></thead>
+  <tbody>
+  <tr class="fail"><td>HIGH</td><td>npm audit frontend: 1 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>HIGH</td><td>npm audit backend: 11 vulnerabilidades altas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit frontend: 1 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>npm audit backend: 31 vulnerabilidades moderadas</td><td>npm-audit</td></tr><tr class="fail"><td>MEDIUM</td><td>Header permissions-policy: Restringe features del navegador (CWE-250)</td><td>headers</td></tr><tr class="fail"><td>CRITICAL</td><td>npm audit backend: 2 vulnerabilidades críticas</td><td>npm-audit</td></tr>
+  </tbody>
+</table>
+
+<h2>Metodología</h2>
+<div class="section">
+<p><strong>Estándares:</strong> OWASP Top 10 (2021), OWASP ASVS v4.0, CWE/SANS Top 25, NIST SP 800-53</p>
+<p><strong>Secciones evaluadas (12):</strong></p>
+<ol>
+  <li>npm audit — Dependencias vulnerables (OWASP A06)</li>
+  <li>HTTP Security Headers — CSP, HSTS, X-Frame-Options, etc. (OWASP A05)</li>
+  <li>CORS — Cross-Origin policies, preflight, wildcards (OWASP A05)</li>
+  <li>Cookie Security — Secure, HttpOnly, SameSite flags (OWASP A01)</li>
+  <li>Information Leakage — .env, .git, stack traces, sensitive files (OWASP A05)</li>
+  <li>Path Traversal — Directory traversal payloads (OWASP A01)</li>
+  <li>SQL Injection Indicators — Error-based SQLi detection (OWASP A03)</li>
+  <li>Server Information — Version disclosure, X-Powered-By (OWASP A05)</li>
+  <li>TLS/SSL — HTTPS enforcement, redirect (OWASP A02)</li>
+  <li>Rate Limiting — Brute force protection (OWASP A07)</li>
+  <li>JWT Exposure — Token leakage in URLs/errors (OWASP A02)</li>
+  <li>Content-Type — MIME type verification (OWASP A05)</li>
+</ol>
+<p><strong>Herramientas:</strong> npm audit, HTTP fetch (Node.js), OWASP ZAP (opcional)</p>
+</div>
+
+<footer>
+  Reporte generado por <strong>SIGO-OLLAS Security Scanner v2.0</strong><br>
+  6 hallazgos | Calificación: 50/100 (Grado D)
+</footer>
+</body>
+</html>

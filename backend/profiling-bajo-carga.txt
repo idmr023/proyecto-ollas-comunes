@@ -1,0 +1,36 @@
+Statistical profiling result from isolate-0000027B6C410000-31020-v8.log, (21480 ticks, 0 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+  21408   99.7%          C:\WINDOWS\SYSTEM32\ntdll.dll
+     67    0.3%          C:\Program Files\nodejs\node.exe
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+      1    0.0%   20.0%  JS: wasm-function[725]
+      1    0.0%   20.0%  JS: ^listOnTimeout node:internal/timers:546:25
+      1    0.0%   20.0%  Builtin: StringAdd_CheckNone
+      1    0.0%   20.0%  Builtin: KeyedLoadIC
+      1    0.0%   20.0%  Builtin: CallFunction_ReceiverIsAny
+
+ [C++]:
+   ticks  total  nonlib   name
+
+ [Summary]:
+   ticks  total  nonlib   name
+      5    0.0%  100.0%  JavaScript
+      0    0.0%    0.0%  C++
+      0    0.0%    0.0%  GC
+  21475  100.0%          Shared libraries
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+  21408   99.7%  C:\WINDOWS\SYSTEM32\ntdll.dll
+

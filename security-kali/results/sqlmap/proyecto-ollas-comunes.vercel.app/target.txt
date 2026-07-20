@@ -1,0 +1,1 @@
+https://proyecto-ollas-comunes.vercel.app/api/beneficiaries?nombre=test (GET)  # /usr/bin/sqlmap -u https://proyecto-ollas-comunes.vercel.app/api/beneficiaries?nombre=test --batch --level=1 --risk=1 --timeout=10 --retries=2 --threads=1 --output-dir=/audit/results/sqlmap

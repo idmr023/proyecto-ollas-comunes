@@ -1,0 +1,6 @@
+=== Rate Limit (5 requests) ===
+  Attempt 1: HTTP 000
+  Attempt 2: HTTP 000
+  Attempt 3: HTTP 000
+  Attempt 4: HTTP 000
+  Attempt 5: HTTP 000

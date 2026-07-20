@@ -3,31 +3,9 @@ import path from "node:path"
 import { prisma } from "../../lib/prisma"
 import { supabase } from "../../lib/supabase"
 import { mobileRepository } from "./repository"
-import { calcularRequerimientos } from "./preparacion"
-import { getPeruDayRange } from "../../lib/date-utils"
-import { TIPO_MENU_SUGERIDO, TIPO_PRONOSTICO_DEMANDA } from "../../jobs/generar_recomendaciones"
 
-function errorHttp(statusCode: number, mensaje: string) {
-  return Object.assign(new Error(mensaje), { statusCode })
-}
-
-function fechaHoyPeru(): Date {
-  const { dateString } = getPeruDayRange()
-  return new Date(`${dateString}T00:00:00.000Z`)
-}
-
-function mapearSugerencias(lista: Array<Record<string, unknown>>) {
-  return lista.map((s, i) => ({
-    id: String(i + 1),
-    nombre: s.nombre,
-    puntaje: s.puntaje,
-    ingredientes: s.ingredientes,
-    recipeIngredients: s.recipeIngredients,
-  }))
-}
-
-export async function getDashboard(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getDashboard(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     return {
       olla: null,
@@ -44,8 +22,8 @@ export async function getDashboard(tenantId: string) {
   return { olla, summary, expiring }
 }
 
-export async function getInventory(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getInventory(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [], categories: [] }
 
   const [items, categories] = await Promise.all([
@@ -57,7 +35,7 @@ export async function getInventory(tenantId: string) {
 }
 
 export async function createMovement(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
@@ -92,8 +70,8 @@ export async function createMovement(tenantId: string, userId: string, payload: 
   return movement
 }
 
-export async function getAlerts(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getAlerts(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [] }
 
   const alerts = await mobileRepository.getAlerts(olla.id)
@@ -108,20 +86,20 @@ export async function getAlerts(tenantId: string) {
   }
 }
 
-export async function getSuggestions(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getSuggestions(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [] }
 
-  // Camino rápido: leer el menú sugerido cacheado por la IA pasiva.
-  const cache = await mobileRepository.getRecomendacionVigente(olla.id, TIPO_MENU_SUGERIDO, fechaHoyPeru())
-  const platos = (cache?.payload as { platos?: Array<Record<string, unknown>> } | null)?.platos
-  if (platos && platos.length > 0) {
-    return { items: mapearSugerencias(platos) }
-  }
-
-  // Fallback: generar en vivo si todavía no hay caché.
   const suggestions = await mobileRepository.getSuggestions(tenantId, olla.id)
-  return { items: mapearSugerencias(suggestions as Array<Record<string, unknown>>) }
+  return {
+    items: suggestions.map((s, i) => ({
+      id: String(i + 1),
+      nombre: s.nombre,
+      puntaje: s.puntaje,
+      ingredientes: s.ingredientes,
+      recipeIngredients: s.recipeIngredients,
+    })),
+  }
 }
 
 function mapAlertType(type: string): string {
@@ -147,15 +125,20 @@ function formatRelativeDate(date: Date): string {
 }
 
 export async function registerMealDelivery(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
 
   const data = payload as Record<string, unknown>
   const beneficiaryIds = Array.isArray(data.beneficiaryIds) ? (data.beneficiaryIds as string[]) : []
-  const totalRations = Number(data.totalRations) || beneficiaryIds.length
   const dishName = (data.dishName as string) ?? undefined
+
+  if (beneficiaryIds.length === 0) {
+    throw Object.assign(new Error("La lista de beneficiarios no puede estar vacía."), { statusCode: 400 })
+  }
+
+  const totalRations = Number(data.totalRations) || beneficiaryIds.length
 
   if (totalRations <= 0) {
     throw Object.assign(new Error("La cantidad de raciones debe ser mayor a 0."), { statusCode: 400 })
@@ -174,7 +157,7 @@ export async function registerMealDelivery(tenantId: string, userId: string, pay
 }
 
 export async function runMenuPlanExecution(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
@@ -221,7 +204,7 @@ export async function uploadDocument(tenantId: string, userId: string, payload: 
     })
   }
 
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   const ollaId = olla?.id || null
 
   const base64Clean = data.base64Data.replace(/^data:image\/\w+;base64,/, "")
@@ -275,77 +258,4 @@ export async function uploadDocument(tenantId: string, userId: string, payload: 
   })
 
   return doc
-}
-
-export async function getRecipes(tenantId: string) {
-  const items = await mobileRepository.listRecipes(tenantId)
-  return { items }
-}
-
-export async function calcularPreparacion(tenantId: string, payload: unknown) {
-  const data = (payload ?? {}) as Record<string, unknown>
-
-  const recipeId = typeof data.recipeId === "string" ? data.recipeId.trim() : ""
-  if (!recipeId) {
-    throw errorHttp(400, "El campo recipeId es obligatorio.")
-  }
-
-  let personas: number | undefined
-  let fuentePersonas: "manual" | "padron" | "pronostico" = "manual"
-  if (data.personas !== undefined && data.personas !== null) {
-    const valor = Number(data.personas)
-    if (!Number.isInteger(valor) || valor <= 0) {
-      throw errorHttp(400, "El campo personas debe ser un entero positivo.")
-    }
-    personas = valor
-  }
-
-  const olla = await mobileRepository.getUserOlla(tenantId)
-  if (!olla) {
-    throw errorHttp(404, "No hay una olla activa para tu organización.")
-  }
-
-  const receta = await mobileRepository.getRecipeWithIngredients(recipeId, tenantId)
-  if (!receta) {
-    throw errorHttp(404, "Receta no encontrada.")
-  }
-  if (receta.ingredientes.length === 0) {
-    throw errorHttp(422, "La receta no tiene ingredientes para calcular.")
-  }
-
-  if (personas === undefined) {
-    // Preferir el pronóstico de demanda cacheado por la IA pasiva.
-    const cache = await mobileRepository.getRecomendacionVigente(olla.id, TIPO_PRONOSTICO_DEMANDA, fechaHoyPeru())
-    const pronosticado = (cache?.payload as { personas?: number } | null)?.personas
-    if (typeof pronosticado === "number" && pronosticado > 0) {
-      personas = pronosticado
-      fuentePersonas = "pronostico"
-    } else {
-      const activos = await mobileRepository.countActiveBeneficiaries(olla.id)
-      personas = activos > 0 ? activos : receta.racionesEstimadas
-      fuentePersonas = "padron"
-    }
-  }
-
-  const stockPorItem = await mobileRepository.getStockMap(olla.id)
-  const calculo = calcularRequerimientos({
-    racionesEstimadas: receta.racionesEstimadas,
-    ingredientes: receta.ingredientes,
-    stockPorItem,
-    personas,
-  })
-
-  return {
-    olla: { id: olla.id, name: olla.name },
-    receta: { id: receta.id, nombre: receta.nombre, racionesEstimadas: receta.racionesEstimadas },
-    personas,
-    fuentePersonas,
-    racionesPosiblesConStock: calculo.racionesPosiblesConStock,
-    alcanzaParaTodos: calculo.alcanzaParaTodos,
-    ingredientes: calculo.ingredientes,
-    resumen: {
-      totalIngredientes: calculo.ingredientes.length,
-      ingredientesFaltantes: calculo.ingredientes.filter((i) => !i.alcanza).length,
-    },
-  }
 }
