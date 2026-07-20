@@ -161,7 +161,12 @@ rol es `lideresa_olla`.
 - [ ] Probar en **Safari**, no solo en Chrome: el motivo del rewrite es precisamente que
       Safari bloquea cookies de terceros por defecto.
 
-### 7. Ejecutar las pruebas que necesitan entorno vivo
+### 7. ~~Ejecutar las pruebas que necesitan entorno vivo~~ — resuelto por el CI
+
+> [!NOTE]
+> **Ya las ejecuta el CI** en cada push, contra un Postgres efímero: **288 pruebas en
+> verde**, integración y funcionales incluidas. Este punto queda cubierto salvo por el
+> aviso siguiente, que sigue vigente.
 
 > [!CAUTION]
 > **`npm test` en local escribe en producción.** El `DATABASE_URL` de `backend/.env`
@@ -247,7 +252,7 @@ cabecera.
 | Prioridad | Tarea                                                      | Nota                                                                                                                                                                                                                                                        |
 | --------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Alta**  | **A-1 — RLS inefectivo**                                   | Lo más importante que queda. Cero referencias a `current_tenant_id`: las 20 políticas no se activan nunca. Establecerlo en la transacción es contenido; **conectar Prisma con un rol no propietario toca credenciales de BD y sí necesitaría visto bueno**. |
-| ~~Alta~~ | ~~CI con Postgres~~ | **Hecho.** `.github/workflows/ci.yml`, con Postgres efímero y seed propio. **Su primera ejecución no se ha visto**: no había motor de Docker para validarlo en local. Es lo primero que conviene revisar. |
+| ~~Alta~~ | ~~CI con Postgres~~ | **Hecho y en verde.** `.github/workflows/ci.yml`, con Postgres efímero y seed propio. Ejecuta backend (typecheck + las 288 pruebas, integración y funcionales incluidas) y el build del frontend. |
 | Media     | Conteos globales en el dashboard                           | Fuga cross-tenant en `getAdminDashboard`. Dos líneas.                                                                                                                                                                                                       |
 | Media     | M-6 · validar TLS contra la CA de Supabase                 |                                                                                                                                                                                                                                                             |
 | Media     | M-8 · slug como columna indexada                           | Las rutas críticas ya usan `findById`.                                                                                                                                                                                                                      |
