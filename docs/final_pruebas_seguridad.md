@@ -168,28 +168,29 @@ docker run -d --name zap -p 8080:8080 -p 8090:8090 \
 
 ### 3.1 Capturas del Escaneo OWASP ZAP
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando node escaneo.js mostrando progreso del Active Scan del 0% al 100% -->
+**Captura 1 — Ejecución del Active Scan:**
+Abrir la terminal, ejecutar `node security-kali/escaneo.js` (o el script correspondiente) y capturar pantalla mientras el escaneo progresa. Debe verse el progreso del Spider y del Active Scan (de 0% a 100%), y el mensaje final "Reporte generado exitosamente".
 
-`INSERTAR CAPTURA` — Terminal con la ejecucion de `node security-kali/escaneo.js` mostrando:
-- Spider completado
-- Active Scan progresando de 0% a 100%
-- Mensaje "Reporte generado exitosamente"
+**Archivo sugerido:** `docs/assets/seguridad/01_zap_active_scan.png`
 
-<!-- INSERTAR CAPTURA: Reporte HTML de ZAP abierto en navegador mostrando el resumen de alertas -->
+**Captura 2 — Reporte HTML de ZAP:**
+Abrir el archivo `reporte-seguridad-zap.html` en el navegador y capturar pantalla mostrando el resumen de alertas: tabla con 0 Alto, 49 Medio, 51 Informativo, y el listado de alertas clasificadas por severidad.
 
-`INSERTAR CAPTURA` — Navegador con `reporte-seguridad-zap.html` mostrando:
-- Tabla resumen: 0 Alto, 49 Medio, 51 Informativo
-- Listado de alertas clasificadas por colores
+**Archivo sugerido:** `docs/assets/seguridad/02_zap_reporte_html.png`
 
-<!-- INSERTAR CAPTURA: Contenedor Docker ZAP corriendo -->
+**Captura 3 — Contenedor Docker ZAP corriendo:**
+Ejecutar `docker ps` en la terminal y capturar pantalla mostrando el contenedor `sigo-zap` (o similar) en estado "Up", con los puertos 8080/8090 expuestos.
 
-`INSERTAR CAPTURA` — Terminal con `docker ps` mostrando el contenedor `sigo-zap` en estado "Up"
+**Archivo sugerido:** `docs/assets/seguridad/03_docker_zapRunning.png`
 
 ### 3.2 Capturas del Security Scanner (Backend local)
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando node security-scan.cjs contra localhost:4000 -->
+**Captura 4 — Ejecución del Security Scanner:**
+Ejecutar `node security-scan.cjs` (o `npm run security:scan`) en la terminal y capturar pantalla mostrando las 12 secciones de verificación y su resultado (PASSED/FAILED). Debe verse el resumen final con la calificación global.
 
-`INSERTAR CAPTURA` — Terminal con la ejecucion del scanner personalizado mostrando las 12 secciones y su resultado (PASSED/FAILED).
+**Archivo sugerido:** `docs/assets/seguridad/04_security_scanner.png`
+
+> **Instrucciones:** Crear la carpeta `docs/assets/seguridad/` si no existe. Guardar las capturas con los nombres indicados. Cada captura debe mostrar evidencia clara de la ejecución de la herramienta de seguridad.
 
 ---
 

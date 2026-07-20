@@ -8,7 +8,7 @@ import { generate } from 'otplib'
 
 let server: Server
 const PORT = 4002
-const BASE_URL = `http://127.0.0.1:${PORT}`
+const BASE_URL = 'https://proyecto-ollas-comunes.onrender.com'
 
 let authToken: string = ''
 let testTenantId: string = ''

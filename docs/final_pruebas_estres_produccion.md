@@ -386,35 +386,35 @@ A continuación se presentan las capturas de pantalla de la ejecución de las pr
 
 ### 6.1 Terminal — Inicio de Artillery y Fases de Carga
 
-<!-- Captura del terminal mostrando las 4 fases de Artillery ejecutándose contra producción: Calentamiento, Carga media, Estrés alto, Sostenido -->
+**Captura requerida:** Abrir la terminal (PowerShell), ejecutar `cd backend && npm run stress:run` y capturar pantalla mientras Artillery ejecuta las 4 fases contra producción. Debe verse el progreso de las fases (Calentamiento → Carga media → Estrés alto → Sostenido) y el target `https://proyecto-ollas-comunes.onrender.com`.
 
-![Inicio de Artillery y fases de carga](../assets/estres/produccion_01_artillery_fases.png)
+**Archivo sugerido:** `docs/assets/estres/produccion_01_artillery_fases.png`
 
 ### 6.2 Terminal — Resultado Final de Artillery (Summary Report)
 
-<!-- Captura del resumen final que imprime Artillery en terminal: métricas aggregate (requests, codes, latencias, vusers) en entorno de producción -->
+**Captura requerida:** Al finalizar Artillery, capturar la pantalla que muestra el resumen aggregate: total requests, códigos HTTP (200, 429, 401), latencias (min, max, p50, p95, p99), y Virtual Users. Debe verse el bloque `Summary report` impreso en terminal.
 
-![Resumen final de Artillery](../assets/estres/produccion_02_artillery_summary.png)
+**Archivo sugerido:** `docs/assets/estres/produccion_02_artillery_summary.png`
 
 ### 6.3 Terminal — Errores Durante la Ejecución
 
-<!-- Captura mostrando los errores HTTP 429 y socket timeout que aparecen en tiempo real durante la fase de estrés en producción -->
+**Captura requerida:** Durante la fase de estrés o sostenido, capturar pantalla donde se vean errores HTTP 429 (Too Many Requests) y/o socket timeouts apareciendo en tiempo real en la terminal. Debe verse la cantidad de errores y el tipo (429, timeout).
 
-![Errores durante la ejecución](../assets/estres/produccion_03_artillery_errors.png)
+**Archivo sugerido:** `docs/assets/estres/produccion_03_artillery_errors.png`
 
 ### 6.4 Backend — Logs del Servidor Bajo Carga
 
-<!-- Captura de los logs de Render mostrando las métricas de performance durante el pico de carga en producción -->
+**Captura requerida:** Abrir la consola de Render (Dashboard → Logs) y capturar pantalla mostrando los logs del backend durante la ejecución de la prueba de estrés. Deben verse requests entrantes, posibles errores 429, y métricas de performance si están disponibles.
 
-![Backend bajo carga](../assets/estres/produccion_04_backend_metrics.png)
+**Archivo sugerido:** `docs/assets/estres/produccion_04_render_logs.png`
 
 ### 6.5 Artillery Report HTML (Opcional)
 
-<!-- Captura del reporte HTML generado por Artillery con artillery report stress-test-report.json --output stress-test-report.html en entorno de producción -->
+**Captura requerida:** Ejecutar `npx artillery report stress-test-report.json --output stress-test-report.html` y abrir el HTML en el navegador. Capturar pantalla del reporte gráfico mostrando las gráficas de latencia, throughput y códigos HTTP por endpoint.
 
-![Reporte HTML de Artillery](../assets/estres/produccion_05_artillery_html_report.png)
+**Archivo sugerido:** `docs/assets/estres/produccion_05_artillery_html_report.png`
 
-> **Nota:** Reemplazar las imágenes indicadas con las capturas reales de la ejecución. Las imágenes deben almacenarse en `docs/assets/estres/`.
+> **Instrucciones:** Crear la carpeta `docs/assets/estres/` si no existe. Guardar las capturas con los nombres indicados. Cada captura debe mostrar la terminal/navegador con evidencia clara de la ejecución en producción.
 
 ---
 

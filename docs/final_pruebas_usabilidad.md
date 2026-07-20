@@ -53,20 +53,22 @@ El analizador ejecuta los siguientes pasos:
 
 ### 2.1 Ejecución del Analizador
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando "cd frontend && npm run test:usability" mostrando el escaneo de archivos TSX/TS y el resumen de incidencias encontradas (imágenes sin alt, inputs sin ARIA, etc.) -->
-
-`INSERTAR CAPTURA` — Terminal con la ejecución completa de `npm run test:usability` mostrando:
+**Captura requerida:** Abrir la terminal (PowerShell), ejecutar `npm run test:usability` y capturar pantalla al finalizar. Debe verse:
 - El banner "INICIANDO ANALIZADOR DE USABILIDAD Y ACCESIBILIDAD"
 - El listado de métricas escaneadas (imágenes, inputs, forms, headings, etc.)
-- El mensaje "Reporte de usabilidad generado correctamente"
+- El mensaje "Reporte de usabilidad generado correctamente en docs/reporte_usabilidad_lighthouse.html"
+
+**Archivo sugerido:** `docs/assets/usabilidad/01_analizador_ejecucion.png`
 
 ### 2.2 Reporte HTML Generado
 
-<!-- INSERTAR CAPTURA: Navegador web abriendo docs/reporte_usabilidad_lighthouse.html, mostrando las 4 tarjetas de score (Accesibilidad 96, Buenas Prácticas 100, Rendimiento 98, SEO 100) y la tabla de 15 auditorías -->
-
-`INSERTAR CAPTURA` — Navegador con el reporte HTML `docs/reporte_usabilidad_lighthouse.html` mostrando:
-- Las 4 tarjetas de score circular (Accesibilidad, Buenas Prácticas, Rendimiento, SEO)
+**Captura requerida:** Abrir el archivo `docs/reporte_usabilidad_lighthouse.html` en el navegador y capturar pantalla mostrando:
+- Las 4 tarjetas de score circular (Accesibilidad 96, Buenas Prácticas 100, Rendimiento 98, SEO 100)
 - La tabla completa de las 15 auditorías con sus puntajes y estados (PASS/WARN)
+
+**Archivo sugerido:** `docs/assets/usabilidad/02_reporte_html.png`
+
+> **Instrucciones:** Crear la carpeta `docs/assets/usabilidad/` si no existe. Guardar las capturas con los nombres indicados. La ejecución es local (no requiere servidor corriendo), solo necesita acceso al código fuente del frontend.
 
 ### 2.3 Tabla Resumen de Ejecución
 

@@ -112,28 +112,23 @@
 
 ### 2.1 Capturas de Ejecución — Chromium
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando "npx playwright test --project=chromium --reporter=list" mostrando los 62 tests marcados con ✓ y el resumen "62 passed" -->
+**Captura requerida:** Abrir la terminal, ejecutar `cd frontend && npx playwright test --project=chromium --reporter=list` y capturar pantalla al finalizar. Debe verse la lista de tests con `✓` (verde) y el resumen final `62 passed`.
 
-`INSERTAR CAPTURA` — Terminal con la ejecución completa en Chromium mostrando:
-- Todos los tests marcados con `✓` (verde)
-- Resumen final: `62 passed`
+**Archivo sugerido:** `docs/assets/funcionales/01_playwright_chromium.png`
 
 ### 2.2 Capturas de Ejecución — Firefox
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando "npx playwright test --project=firefox --reporter=list" mostrando los tests de workspace y mobile con ✓ y los resultados de offline -->
+**Captura requerida:** Ejecutar `npx playwright test --project=firefox --reporter=list` y capturar pantalla mostrando los tests de workspace, mobile y offline ejecutándose en Firefox con sus resultados (`✓` o `×`).
 
-`INSERTAR CAPTURA` — Terminal con la ejecución completa en Firefox mostrando:
-- Tests de workspace y mobile marcados con `✓`
-- Tests offline con resultados mixtos (timing de Firefox)
+**Archivo sugerido:** `docs/assets/funcionales/02_playwright_firefox.png`
 
 ### 2.3 Capturas de Ejecución — Offline (Chromium/Firefox/WebKit)
 
-<!-- INSERTAR CAPTURA: Terminal ejecutando "npx playwright test offline.spec.ts --reporter=list" mostrando los 4 tests offline pasando en los 3 navegadores -->
+**Captura requerida:** Ejecutar `npx playwright test offline.spec.ts --reporter=list` y capturar pantalla mostrando los 4 tests offline ejecutándose en los 3 navegadores (Chromium 4/4, Firefox 2/4 o 4/4, WebKit 4/4).
 
-`INSERTAR CAPTURA` — Terminal con la ejecución de los 4 tests offline en los 3 navegadores mostrando:
-- Chromium: 4/4 passed
-- Firefox: 2/4 passed (timing issues en Firefox)
-- WebKit: 4/4 passed
+**Archivo sugerido:** `docs/assets/funcionales/03_playwright_offline.png`
+
+> **Instrucciones:** Crear la carpeta `docs/assets/funcionales/` si no existe. Guardar las capturas con los nombres indicados. Cada captura debe mostrar la terminal con la ejecución completa de Playwright y el resumen de tests pasados/fallidos.
 
 ### 2.4 Reportes de Cobertura
 
