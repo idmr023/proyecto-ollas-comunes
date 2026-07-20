@@ -9,12 +9,23 @@
  * Es idempotente: puede ejecutarse varias veces sobre la misma base.
  */
 const { PrismaClient } = require('@prisma/client')
+const { PrismaPg } = require('@prisma/adapter-pg')
 const bcrypt = require('bcryptjs')
-
-const prisma = new PrismaClient()
 
 const ADMIN_EMAIL = 'admin@ollascomunes.pe'
 const ADMIN_PASSWORD = 'admin123'
+
+const url = process.env.DATABASE_URL
+if (!url) {
+  console.error('DATABASE_URL no configurada')
+  process.exit(1)
+}
+
+// Prisma 7 exige un adaptador: `new PrismaClient()` sin opciones falla.
+// Sin `ssl`, a diferencia del seed de desarrollo: el Postgres del runner es
+// local y no lo ofrece.
+const adapter = new PrismaPg({ connectionString: url })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   const tenant = await prisma.tenant.upsert({
