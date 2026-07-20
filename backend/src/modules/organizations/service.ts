@@ -3,6 +3,7 @@ import { Organization, OrganizationPayload } from './types'
 import { organizationRepository } from './repository'
 import { prisma } from '../../lib/prisma'
 import {
+  buildOrganizationSlug,
   buildUniqueOrganizationCode,
   mapDatabaseStatus,
   sanitizeOrganizationText,
@@ -29,15 +30,32 @@ function parseOrganizationPayload(payload: unknown): OrganizationPayload {
   return { name, category, location }
 }
 
-export async function listOrganizations(): Promise<Organization[]> {
-  const records = await organizationRepository.findAll()
-  return records.map(toOrganization)
+/**
+ * Devuelve unicamente la organizacion del solicitante.
+ *
+ * Sustituye al antiguo listado global, que exponia todos los tenants de la
+ * plataforma a cualquier usuario autenticado.
+ */
+export async function listOrganizationsForTenant(tenantId: string): Promise<Organization[]> {
+  const record = await organizationRepository.findById(tenantId)
+  return record ? [toOrganization(record)] : []
 }
 
-export async function getOrganizationBySlug(slug: string): Promise<Organization> {
-  const record = await organizationRepository.findBySlug(slug)
+/**
+ * Resuelve una organizacion por slug EXIGIENDO que sea la del solicitante.
+ *
+ * Se responde 404 tanto si el slug no existe como si pertenece a otro tenant:
+ * un 403 confirmaria la existencia del recurso ajeno.
+ *
+ * Ademas resuelve por id (indexado) en lugar de recorrer todos los tenants.
+ */
+export async function getOrganizationForTenant(
+  slug: string,
+  tenantId: string,
+): Promise<Organization> {
+  const record = await organizationRepository.findById(tenantId)
 
-  if (!record) {
+  if (!record || buildOrganizationSlug(record.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
@@ -69,10 +87,14 @@ export async function createOrganization(payload: unknown): Promise<Organization
   return toOrganization(record)
 }
 
-export async function updateOrganizationBySlug(slug: string, payload: unknown): Promise<Organization> {
-  const current = await organizationRepository.findBySlug(slug)
+export async function updateOrganizationForTenant(
+  slug: string,
+  tenantId: string,
+  payload: unknown,
+): Promise<Organization> {
+  const current = await organizationRepository.findById(tenantId)
 
-  if (!current) {
+  if (!current || buildOrganizationSlug(current.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 
@@ -99,10 +121,14 @@ export async function updateOrganizationBySlug(slug: string, payload: unknown): 
   return toOrganization(updated)
 }
 
-export async function updateOrganizationStatusBySlug(slug: string, status: unknown): Promise<Organization> {
-  const current = await organizationRepository.findBySlug(slug)
+export async function updateOrganizationStatusForTenant(
+  slug: string,
+  tenantId: string,
+  status: unknown,
+): Promise<Organization> {
+  const current = await organizationRepository.findById(tenantId)
 
-  if (!current) {
+  if (!current || buildOrganizationSlug(current.name) !== slug) {
     throw new OrganizationServiceError(404, 'Organizacion no encontrada.')
   }
 

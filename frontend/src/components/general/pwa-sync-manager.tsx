@@ -3,34 +3,24 @@
 import { useEffect } from 'react'
 import { getMutations, deleteMutation, updateMutation, addFailedMutation, getFailedMutations } from '@/lib/indexed-db'
 import type { OfflineMutation } from '@/lib/indexed-db'
+import { apiFetch } from '@/lib/http'
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000'
 const LS_MUTATION_COUNT = 'pwa-pending-mutation-count'
 const LS_FAILED_COUNT = 'pwa-failed-mutation-count'
 
-function getAuthHeaders(): Record<string, string> {
+/**
+ * La sesion viaja en la cookie `httpOnly`, que el navegador adjunta sola. Ya no
+ * hay token que leer, asi que lo unico comprobable desde aqui es si la interfaz
+ * cree tener sesion; el backend responde 401 si no la hay.
+ */
+function hasSession(): boolean {
   try {
     const raw = sessionStorage.getItem('auth-storage')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed.state?.token) {
-        return { Authorization: `Bearer ${parsed.state.token}` }
-      }
-    }
-  } catch {}
-  return {}
-}
-
-function getAuthToken(): string | null {
-  try {
-    const raw = sessionStorage.getItem('auth-storage')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return parsed.state?.token ?? null
-    }
-  } catch {}
-  return null
+    if (!raw) return false
+    return Boolean(JSON.parse(raw).state?.isAuthenticated)
+  } catch {
+    return false
+  }
 }
 
 async function detectDataLoss() {
@@ -49,12 +39,10 @@ async function detectDataLoss() {
 
   if (lostPending > 0 || lostFailed > 0) {
     console.warn('[PWA Sync] Datos perdidos detectados:', { lostPending, lostFailed })
-    const token = getAuthToken()
-    if (token) {
+    if (hasSession()) {
       try {
-        await fetch(`${apiBaseUrl}/api/notifications/report-data-loss`, {
+        await apiFetch('/api/notifications/report-data-loss', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             pendingCount: lostPending,
             failedCount: lostFailed,
@@ -75,12 +63,10 @@ function updateLocalCounters() {
 }
 
 async function backupMutationToServer(mutation: { path: string; method: string; body?: unknown; timestamp: number; errorMessage?: string; status?: number }) {
-  const token = getAuthToken()
-  if (!token) return
+  if (!hasSession()) return
   try {
-    await fetch(`${apiBaseUrl}/api/notifications/backup-mutation`, {
+    await apiFetch('/api/notifications/backup-mutation', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         path: mutation.path,
         method: mutation.method,
@@ -220,14 +206,9 @@ async function handleFailedMutation(
 }
 
 async function executeMutationRequest(mutation: OfflineMutation): Promise<Response | null> {
-  const url = `${apiBaseUrl}${mutation.path}`
   try {
-    return await fetch(url, {
+    return await apiFetch(mutation.path, {
       method: mutation.method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders(),
-      },
       body: mutation.body ? JSON.stringify(mutation.body) : undefined,
     })
   } catch (err) {

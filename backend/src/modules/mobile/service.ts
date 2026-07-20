@@ -4,8 +4,8 @@ import { prisma } from "../../lib/prisma"
 import { supabase } from "../../lib/supabase"
 import { mobileRepository } from "./repository"
 
-export async function getDashboard(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getDashboard(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     return {
       olla: null,
@@ -22,8 +22,8 @@ export async function getDashboard(tenantId: string) {
   return { olla, summary, expiring }
 }
 
-export async function getInventory(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getInventory(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [], categories: [] }
 
   const [items, categories] = await Promise.all([
@@ -35,7 +35,7 @@ export async function getInventory(tenantId: string) {
 }
 
 export async function createMovement(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
@@ -70,8 +70,8 @@ export async function createMovement(tenantId: string, userId: string, payload: 
   return movement
 }
 
-export async function getAlerts(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getAlerts(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [] }
 
   const alerts = await mobileRepository.getAlerts(olla.id)
@@ -86,8 +86,8 @@ export async function getAlerts(tenantId: string) {
   }
 }
 
-export async function getSuggestions(tenantId: string) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+export async function getSuggestions(tenantId: string, userId: string) {
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) return { items: [] }
 
   const suggestions = await mobileRepository.getSuggestions(tenantId, olla.id)
@@ -125,7 +125,7 @@ function formatRelativeDate(date: Date): string {
 }
 
 export async function registerMealDelivery(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
@@ -157,7 +157,7 @@ export async function registerMealDelivery(tenantId: string, userId: string, pay
 }
 
 export async function runMenuPlanExecution(tenantId: string, userId: string, payload: unknown) {
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   if (!olla) {
     throw Object.assign(new Error("No hay una olla activa para tu organización."), { statusCode: 404 })
   }
@@ -204,7 +204,7 @@ export async function uploadDocument(tenantId: string, userId: string, payload: 
     })
   }
 
-  const olla = await mobileRepository.getUserOlla(tenantId)
+  const olla = await mobileRepository.getUserOlla(userId)
   const ollaId = olla?.id || null
 
   const base64Clean = data.base64Data.replace(/^data:image\/\w+;base64,/, "")

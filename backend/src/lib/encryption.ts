@@ -1,27 +1,10 @@
 import crypto from 'crypto'
 
-const DB_ENCRYPTION_KEY = process.env.DB_ENCRYPTION_KEY
-const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback-secret'
+import { DB_ENCRYPTION_KEY } from './config/secrets'
 
-// Derivar una clave de 32 bytes (256 bits) para AES-256
-function getEncryptionKey(): Buffer {
-  if (DB_ENCRYPTION_KEY) {
-    // Si es un hex string de 64 caracteres, convertir a Buffer de 32 bytes
-    if (DB_ENCRYPTION_KEY.length === 64) {
-      return Buffer.from(DB_ENCRYPTION_KEY, 'hex')
-    }
-    // Si es texto arbitrario, hashearlo a 32 bytes
-    return crypto.createHash('sha256').update(DB_ENCRYPTION_KEY).digest()
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    console.warn('[SECURITY WARNING] DB_ENCRYPTION_KEY no está configurada en producción. Derivando de JWT_SECRET.')
-  }
-  
-  return crypto.createHash('sha256').update(JWT_SECRET).digest()
-}
-
-const key = getEncryptionKey()
+// La resolucion y validacion de la clave vive en config/secrets.ts, que falla
+// el arranque si falta o es debil en lugar de degradarse a un valor derivado.
+const key = DB_ENCRYPTION_KEY
 
 /**
  * Cifra un texto usando AES-256-GCM (cifrado probabilístico con IV aleatorio).
@@ -58,10 +41,14 @@ export function decryptGcm(cipherText: string): string {
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
-    
+
     return decrypted
   } catch (err) {
-    return cipherText
+    // No se devuelve el texto original: un fallo aqui significa dato corrupto o
+    // clave equivocada, y propagarlo como si fuera valido esconde el problema
+    // hasta que ya se ha escrito basura en la base.
+    console.error('[encryption] Fallo al descifrar un valor AES-256-GCM.')
+    throw new Error('No se pudo descifrar el valor almacenado.')
   }
 }
 
@@ -105,9 +92,10 @@ export function decryptDeterministic(cipherText: string): string {
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
-    
+
     return decrypted
   } catch (err) {
-    return cipherText
+    console.error('[encryption] Fallo al descifrar un valor AES-256-CBC determinista.')
+    throw new Error('No se pudo descifrar el valor almacenado.')
   }
 }

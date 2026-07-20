@@ -5,8 +5,6 @@ import { useAuthStore } from "@/store/auth-store"
 import { toast } from "sonner"
 import { getCache, setCache, addMutation } from "@/lib/indexed-db"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
-
 interface ApiOptions extends RequestInit {
   params?: Record<string, string>
 }
@@ -15,8 +13,13 @@ function generateTempId(): string {
   return `temp-${Math.floor(100000 + Math.random() * 900000)}`
 }
 
+/**
+ * Las peticiones van al mismo origen: un rewrite de Next las reenvia al
+ * backend, de modo que la cookie de sesion es de origen propio.
+ */
 function buildUrl(endpoint: string, params?: Record<string, string>): URL {
-  const url = new URL(`${BASE_URL}${endpoint}`)
+  const origin = typeof window === "undefined" ? "http://localhost:3000" : window.location.origin
+  const url = new URL(endpoint, origin)
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, v)
@@ -38,7 +41,8 @@ function isOnline(): boolean {
   return typeof navigator === "undefined" || navigator.onLine
 }
 
-function buildRequestHeaders(fetchOpts: RequestInit, token: string | null): Record<string, string> {
+// Sin cabecera Authorization: la sesion la aporta la cookie httpOnly.
+function buildRequestHeaders(fetchOpts: RequestInit): Record<string, string> {
   const customHeaders =
     fetchOpts.headers && typeof fetchOpts.headers === "object" && !Array.isArray(fetchOpts.headers)
       ? (fetchOpts.headers as Record<string, string>)
@@ -46,7 +50,6 @@ function buildRequestHeaders(fetchOpts: RequestInit, token: string | null): Reco
   return {
     "Content-Type": "application/json",
     ...customHeaders,
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }
 
@@ -295,7 +298,9 @@ async function fetchAndHandle<T>(
   clearAuth: () => void,
   endpoint: string,
 ): Promise<T> {
-  const res = await fetch(url, { ...fetchOpts, headers })
+  // `credentials: include` es lo que hace que el navegador adjunte la cookie
+  // de sesion; sin esto toda peticion autenticada responderia 401.
+  const res = await fetch(url, { ...fetchOpts, headers, credentials: "include" })
   if (res.status === 401) {
     return await handleAuthError(res, clearAuth)
   }
@@ -308,7 +313,6 @@ async function fetchAndHandle<T>(
 }
 
 export function useApi() {
-  const token = useAuthStore((s) => s.token)
   const clearAuth = useAuthStore((s) => s.clearAuth)
 
   const request = useCallback(
@@ -323,7 +327,7 @@ export function useApi() {
         return serveOfflineOrEnqueue<T>(cacheKey, endpoint, fetchOpts, isGet)
       }
 
-      const headers = buildRequestHeaders(fetchOpts, token)
+      const headers = buildRequestHeaders(fetchOpts)
       try {
         return await fetchAndHandle<T>(
           url.toString(),
@@ -349,7 +353,7 @@ export function useApi() {
         throw err
       }
     },
-    [token, clearAuth],
+    [clearAuth],
   )
 
   const get = useCallback(

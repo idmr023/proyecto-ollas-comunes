@@ -9,9 +9,43 @@ function pickKeywordsForDish(dishName: string): string[] {
 }
 
 export class MobileRepository {
-  async getUserOlla(tenantId: string) {
+  /**
+   * Resuelve la olla sobre la que opera un usuario.
+   *
+   * Antes recibia `tenantId` y devolvia la primera olla activa de la
+   * organizacion por orden alfabetico, la misma para todas sus lideresas. Con
+   * mas de una olla eso significaba ver el padron ajeno, recibir 403 sobre los
+   * beneficiarios propios y registrar entregas e inventario en la olla
+   * equivocada.
+   *
+   * Ahora parte del usuario:
+   *  - Con olla asignada, esa y solo esa (validando ademas que siga activa y
+   *    dentro de su organizacion).
+   *  - Rol administrativo sin asignar: la organizacion no se gestiona desde una
+   *    olla concreta, asi que se conserva la resolucion por tenant.
+   *  - Lideresa sin asignar: `null`. Se falla cerrado; devolver una olla
+   *    cualquiera es justo el fallo que se corrige. Los routers ya traducen ese
+   *    `null` a lista vacia o 403.
+   */
+  async getUserOlla(userId: string) {
+    const user = await prisma.appUser.findUnique({
+      where: { id: userId },
+      select: { ollaId: true, tenantId: true, role: true },
+    })
+
+    if (!user) return null
+
+    if (user.ollaId) {
+      return prisma.ollaComun.findFirst({
+        where: { id: user.ollaId, tenantId: user.tenantId, status: "active" },
+        select: { id: true, name: true, code: true, address: true },
+      })
+    }
+
+    if (user.role === "lideresa_olla") return null
+
     return prisma.ollaComun.findFirst({
-      where: { tenantId, status: "active" },
+      where: { tenantId: user.tenantId, status: "active" },
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true, address: true },
     })

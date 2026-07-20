@@ -5,12 +5,27 @@ export interface LoginInput {
   password: string
 }
 
+/**
+ * El alta de usuarios la realiza un administrador ya autenticado.
+ * `tenantId` NO forma parte de la entrada: se deriva siempre del token del
+ * solicitante para impedir el alta cruzada entre organizaciones.
+ */
 export interface RegisterInput {
   email: string
   password: string
   fullName: string
-  tenantId: string
   role?: UserRole
+}
+
+/** Identidad del solicitante, tomada del JWT verificado. */
+export interface ActorContext {
+  tenantId: string
+  role: string
+}
+
+/** El alta no abre sesion: el usuario creado debe pasar por login + TOTP. */
+export interface RegisterResponse {
+  user: AuthUser
 }
 
 export interface AuthUser {

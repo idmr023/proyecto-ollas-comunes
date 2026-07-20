@@ -9,22 +9,26 @@ import {
   verifyOtpSchema,
 } from './validators'
 import { getOrCreateTotpSecret, verifyTotpCode } from './totp-service'
+import { JWT_SECRET } from '../../lib/config/secrets'
 import {
+  ActorContext,
   AuthResponse,
   AuthUser,
   LoginInput,
   MfaPendingResponse,
   RegisterInput,
+  RegisterResponse,
   TotpSetupInput,
   TotpSetupRequiredResponse,
   TotpSetupResponse,
   VerifyOtpInput,
 } from './types'
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback-secret'
 const JWT_EXPIRES_IN = '24h'
 const TEMP_TOKEN_EXPIRES_IN = '2m'
-const BCRYPT_ROUNDS = 10
+// 12 rondas es la recomendacion actual. Los hashes existentes con 10 rondas
+// siguen verificando sin problema y se re-hashean al vuelo en el login.
+const BCRYPT_ROUNDS = 12
 
 /* ── Utilities ───────────────────────────────────── */
 
@@ -63,6 +67,28 @@ async function buildAuthUser(user: { id: string; email: string; fullName: string
   }
 }
 
+/**
+ * Re-hashea la contrasena si su coste es inferior al actual.
+ *
+ * Se ejecuta tras validar las credenciales, cuando la contrasena en claro esta
+ * disponible, de modo que las cuentas antiguas migran de 10 a 12 rondas sin
+ * pedir al usuario que la cambie. Un fallo aqui no debe impedir el login.
+ */
+async function rehashPasswordIfStale(
+  userId: string,
+  currentHash: string,
+  plainPassword: string,
+): Promise<void> {
+  try {
+    if (bcrypt.getRounds(currentHash) >= BCRYPT_ROUNDS) return
+
+    const passwordHash = await bcrypt.hash(plainPassword, BCRYPT_ROUNDS)
+    await prisma.appUser.update({ where: { id: userId }, data: { passwordHash } })
+  } catch (error) {
+    console.error('[auth] No se pudo re-hashear la contrasena:', error)
+  }
+}
+
 /* ── Step 1: email + password ────────────────────── */
 
 export async function login(input: LoginInput): Promise<AuthResponse | MfaPendingResponse | TotpSetupRequiredResponse> {
@@ -75,6 +101,8 @@ export async function login(input: LoginInput): Promise<AuthResponse | MfaPendin
 
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) throw new AuthError(401, 'Credenciales invalidas.')
+
+  await rehashPasswordIfStale(user.id, user.passwordHash, password)
 
   if (!user.totpSecret) {
     // Sin side-effect: NO creamos/guardamos el secret aqui. Eso sucede en /api/auth/totp/setup,
@@ -123,25 +151,60 @@ export async function verifyOtp(input: VerifyOtpInput): Promise<AuthResponse> {
 
 /* ── Registro ────────────────────────────────────── */
 
-export async function register(input: RegisterInput): Promise<AuthResponse> {
+/**
+ * Que roles puede asignar cada rol. Un rol ausente del mapa no puede dar de
+ * alta a nadie. Nadie puede otorgar mas privilegio del que ya posee.
+ */
+const ROLE_ASSIGNMENT_MATRIX: Record<string, readonly string[]> = {
+  admin_municipal: ['admin_municipal', 'supervisor', 'lideresa_olla'],
+  supervisor: ['lideresa_olla'],
+}
+
+/** Por defecto se asigna el rol de MENOR privilegio, nunca el de mayor. */
+const DEFAULT_ROLE = 'lideresa_olla'
+
+export async function register(
+  actor: ActorContext,
+  input: RegisterInput,
+): Promise<RegisterResponse> {
   const parsed = registerSchema.parse(input)
-  const { email, password, fullName, tenantId, role } = parsed
+  const { email, password, fullName, ollaId } = parsed
+  const requestedRole = parsed.role ?? DEFAULT_ROLE
+
+  const assignableRoles = ROLE_ASSIGNMENT_MATRIX[actor.role] ?? []
+  if (!assignableRoles.includes(requestedRole)) {
+    throw new AuthError(403, 'No tienes permisos para asignar ese rol.')
+  }
 
   const existing = await prisma.appUser.findUnique({ where: { email } })
   if (existing) throw new AuthError(409, 'Ya existe un usuario con ese email.')
 
+  // El tenant proviene del token del solicitante, nunca del cuerpo de la peticion.
+  const tenantId = actor.tenantId
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } })
   if (!tenant) throw new AuthError(404, 'El tenant especificado no existe.')
 
+  // Una lideresa sin olla asignada nace sin acceso a ningun dato: el repositorio
+  // falla cerrado a proposito antes que devolverle una olla arbitraria.
+  if (requestedRole === 'lideresa_olla' && !ollaId) {
+    throw new AuthError(400, 'Debes indicar la olla a cargo de la lideresa.')
+  }
+
+  if (ollaId) {
+    // La olla se valida contra el tenant del solicitante, de modo que no se
+    // puede asignar un usuario a una olla de otra organizacion.
+    const olla = await prisma.ollaComun.findFirst({ where: { id: ollaId, tenantId } })
+    if (!olla) throw new AuthError(404, 'La olla indicada no existe en tu organizacion.')
+  }
+
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS)
   const user = await prisma.appUser.create({
-    data: { email, passwordHash, fullName, tenantId, role: role ?? 'admin_municipal' },
+    data: { email, passwordHash, fullName, tenantId, role: requestedRole, ollaId: ollaId ?? null },
   })
 
-  const authUser = await buildAuthUser(user)
-  const token = generateToken(authUser)
-
-  return { user: authUser, token }
+  // No se emite token: hacerlo abriria sesion saltandose el segundo factor.
+  // El usuario creado debe autenticarse por /login y configurar su TOTP.
+  return { user: await buildAuthUser(user) }
 }
 
 /* ── Get current user ────────────────────────────── */

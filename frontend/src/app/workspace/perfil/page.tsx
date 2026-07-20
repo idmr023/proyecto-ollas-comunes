@@ -19,7 +19,7 @@ const fallbackUser = {
 };
 
 export default function PerfilPage() {
-  const { user, token, setAuth } = useAuthStore();
+  const { user, setAuth } = useAuthStore();
   const currentUser = useMemo(() => user ?? { id: '', ...fallbackUser }, [user]);
 
   const [fullName, setFullName] = useState('');
@@ -64,10 +64,10 @@ export default function PerfilPage() {
 
     setSubmitting(true);
     try {
-      const res = await updateProfileRequest(token || '', payload);
-      if (res.ok && res.user && res.token) {
-        // Actualizar la store global de autenticación con el nuevo token y usuario
-        setAuth(res.user, res.token);
+      const res = await updateProfileRequest(payload);
+      if (res.ok && res.user) {
+        // El backend reemite la cookie de sesión en esta misma respuesta.
+        setAuth(res.user);
         toast.success('Perfil actualizado correctamente.');
         
         // Limpiar campos de contraseña

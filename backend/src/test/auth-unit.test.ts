@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 vi.hoisted(() => {
-  process.env.JWT_SECRET = 'unit-test-secret'
+  process.env.JWT_SECRET = 'unit-test-secret-0123456789abcdef'
 })
 
 vi.mock('../lib/prisma', () => ({
@@ -13,6 +13,9 @@ vi.mock('../lib/prisma', () => ({
     },
     tenant: {
       findUnique: vi.fn(),
+    },
+    ollaComun: {
+      findFirst: vi.fn(),
     },
   },
 }))
@@ -40,10 +43,11 @@ const appUserFindUnique = vi.mocked(prisma.appUser.findUnique)
 const appUserUpdate = vi.mocked(prisma.appUser.update)
 const appUserCreate = vi.mocked(prisma.appUser.create)
 const tenantFindUnique = vi.mocked(prisma.tenant.findUnique)
+const ollaFindFirst = vi.mocked(prisma.ollaComun.findFirst)
 
 beforeEach(() => {
   vi.resetAllMocks()
-  process.env.JWT_SECRET = 'unit-test-secret'
+  process.env.JWT_SECRET = 'unit-test-secret-0123456789abcdef'
 })
 
 describe('getOrCreateTotpSecret', () => {
@@ -149,12 +153,12 @@ describe('login', () => {
 })
 
 function makeTempToken(userId = baseUser.id, email = baseUser.email) {
-  return jwt.sign({ userId, email, purpose: 'mfa' }, 'unit-test-secret', { expiresIn: '2m' })
+  return jwt.sign({ userId, email, purpose: 'mfa' }, 'unit-test-secret-0123456789abcdef', { expiresIn: '2m' })
 }
 
 describe('setupTotp', () => {
   it('throws when tempToken is not mfa-purpose', async () => {
-    const token = jwt.sign({ userId: 'u', email: 'a@b.com' }, 'unit-test-secret')
+    const token = jwt.sign({ userId: 'u', email: 'a@b.com' }, 'unit-test-secret-0123456789abcdef')
     await expect(setupTotp({ tempToken: token })).rejects.toMatchObject({ statusCode: 400 })
   })
 
@@ -206,32 +210,132 @@ describe('verifyOtp', () => {
 })
 
 describe('register', () => {
+  const actorTenantId = '33333333-3333-3333-3333-333333333333'
+  const adminActor = { tenantId: actorTenantId, role: 'admin_municipal' }
+
+  const ollaId = '44444444-4444-4444-4444-444444444444'
+
   const validInput = {
     email: 'new@example.com',
-    password: 'secret1',
+    password: 'SecretPass123',
     fullName: 'New User',
-    tenantId: '33333333-3333-3333-3333-333333333333',
   }
+
+  /** Alta de lideresa: exige olla, y la olla debe ser del tenant del actor. */
+  const lideresaInput = { ...validInput, role: 'lideresa_olla' as const, ollaId }
 
   it('throws 409 when email already exists', async () => {
     appUserFindUnique.mockResolvedValue({ ...baseUser })
-    await expect(register(validInput)).rejects.toMatchObject({ statusCode: 409 })
+    await expect(register(adminActor, validInput)).rejects.toMatchObject({ statusCode: 409 })
   })
 
   it('throws 404 when tenant does not exist', async () => {
     appUserFindUnique.mockResolvedValue(null)
     tenantFindUnique.mockResolvedValue(null)
-    await expect(register(validInput)).rejects.toMatchObject({ statusCode: 404 })
+    await expect(register(adminActor, validInput)).rejects.toMatchObject({ statusCode: 404 })
   })
 
-  it('creates a new user and returns token + user', async () => {
+  it('creates a new user without opening a session', async () => {
     appUserFindUnique.mockResolvedValue(null)
-    tenantFindUnique.mockResolvedValue({ id: validInput.tenantId, name: 'T' })
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    ollaFindFirst.mockResolvedValue({ id: ollaId, tenantId: actorTenantId })
     appUserCreate.mockResolvedValue({ ...baseUser, email: validInput.email, fullName: validInput.fullName })
-    const result = await register({ ...validInput, role: 'lideresa_olla' })
-    expect(result.token).toBeTruthy()
+    const result = await register(adminActor, lideresaInput)
     expect(result.user.email).toBe(validInput.email)
+    // El alta no debe emitir token: eso saltaria el segundo factor.
+    expect(result).not.toHaveProperty('token')
     expect(appUserCreate).toHaveBeenCalled()
+  })
+
+  /* --- C-1: escalada de privilegios --- */
+
+  it('derives tenantId from the actor and ignores any tenantId in the body', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    appUserCreate.mockResolvedValue({ ...baseUser, email: validInput.email })
+
+    await expect(
+      register(adminActor, {
+        ...validInput,
+        tenantId: '99999999-9999-4999-8999-999999999999',
+      } as never),
+    ).rejects.toBeTruthy()
+  })
+
+  it('defaults to the least-privileged role, not admin_municipal', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    ollaFindFirst.mockResolvedValue({ id: ollaId, tenantId: actorTenantId })
+    appUserCreate.mockResolvedValue({ ...baseUser, email: validInput.email })
+
+    await register(adminActor, { ...validInput, ollaId })
+
+    expect(appUserCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ role: 'lideresa_olla', tenantId: actorTenantId }),
+      }),
+    )
+  })
+
+  /* --- Vinculo usuario-olla --- */
+
+  it('rechaza crear una lideresa sin olla a cargo', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+
+    // Nacer sin olla la dejaria sin acceso a ningun dato.
+    await expect(
+      register(adminActor, { ...validInput, role: 'lideresa_olla' }),
+    ).rejects.toMatchObject({ statusCode: 400 })
+    expect(appUserCreate).not.toHaveBeenCalled()
+  })
+
+  it('rechaza una olla que no pertenece a la organizacion del solicitante', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    ollaFindFirst.mockResolvedValue(null)
+
+    await expect(register(adminActor, lideresaInput)).rejects.toMatchObject({ statusCode: 404 })
+    expect(appUserCreate).not.toHaveBeenCalled()
+  })
+
+  it('persiste la olla asignada', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    ollaFindFirst.mockResolvedValue({ id: ollaId, tenantId: actorTenantId })
+    appUserCreate.mockResolvedValue({ ...baseUser, email: validInput.email })
+
+    await register(adminActor, lideresaInput)
+
+    expect(appUserCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ ollaId }) }),
+    )
+  })
+
+  it('deja sin olla a un rol administrativo', async () => {
+    appUserFindUnique.mockResolvedValue(null)
+    tenantFindUnique.mockResolvedValue({ id: actorTenantId, name: 'T' })
+    appUserCreate.mockResolvedValue({ ...baseUser, email: validInput.email })
+
+    await register(adminActor, { ...validInput, role: 'supervisor' })
+
+    expect(appUserCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ ollaId: null }) }),
+    )
+  })
+
+  it('forbids a supervisor from creating an admin_municipal', async () => {
+    const supervisor = { tenantId: actorTenantId, role: 'supervisor' }
+    await expect(
+      register(supervisor, { ...validInput, role: 'admin_municipal' }),
+    ).rejects.toMatchObject({ statusCode: 403 })
+  })
+
+  it('forbids a lideresa_olla from creating any user', async () => {
+    const lideresa = { tenantId: actorTenantId, role: 'lideresa_olla' }
+    await expect(
+      register(lideresa, { ...validInput, role: 'lideresa_olla' }),
+    ).rejects.toMatchObject({ statusCode: 403 })
   })
 })
 

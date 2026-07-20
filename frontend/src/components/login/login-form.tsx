@@ -12,9 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/auth-store';
+import { apiFetch } from '@/lib/http';
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
 
 /* ── Step 1 schema ──────────────────────────── */
 const loginSchema = z.object({
@@ -57,9 +56,8 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, password: data.password }),
       });
       const json = await res.json();
@@ -73,9 +71,8 @@ export function LoginForm() {
         setMfaEmail(json.email);
         // Segundo paso: pedir al backend que genere/persista el secret. Solo
         // en este momento el secret se guarda en BD.
-        const setupRes = await fetch(`${API_BASE}/api/auth/totp/setup`, {
+        const setupRes = await apiFetch('/api/auth/totp/setup', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tempToken: json.tempToken }),
         });
         if (!setupRes.ok) {
@@ -101,7 +98,7 @@ export function LoginForm() {
       }
 
       if (json.token && json.user) {
-        setAuth(json.user, json.token);
+        setAuth(json.user);
         toast.success('Sesión iniciada correctamente');
         setTimeout(() => router.replace('/workspace/home'), 1200);
         return;
@@ -118,9 +115,8 @@ export function LoginForm() {
   async function onOtpSubmit(data: OtpFormValues) {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+      const res = await apiFetch('/api/auth/verify-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: mfaEmail, tempToken, code: data.code }),
       });
       const json = await res.json();
@@ -129,7 +125,7 @@ export function LoginForm() {
         throw new Error(json.message ?? 'Código inválido.');
       }
 
-      setAuth(json.user, json.token);
+      setAuth(json.user);
       toast.success('Sesión iniciada correctamente');
       setTimeout(() => router.replace('/workspace/home'), 1200);
     } catch (err) {

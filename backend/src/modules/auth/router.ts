@@ -1,5 +1,8 @@
 import { Router, Response } from 'express'
-import { requireAuth } from '../../lib/middleware/auth'
+import { requireAuth, requireRole } from '../../lib/middleware/auth'
+import { PERMISSIONS } from '../../lib/permissions'
+import { debugDetail } from '../../lib/debug'
+import { clearSessionCookie, setSessionCookie } from '../../lib/auth-cookie'
 import { AuthError } from './errors'
 import { login, register, getMe, verifyOtp, updateProfile, setupTotp } from './service'
 import { ZodError } from 'zod'
@@ -25,7 +28,7 @@ function handleError(error: unknown, response: Response) {
   response.status(500).json({
     ok: false,
     message: 'Error interno del servidor.',
-    ...(process.env.NODE_ENV !== 'production' ? { detail: String(error) } : {}),
+    ...debugDetail(error),
   })
 }
 
@@ -50,25 +53,50 @@ authRouter.post('/totp/setup', async (request, response) => {
   }
 })
 
-// POST /api/auth/verify-otp — TOTP code → JWT
+// POST /api/auth/verify-otp — TOTP code → sesion
 authRouter.post('/verify-otp', async (request, response) => {
   try {
     const result = await verifyOtp(request.body)
+
+    // La sesion del cliente web viaja en cookie httpOnly. El token sigue en el
+    // cuerpo para los clientes que no usan cookies (app movil nativa); el
+    // frontend web lo ignora y no lo persiste en ningun almacen accesible a JS.
+    setSessionCookie(response, result.token)
+
     response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)
   }
 })
 
-// POST /api/auth/register — Create new user
-authRouter.post('/register', async (request, response) => {
-  try {
-    const result = await register(request.body)
-    response.status(201).json({ ok: true, ...result })
-  } catch (error) {
-    handleError(error, response)
-  }
+// POST /api/auth/logout — invalida la sesion del navegador.
+// No requiere sesion valida: cerrar sesion con un token ya expirado debe
+// limpiar la cookie igualmente en lugar de devolver 401.
+authRouter.post('/logout', (_request, response) => {
+  clearSessionCookie(response)
+  response.json({ ok: true })
 })
+
+// POST /api/auth/register — Alta de usuario dentro de la organizacion del
+// solicitante. No es un registro publico: exige sesion y rol administrativo,
+// y el tenant se deriva del token (nunca del body).
+authRouter.post(
+  '/register',
+  requireAuth,
+  requireRole(...PERMISSIONS.users.create),
+  async (request, response) => {
+    try {
+      const actor = {
+        tenantId: request.user!.tenantId,
+        role: request.user!.role,
+      }
+      const result = await register(actor, request.body)
+      response.status(201).json({ ok: true, ...result })
+    } catch (error) {
+      handleError(error, response)
+    }
+  },
+)
 
 // GET /api/auth/me — Current user info
 authRouter.get('/me', requireAuth, async (request, response) => {
@@ -88,6 +116,11 @@ authRouter.get('/me', requireAuth, async (request, response) => {
 authRouter.patch('/profile', requireAuth, async (request, response) => {
   try {
     const result = await updateProfile(request.user!.userId, request.body)
+
+    // El perfil reemite el JWT (cambia email/nombre): la cookie debe seguirlo,
+    // o el navegador quedaria con una sesion desincronizada hasta expirar.
+    setSessionCookie(response, result.token)
+
     response.json({ ok: true, ...result })
   } catch (error) {
     handleError(error, response)

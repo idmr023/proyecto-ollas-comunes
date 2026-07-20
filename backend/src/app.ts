@@ -12,6 +12,7 @@ import {
 import { prisma, isPrismaConfigured } from './lib/prisma'
 import { resolveAllowedOrigins } from './lib/cors'
 import { requireAuth } from './lib/middleware/auth'
+import { debugDetail } from './lib/debug'
 import { authRouter } from './modules/auth/router'
 import { beneficiariesRouter } from './modules/beneficiaries/router'
 import { mobileRouter } from './modules/mobile/router'
@@ -36,6 +37,20 @@ const authLimiter = rateLimit({
   message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
 })
 
+// Limitador global: hasta ahora solo /api/auth estaba protegido, dejando el
+// resto de la API sin techo de peticiones.
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max:
+    parseInt(process.env.RATE_LIMIT_GLOBAL_MAX ?? '', 10) ||
+    (process.env.NODE_ENV === 'production' ? 300 : 100000),
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Los healthchecks de la plataforma no deben consumir cuota.
+  skip: (request) => request.path.startsWith('/api/health'),
+  message: { ok: false, message: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
+})
+
 // --- CORS (whitelist explícita, sin comodines) ---
 
 const NODE_ENV = process.env.NODE_ENV ?? 'development'
@@ -57,12 +72,19 @@ app.use(
       if (allowedOrigins.includes(origin)) return callback(null, true)
       callback(new Error(`Origin ${origin} not allowed by CORS`))
     },
-    credentials: false,
+    // Necesario para que el navegador envie y acepte la cookie de sesion.
+    // Es seguro porque el origen se valida contra una whitelist explicita
+    // (nunca un comodin), que es justo lo que `credentials: true` exige.
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 )
 
-app.use(express.json())
+// Acota el cuerpo de las peticiones: sin limite explicito, un solo POST puede
+// forzar al proceso a materializar un JSON arbitrariamente grande en memoria.
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT ?? '10mb' }))
+
+app.use(globalLimiter)
 
 // --- Routes ---
 
@@ -105,10 +127,13 @@ app.get('/api/health/prisma', async (_request, response) => {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    // El detalle va al log, no a la respuesta: estos endpoints son publicos y
+    // el mensaje de Prisma revela host, puerto y nombres de tablas.
+    console.error('[health] Fallo de conexion con Prisma:', error)
     response.status(503).json({
       ok: false,
       service: 'prisma',
-      message: error instanceof Error ? error.message : 'Error de conexion con Prisma',
+      ...debugDetail(error),
     })
   }
 })
@@ -130,12 +155,12 @@ app.get('/api/health/supabase', async (_request, response) => {
       .select('*', { count: 'exact', head: true })
 
     if (error) {
+      console.error('[health] Fallo de conexion con Supabase (tabla):', error)
       response.status(503).json({
         ok: false,
         service: 'supabase',
         mode: 'table',
-        table: supabaseHealthcheckTable,
-        message: error.message,
+        ...debugDetail(error),
       })
       return
     }
@@ -153,11 +178,12 @@ app.get('/api/health/supabase', async (_request, response) => {
   const { error } = await supabase.storage.listBuckets()
 
   if (error) {
+    console.error('[health] Fallo de conexion con Supabase (storage):', error)
     response.status(503).json({
       ok: false,
       service: 'supabase',
       mode: 'storage',
-      message: error.message,
+      ...debugDetail(error),
     })
     return
   }

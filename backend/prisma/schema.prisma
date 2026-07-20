@@ -229,8 +229,13 @@ model AppUser {
   role         String       @db.VarChar(30)
   status       String       @default("active") @db.VarChar(20)
   totpSecret   String?      @map("totp_secret") @db.VarChar(255)
+  // Olla a cargo del usuario. Obligatoria en la practica para `lideresa_olla`;
+  // nula para roles administrativos, que operan sobre toda la organizacion.
+  // Sin esta columna no habia forma de saber que olla gestiona cada lideresa.
+  ollaId       String?      @map("olla_id") @db.Uuid
   createdAt    DateTime     @default(now()) @map("created_at")
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  olla         OllaComun?   @relation(fields: [ollaId], references: [id], onDelete: SetNull)
   inventoryMovements InventoryMovement[]
   menuPlans    MenuPlan[]
   mealDeliveries MealDelivery[]
@@ -238,6 +243,7 @@ model AppUser {
   documents    Document[]
   auditLogs    AuditLog[]
   @@index([tenantId])
+  @@index([ollaId])
   @@map("app_users")
 }
 
@@ -266,6 +272,7 @@ model OllaComun {
   tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   district             District?             @relation(fields: [districtId], references: [id])
   beneficiaries        Beneficiary[]
+  assignedUsers        AppUser[]
   inventoryMovements   InventoryMovement[]
   inventoryStocks      InventoryStock[]
   menuPlans            MenuPlan[]

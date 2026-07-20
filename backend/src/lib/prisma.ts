@@ -62,10 +62,14 @@ function extendPrismaClient(client: PrismaClient) {
         if (model && mutations.includes(operation)) {
           const userId = userContextStorage.getStore()?.userId
           if (userId) {
+            // Defensa en profundidad: el userId ya viene validado desde el
+            // middleware de auth, pero nunca se interpola en SQL crudo.
+            if (!isUuid(userId)) {
+              throw new Error('[prisma] userId de contexto no es un UUID valido.')
+            }
+
             return client.$transaction(async (tx) => {
-              await tx.$executeRawUnsafe(
-                `SELECT set_config('app.current_user_id', '${userId}', true)`,
-              )
+              await tx.$executeRaw`SELECT set_config('app.current_user_id', ${userId}, true)`
               const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
               processedArgs.add(args as object)
               return (tx as any)[modelKey][operation](args)
@@ -79,6 +83,7 @@ function extendPrismaClient(client: PrismaClient) {
 }
 
 import { userContextStorage } from './user-context'
+import { isUuid } from './config/secrets'
 
 export const prisma: PrismaClient =
   globalForPrisma.prisma ?? createPrismaClient()

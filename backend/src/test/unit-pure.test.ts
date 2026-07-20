@@ -57,6 +57,17 @@ function mockRes() {
   return res
 }
 
+// El middleware exige UUIDs reales: userId llega a una sentencia SQL y
+// tenantId gobierna el aislamiento entre organizaciones.
+const TEST_USER_ID = '11111111-1111-4111-8111-111111111111'
+const TEST_TENANT_ID = '22222222-2222-4222-8222-222222222222'
+
+function testSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('JWT_SECRET debe estar definida por test/setup.ts')
+  return secret
+}
+
 describe('requireAuth', () => {
   it('rejects when no Authorization header is present', () => {
     const req = mockReq()
@@ -85,17 +96,93 @@ describe('requireAuth', () => {
 
   it('accepts a valid token and attaches user', () => {
     const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
-    const expectedSecret = process.env.JWT_SECRET ?? 'fallback-secret'
     const token = jwt.sign(
-      { userId: 'u1', email: 'a@b.com', tenantId: 't1', role: 'admin', fullName: 'X' },
-      expectedSecret,
+      { userId: TEST_USER_ID, email: 'a@b.com', tenantId: TEST_TENANT_ID, role: 'admin', fullName: 'X' },
+      testSecret(),
     )
     const req = mockReq({ authorization: `Bearer ${token}` })
     const res = mockRes()
     let called = false
     requireAuth(req, res, () => { called = true })
     expect(called).toBe(true)
-    expect((req as any).user.userId).toBe('u1')
+    expect((req as any).user.userId).toBe(TEST_USER_ID)
+  })
+
+  /* --- C-4: el userId acaba en una sentencia SQL --- */
+
+  it('rejects a signed token whose userId is not a UUID', () => {
+    const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
+    const token = jwt.sign(
+      { userId: "u1'); DROP TABLE app_user;--", email: 'a@b.com', tenantId: TEST_TENANT_ID, role: 'admin', fullName: 'X' },
+      testSecret(),
+    )
+    const req = mockReq({ authorization: `Bearer ${token}` })
+    const res = mockRes()
+    requireAuth(req, res, () => { throw new Error('next should not be called') })
+    expect(res.statusCode).toBe(401)
+    expect((req as any).user).toBeUndefined()
+  })
+
+  it('rejects a signed token whose tenantId is not a UUID', () => {
+    const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
+    const token = jwt.sign(
+      { userId: TEST_USER_ID, email: 'a@b.com', tenantId: 't1', role: 'admin', fullName: 'X' },
+      testSecret(),
+    )
+    const req = mockReq({ authorization: `Bearer ${token}` })
+    const res = mockRes()
+    requireAuth(req, res, () => { throw new Error('next should not be called') })
+    expect(res.statusCode).toBe(401)
+  })
+})
+
+/* --- A-3: la sesion viaja en cookie httpOnly --- */
+
+describe('requireAuth con cookie de sesion', () => {
+  function signed(payload: Record<string, unknown> = {}) {
+    const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
+    return jwt.sign(
+      { userId: TEST_USER_ID, email: 'a@b.com', tenantId: TEST_TENANT_ID, role: 'admin', fullName: 'X', ...payload },
+      testSecret(),
+    )
+  }
+
+  it('acepta la sesion enviada en la cookie sigo_session', () => {
+    const req = mockReq({ cookie: `sigo_session=${signed()}` })
+    let called = false
+    requireAuth(req, mockRes(), () => { called = true })
+    expect(called).toBe(true)
+    expect((req as any).user.userId).toBe(TEST_USER_ID)
+  })
+
+  it('encuentra la cookie entre otras', () => {
+    const req = mockReq({ cookie: `theme=dark; sigo_session=${signed()}; lang=es` })
+    let called = false
+    requireAuth(req, mockRes(), () => { called = true })
+    expect(called).toBe(true)
+  })
+
+  it('sigue aceptando Bearer para clientes sin cookies', () => {
+    const req = mockReq({ authorization: `Bearer ${signed()}` })
+    let called = false
+    requireAuth(req, mockRes(), () => { called = true })
+    expect(called).toBe(true)
+  })
+
+  it('da prioridad a la cookie sobre un Authorization manipulado', () => {
+    const otherUser = '33333333-3333-4333-8333-333333333333'
+    const req = mockReq({
+      cookie: `sigo_session=${signed()}`,
+      authorization: `Bearer ${signed({ userId: otherUser })}`,
+    })
+    requireAuth(req, mockRes(), () => undefined)
+    expect((req as any).user.userId).toBe(TEST_USER_ID)
+  })
+
+  it('responde 401 cuando no hay cookie ni cabecera', () => {
+    const res = mockRes()
+    requireAuth(mockReq({ cookie: 'theme=dark' }), res, () => { throw new Error('next should not run') })
+    expect(res.statusCode).toBe(401)
   })
 })
 
@@ -111,12 +198,14 @@ describe('optionalAuth', () => {
 
   it('attaches user when token is valid, ignores when invalid', () => {
     const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken')
-    const expectedSecret = process.env.JWT_SECRET ?? 'fallback-secret'
-    const token = jwt.sign({ userId: 'u1', email: 'a@b.com', tenantId: 't1', role: 'r', fullName: 'N' }, expectedSecret)
+    const token = jwt.sign(
+      { userId: TEST_USER_ID, email: 'a@b.com', tenantId: TEST_TENANT_ID, role: 'r', fullName: 'N' },
+      testSecret(),
+    )
 
     const reqOk = mockReq({ authorization: `Bearer ${token}` })
     optionalAuth(reqOk, mockRes(), () => undefined)
-    expect((reqOk as any).user.userId).toBe('u1')
+    expect((reqOk as any).user.userId).toBe(TEST_USER_ID)
 
     const reqBad = mockReq({ authorization: 'Bearer xxx' })
     optionalAuth(reqBad, mockRes(), () => undefined)
@@ -183,16 +272,23 @@ describe('totpSetupSchema', () => {
 describe('registerSchema', () => {
   const base = {
     email: 'a@b.com',
-    password: 'secret1',
+    password: 'SecretPass123',
     fullName: 'User',
-    tenantId: '00000000-0000-0000-0000-000000000001',
   }
   it('rejects password shorter than 6', () => {
     const r = registerSchema.safeParse({ ...base, password: '123' })
     expect(r.success).toBe(false)
   })
-  it('rejects invalid uuid tenantId', () => {
-    const r = registerSchema.safeParse({ ...base, tenantId: 'not-uuid' })
+  it('rejects a tenantId supplied in the body (C-1)', () => {
+    // El tenant se deriva del token; aceptarlo aqui permitiria el alta cruzada.
+    const r = registerSchema.safeParse({
+      ...base,
+      tenantId: '00000000-0000-0000-0000-000000000001',
+    })
+    expect(r.success).toBe(false)
+  })
+  it('rejects an unknown role', () => {
+    const r = registerSchema.safeParse({ ...base, role: 'super_admin' })
     expect(r.success).toBe(false)
   })
   it('accepts a valid payload with optional role', () => {

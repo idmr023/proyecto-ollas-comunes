@@ -25,11 +25,11 @@ import { prisma } from '../lib/prisma'
 const tenantDelete = vi.mocked(prisma.tenant.delete)
 import { OrganizationRepository } from '../modules/organizations/repository'
 import {
-  listOrganizations,
-  getOrganizationBySlug,
+  listOrganizationsForTenant,
+  getOrganizationForTenant,
   createOrganization,
-  updateOrganizationBySlug,
-  updateOrganizationStatusBySlug,
+  updateOrganizationForTenant,
+  updateOrganizationStatusForTenant,
   getAdminDashboard,
   getTenantInventoryStock,
   getTenantInventoryMovements,
@@ -149,24 +149,50 @@ describe('OrganizationRepository', () => {
   })
 })
 
-describe('listOrganizations', () => {
-  it('returns mapped list', async () => {
-    tenantFindMany.mockResolvedValue([sampleTenant] as any)
-    const list = await listOrganizations()
+describe('listOrganizationsForTenant', () => {
+  it('returns only the caller organization', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    const list = await listOrganizationsForTenant(sampleTenant.id)
+    expect(list).toHaveLength(1)
     expect(list[0]).toMatchObject({ name: sampleTenant.name, status: 'Activa' })
+    // C-2: nunca debe recorrer todos los tenants de la plataforma.
+    expect(tenantFindMany).not.toHaveBeenCalled()
+  })
+
+  it('returns an empty list when the tenant no longer exists', async () => {
+    tenantFindUnique.mockResolvedValue(null)
+    expect(await listOrganizationsForTenant(sampleTenant.id)).toEqual([])
   })
 })
 
-describe('getOrganizationBySlug', () => {
+describe('getOrganizationForTenant', () => {
   it('throws 404 when not found', async () => {
-    tenantFindMany.mockResolvedValue([])
-    await expect(getOrganizationBySlug('nope')).rejects.toBeInstanceOf(OrganizationServiceError)
+    tenantFindUnique.mockResolvedValue(null)
+    await expect(
+      getOrganizationForTenant('nope', sampleTenant.id),
+    ).rejects.toBeInstanceOf(OrganizationServiceError)
   })
 
-  it('returns mapped organization when found', async () => {
-    tenantFindMany.mockResolvedValue([sampleTenant] as any)
-    const result = await getOrganizationBySlug('municipalidad-de-lima')
+  it('returns mapped organization when the slug is the caller own', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    const result = await getOrganizationForTenant('municipalidad-de-lima', sampleTenant.id)
     expect(result.name).toBe(sampleTenant.name)
+  })
+
+  /* --- C-2: IDOR cross-tenant --- */
+
+  it('throws 404 (not 403) for a slug belonging to another tenant', async () => {
+    // El tenant del token es el sample; se pide el slug de otra organizacion.
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    await expect(
+      getOrganizationForTenant('municipalidad-de-otro-lugar', sampleTenant.id),
+    ).rejects.toMatchObject({ statusCode: 404 })
+  })
+
+  it('resolves by tenant id, never by scanning every tenant', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    await getOrganizationForTenant('municipalidad-de-lima', sampleTenant.id)
+    expect(tenantFindUnique).toHaveBeenCalledWith({ where: { id: sampleTenant.id } })
   })
 })
 
@@ -193,41 +219,63 @@ describe('createOrganization', () => {
   })
 })
 
-describe('updateOrganizationBySlug', () => {
+describe('updateOrganizationForTenant', () => {
   it('throws 404 when slug not found', async () => {
-    tenantFindMany.mockResolvedValue([])
-    await expect(updateOrganizationBySlug('nope', { name: 'X', category: 'c', location: 'l' })).rejects.toMatchObject({ statusCode: 404 })
+    tenantFindUnique.mockResolvedValue(null)
+    await expect(
+      updateOrganizationForTenant('nope', sampleTenant.id, { name: 'X', category: 'c', location: 'l' }),
+    ).rejects.toMatchObject({ statusCode: 404 })
   })
 
   it('throws 409 when name conflicts with another org', async () => {
-    tenantFindMany
-      .mockResolvedValueOnce([sampleTenant] as any)
-      .mockResolvedValueOnce([{ ...sampleTenant, id: 'other' }] as any)
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    tenantFindMany.mockResolvedValueOnce([{ ...sampleTenant, id: 'other' }] as any)
     await expect(
-      updateOrganizationBySlug('municipalidad-de-lima', { name: 'Municipalidad de Lima', category: 'c', location: 'l' }),
+      updateOrganizationForTenant('municipalidad-de-lima', sampleTenant.id, { name: 'Municipalidad de Lima', category: 'c', location: 'l' }),
     ).rejects.toMatchObject({ statusCode: 409 })
   })
 
   it('updates and returns the mapped org', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
     tenantFindMany.mockResolvedValue([sampleTenant] as any)
     tenantUpdate.mockResolvedValue({ ...sampleTenant, name: 'New Name' } as any)
-    const result = await updateOrganizationBySlug('municipalidad-de-lima', { name: 'New Name', category: 'c', location: 'l' })
+    const result = await updateOrganizationForTenant('municipalidad-de-lima', sampleTenant.id, { name: 'New Name', category: 'c', location: 'l' })
     expect(result.name).toBe('New Name')
+  })
+
+  /* --- C-2: la mutacion cross-tenant era el hallazgo mas grave --- */
+
+  it('refuses to modify an organization belonging to another tenant', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    await expect(
+      updateOrganizationForTenant('organizacion-ajena', sampleTenant.id, { name: 'Hijacked', category: 'c', location: 'l' }),
+    ).rejects.toMatchObject({ statusCode: 404 })
+    expect(tenantUpdate).not.toHaveBeenCalled()
   })
 })
 
-describe('updateOrganizationStatusBySlug', () => {
+describe('updateOrganizationStatusForTenant', () => {
   it('throws 404 when slug not found', async () => {
-    tenantFindMany.mockResolvedValue([])
-    await expect(updateOrganizationStatusBySlug('nope', 'Activa')).rejects.toMatchObject({ statusCode: 404 })
+    tenantFindUnique.mockResolvedValue(null)
+    await expect(
+      updateOrganizationStatusForTenant('nope', sampleTenant.id, 'Activa'),
+    ).rejects.toMatchObject({ statusCode: 404 })
   })
 
   it('maps Spanish status to db value and updates', async () => {
-    tenantFindMany.mockResolvedValue([sampleTenant] as any)
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
     tenantUpdate.mockResolvedValue({ ...sampleTenant, status: 'inactive' } as any)
-    const result = await updateOrganizationStatusBySlug('municipalidad-de-lima', 'Inactiva')
+    const result = await updateOrganizationStatusForTenant('municipalidad-de-lima', sampleTenant.id, 'Inactiva')
     expect(result.status).toBe('Inactiva')
     expect(tenantUpdate).toHaveBeenCalledWith({ where: { id: sampleTenant.id }, data: { status: 'inactive' } })
+  })
+
+  it('refuses to deactivate an organization belonging to another tenant', async () => {
+    tenantFindUnique.mockResolvedValue(sampleTenant as any)
+    await expect(
+      updateOrganizationStatusForTenant('organizacion-ajena', sampleTenant.id, 'Inactiva'),
+    ).rejects.toMatchObject({ statusCode: 404 })
+    expect(tenantUpdate).not.toHaveBeenCalled()
   })
 })
 
