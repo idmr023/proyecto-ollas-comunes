@@ -163,6 +163,20 @@ rol es `lideresa_olla`.
 
 ### 7. Ejecutar las pruebas que necesitan entorno vivo
 
+> [!CAUTION]
+> **`npm test` en local escribe en producción.** El `DATABASE_URL` de `backend/.env`
+> apunta a Supabase (`aws-1-us-east-1.pooler.supabase.com`), y `npm test` ejecuta
+> también `integration.test.ts` y `functional.test.ts`, que **crean organizaciones,
+> ollas y beneficiarios reales**.
+>
+> Ya hay organizaciones llamadas «Organización Integración NNNN» en la base, de
+> ejecuciones anteriores.
+>
+> - [ ] Apuntar el `.env` de desarrollo a una base local o de staging.
+> - [ ] Revisar y limpiar los datos de prueba que hayan quedado en producción.
+>
+> El workflow de CI usa un Postgres efímero precisamente para no depender de esto.
+
 - [ ] `integration.test.ts`
 - [ ] `functional.test.ts`
 
@@ -233,7 +247,7 @@ cabecera.
 | Prioridad | Tarea                                                      | Nota                                                                                                                                                                                                                                                        |
 | --------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Alta**  | **A-1 — RLS inefectivo**                                   | Lo más importante que queda. Cero referencias a `current_tenant_id`: las 20 políticas no se activan nunca. Establecerlo en la transacción es contenido; **conectar Prisma con un rol no propietario toca credenciales de BD y sí necesitaría visto bueno**. |
-| Alta      | CI con Postgres                                            | Sin él, integración y funcionales solo corren a mano. Mejor relación esfuerzo/beneficio pendiente.                                                                                                                                                          |
+| ~~Alta~~ | ~~CI con Postgres~~ | **Hecho.** `.github/workflows/ci.yml`, con Postgres efímero y seed propio. **Su primera ejecución no se ha visto**: no había motor de Docker para validarlo en local. Es lo primero que conviene revisar. |
 | Media     | Conteos globales en el dashboard                           | Fuga cross-tenant en `getAdminDashboard`. Dos líneas.                                                                                                                                                                                                       |
 | Media     | M-6 · validar TLS contra la CA de Supabase                 |                                                                                                                                                                                                                                                             |
 | Media     | M-8 · slug como columna indexada                           | Las rutas críticas ya usan `findById`.                                                                                                                                                                                                                      |
