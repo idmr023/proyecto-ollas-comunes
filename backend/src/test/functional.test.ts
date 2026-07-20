@@ -14,7 +14,17 @@ let testTenantId: string = ''
 let testBeneficiaryId: string = ''
 let testInsumoId: string = ''
 let testOllaId: string = ''
-const testDni = String(80000000 + Math.floor(Math.random() * 10000000))
+/**
+ * El backend exige DNI de exactamente 8 digitos (`/^\d{8}$/`), asi que los
+ * identificadores de prueba deben respetar ese formato. Varios casos usaban
+ * `` `F03${Date.now()}` ``, que empieza por letras y mide 16 caracteres: el alta
+ * previa fallaba con 400 y el caso real ni siquiera llegaba a ejercitarse.
+ */
+function randomDni(): string {
+  return String(80000000 + Math.floor(Math.random() * 10000000))
+}
+
+const testDni = randomDni()
 
 
 beforeAll(async () => {
@@ -345,7 +355,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
   })
 
   it('F-14: Entregas - Registro múltiple', async () => {
-    const uniqueDni = `F14${Date.now()}`
+    const uniqueDni = randomDni()
     const tempRes = await fetch(`${BASE_URL}/api/beneficiaries`, {
       method: 'POST',
       headers: {
@@ -566,7 +576,7 @@ describe('Suite 1: Pruebas Funcionales Automatizadas (15 Casos)', () => {
   })
 
   it('F-03: Falla - Prioridad inválida', async () => {
-    const uniqueDni = `F03${Date.now()}`
+    const uniqueDni = randomDni()
     const tempRes = await fetch(`${BASE_URL}/api/beneficiaries`, {
       method: 'POST',
       headers: {
