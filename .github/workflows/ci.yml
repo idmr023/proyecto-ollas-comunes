@@ -68,7 +68,9 @@ jobs:
         run: npm ci
 
       - name: Crear el esquema
-        run: npx prisma db push --skip-generate
+        # Sin --skip-generate: Prisma 7 no admite ese flag, y `npm ci` ya ejecuta
+        # `prisma generate` en su postinstall.
+        run: npx prisma db push
 
       - name: Sembrar datos de prueba
         run: node prisma/seed-ci.cjs
